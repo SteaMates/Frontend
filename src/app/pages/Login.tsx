@@ -1,5 +1,6 @@
 import { useNavigate, useSearchParams } from "react-router";
 import { useEffect, useState } from "react";
+import api from '@/lib/api';
 import { toast } from "sonner";
 import { Gamepad2, Loader2 } from "lucide-react";
 
@@ -31,7 +32,29 @@ export function Login() {
       localStorage.setItem('user', JSON.stringify(userData));
       localStorage.setItem('steamId', steamId);
       toast.success(`¡Bienvenido, ${username}!`);
-      navigate('/');
+
+      // Try to validate session with backend (cookies must be set by backend)
+      if (import.meta.env.VITE_API_URL) {
+        api.get('/api/auth/me')
+          .then((res) => {
+            // If backend reports authenticated, proceed normally
+            if (res.data?.authenticated) {
+              navigate('/');
+            } else {
+              // Session not present on backend — likely cookie/CORS issue
+              toast.error('No se pudo establecer la sesión en el servidor. Revisa CORS y las cookies.');
+              navigate('/');
+            }
+          })
+          .catch((err) => {
+            console.warn('Error validating session with backend:', err);
+            toast.error('Error al conectar con el backend. Asegura VITE_API_URL y CLIENT_URL.');
+            navigate('/');
+          });
+      } else {
+        // No backend URL configured — just continue
+        navigate('/');
+      }
     }
   }, [searchParams, navigate]);
 
