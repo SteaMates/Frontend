@@ -22,37 +22,41 @@ export function Login() {
     }
 
     if (steamId && username) {
-      // Save user data from Steam callback
-      const userData = {
+      // Data received from Steam callback
+      const paramsUser = {
         steamId,
         username,
         avatar: avatar || '',
         profileUrl: searchParams.get('profileUrl') || '',
       };
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('steamId', steamId);
-      toast.success(`¡Bienvenido, ${username}!`);
 
-      // Try to validate session with backend (cookies must be set by backend)
+      // If backend is configured, validate session first (cookie must be set)
       if (import.meta.env.VITE_API_URL) {
         api.get('/api/auth/me')
           .then((res) => {
-            // If backend reports authenticated, proceed normally
             if (res.data?.authenticated) {
+              // Prefer server user when available
+              const serverUser = res.data.user || paramsUser;
+              localStorage.setItem('user', JSON.stringify(serverUser));
+              localStorage.setItem('steamId', serverUser.steamId);
+              toast.success(`¡Bienvenido, ${serverUser.username}!`);
               navigate('/');
             } else {
               // Session not present on backend — likely cookie/CORS issue
               toast.error('No se pudo establecer la sesión en el servidor. Revisa CORS y las cookies.');
-              navigate('/');
+              // Do not persist user until backend session is confirmed
+              // Keep user on login so they can retry
             }
           })
           .catch((err) => {
             console.warn('Error validating session with backend:', err);
             toast.error('Error al conectar con el backend. Asegura VITE_API_URL y CLIENT_URL.');
-            navigate('/');
           });
       } else {
-        // No backend URL configured — just continue
+        // No backend URL configured — persist minimal client-side data
+        localStorage.setItem('user', JSON.stringify(paramsUser));
+        localStorage.setItem('steamId', steamId);
+        toast.success(`¡Bienvenido, ${username}!`);
         navigate('/');
       }
     }
