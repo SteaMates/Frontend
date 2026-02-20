@@ -36,7 +36,7 @@ export function Home() {
             <Users size={24} />
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">Comunidad y Amigos</h3>
-          <p className="text-slate-400 mb-4">Crea listas colaborativas, vota y decide qué jugar con tu grupo.</p>
+          <p className="text-slate-400 mb-4">Crea listas colaboratiivas, vota y decide qué jugar con tu grupo.</p>
         </div>
 
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition-colors group">
