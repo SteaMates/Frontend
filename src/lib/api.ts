@@ -1,11 +1,9 @@
 import axios from 'axios';
 
 // In development, Vite proxy handles /api → backend
-// In production, use VITE_API_URL to point to the deployed backend
-const API_URL = import.meta.env.VITE_API_URL || '';
-
+// In production, Vercel rewrites handle /api → backend
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: '',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
@@ -13,4 +11,3 @@ const api = axios.create({
 });
 
 export default api;
-export { API_URL };

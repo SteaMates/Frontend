@@ -30,43 +30,39 @@ export function Login() {
         profileUrl: searchParams.get('profileUrl') || '',
       };
 
-      // If backend is configured, validate session first (cookie must be set)
-      if (import.meta.env.VITE_API_URL) {
-        api.get('/api/auth/me')
-          .then((res) => {
-            if (res.data?.authenticated) {
-              // Prefer server user when available
-              const serverUser = res.data.user || paramsUser;
-              localStorage.setItem('user', JSON.stringify(serverUser));
-              localStorage.setItem('steamId', serverUser.steamId);
-              toast.success(`¡Bienvenido, ${serverUser.username}!`);
-              navigate('/');
-            } else {
-              // Session not present on backend — likely cookie/CORS issue
-              toast.error('No se pudo establecer la sesión en el servidor. Revisa CORS y las cookies.');
-              // Do not persist user until backend session is confirmed
-              // Keep user on login so they can retry
-            }
-          })
-          .catch((err) => {
-            console.warn('Error validating session with backend:', err);
-            toast.error('Error al conectar con el backend. Asegura VITE_API_URL y CLIENT_URL.');
-          });
-      } else {
-        // No backend URL configured — persist minimal client-side data
-        localStorage.setItem('user', JSON.stringify(paramsUser));
-        localStorage.setItem('steamId', steamId);
-        toast.success(`¡Bienvenido, ${username}!`);
-        navigate('/');
-      }
+      // Validate session with backend (cookie is same-origin via Vercel proxy)
+      api.get('/api/auth/me')
+        .then((res) => {
+          if (res.data?.authenticated) {
+            // Prefer server user when available
+            const serverUser = res.data.user || paramsUser;
+            localStorage.setItem('user', JSON.stringify(serverUser));
+            localStorage.setItem('steamId', serverUser.steamId);
+            toast.success(`¡Bienvenido, ${serverUser.username}!`);
+            navigate('/');
+          } else {
+            // Fallback: use params data if session not yet available
+            localStorage.setItem('user', JSON.stringify(paramsUser));
+            localStorage.setItem('steamId', steamId);
+            toast.success(`¡Bienvenido, ${username}!`);
+            navigate('/');
+          }
+        })
+        .catch((err) => {
+          console.warn('Error validating session with backend:', err);
+          // Fallback: use params data
+          localStorage.setItem('user', JSON.stringify(paramsUser));
+          localStorage.setItem('steamId', steamId);
+          toast.success(`¡Bienvenido, ${username}!`);
+          navigate('/');
+        });
     }
   }, [searchParams, navigate]);
 
   const handleSteamLogin = () => {
     setIsLoading(true);
-    // Redirect to backend Steam auth endpoint
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    window.location.href = `${apiUrl}/api/auth/steam`;
+    // Redirect to Steam auth via Vercel proxy → backend
+    window.location.href = '/api/auth/steam';
   };
 
   return (
@@ -77,16 +73,16 @@ export function Login() {
 
         <div className="mb-8 relative z-10 flex justify-center">
           <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20 transform rotate-3">
-             <Gamepad2 size={40} className="text-white" />
+            <Gamepad2 size={40} className="text-white" />
           </div>
         </div>
-        
+
         <h1 className="text-3xl font-bold text-white mb-2 relative z-10">SteaMates</h1>
         <p className="text-slate-400 mb-8 relative z-10">
           Tu compañero definitivo para Steam. Descubre ofertas, comparte listas y juega con amigos.
         </p>
 
-        <button 
+        <button
           onClick={handleSteamLogin}
           disabled={isLoading}
           className="w-full bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] hover:text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 border border-[#2a475e] group relative z-10 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -94,15 +90,15 @@ export function Login() {
           {isLoading ? (
             <Loader2 size={24} className="animate-spin" />
           ) : (
-            <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" 
-              alt="Steam Logo" 
-              className="w-6 h-6 group-hover:scale-110 transition-transform" 
+            <img
+              src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg"
+              alt="Steam Logo"
+              className="w-6 h-6 group-hover:scale-110 transition-transform"
             />
           )}
           <span>{isLoading ? 'Conectando con Steam...' : 'Iniciar Sesión con Steam'}</span>
         </button>
-        
+
         <p className="mt-6 text-xs text-slate-500 relative z-10">
           Al iniciar sesión, serás redirigido a Steam para autenticarte de forma segura mediante OpenID. No almacenamos tu contraseña.
         </p>
