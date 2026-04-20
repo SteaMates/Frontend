@@ -631,6 +631,7 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                         hasSilenced ? "Silenciado" : null,
                         hasBanned ? "Baneado" : null,
                       ].filter(Boolean) as string[];
+                      const showActiveLabel = statusLabels.length === 0;
 
                       return (
                     <div className="flex items-center gap-2 mb-2">
@@ -649,6 +650,11 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                           {label}
                         </span>
                       ))}
+                      {showActiveLabel && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-emerald-500/10 text-emerald-400">
+                          Activo
+                        </span>
+                      )}
                       {user.moderationHistory && user.moderationHistory.length > 0 && (
                         <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
                           {user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? 'es' : ''}
