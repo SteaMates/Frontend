@@ -12,6 +12,8 @@ import {
   LogOut,
   Shield,
   AlertTriangle,
+  AlertOctagon,
+  MessageSquareOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { clsx } from "clsx";
@@ -40,10 +42,16 @@ export function Layout() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
-  const isWarnedUser = user?.status === "warned" || Boolean(user?.warningReason?.trim());
-  const warningTooltip = user?.warningReason
-    ? `Has sido advertido por: \"${user.warningReason}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
+  const warnedNotice = user?.notices?.find((item) => item.action === "warned");
+  const silencedNotice = user?.notices?.find((item) => item.action === "silenced");
+  const isWarnedUser = Boolean(warnedNotice) || user?.status === "warned" || Boolean(user?.warningReason?.trim());
+  const isSilencedUser = Boolean(silencedNotice) || user?.status === "silenced";
+  const warningTooltip = warnedNotice?.reason || user?.warningReason
+    ? `Has sido advertido por: \"${warnedNotice?.reason || user?.warningReason || ""}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
     : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
+  const silencedTooltip = silencedNotice?.reason
+    ? `Has sido silenciado por: \"${silencedNotice.reason}\". No puedes publicar ni comentar hasta que un administrador levante la sanción.`
+    : "Has sido silenciado por incumplir las normas de la comunidad. No puedes publicar ni comentar hasta que un administrador levante la sanción.";
   const isLoginPage = location.pathname === "/login";
   const activeNotice = loginNotices[activeNoticeIndex] || null;
 
@@ -123,7 +131,12 @@ export function Layout() {
                 <span className="truncate">{user.personaname}</span>
                 {isWarnedUser && (
                   <span title={warningTooltip} aria-label={warningTooltip} className="inline-flex shrink-0">
-                    <AlertTriangle size={14} className="text-orange-400" />
+                    <AlertOctagon size={14} className="text-amber-400" />
+                  </span>
+                )}
+                {isSilencedUser && (
+                  <span title={silencedTooltip} aria-label={silencedTooltip} className="inline-flex shrink-0">
+                    <MessageSquareOff size={14} className="text-orange-400" />
                   </span>
                 )}
               </p>
@@ -364,7 +377,6 @@ export function Layout() {
           <AlertDialogFooter>
             <AlertDialogAction
               className="bg-amber-500 text-slate-950 hover:bg-amber-400"
-              onClick={closeActiveNotice}
             >
               {activeNoticeIndex < loginNotices.length - 1 ? "Siguiente" : "Entendido"}
             </AlertDialogAction>

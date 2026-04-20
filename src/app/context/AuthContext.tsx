@@ -11,6 +11,7 @@ export interface User {
     isAdmin?: boolean;
     status?: 'active' | 'warned' | 'silenced' | 'banned';
     warningReason?: string;
+    notices?: LoginNotice[];
 }
 
 type LoginNotice = {
@@ -54,6 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     isAdmin: res.data.user.role === 'admin' || res.data.user.isAdmin === true,
                     status: res.data.user.status === 'warned' || res.data.user.status === 'silenced' || res.data.user.status === 'banned' ? res.data.user.status : 'active',
                     warningReason: res.data.user.warningReason || '',
+                    notices: Array.isArray(res.data.user.notices)
+                        ? res.data.user.notices
+                            .filter((item: any) => item?.action === 'warned' || item?.action === 'silenced')
+                            .map((item: any) => ({
+                                action: item.action as 'warned' | 'silenced',
+                                reason: typeof item.reason === 'string' ? item.reason : '',
+                            }))
+                        : [],
                 };
                 setUser(userData);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
@@ -115,6 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         if (steamId && token) {
+            const notices = parseLoginNotices();
+
             // Steam callback — extract user data from URL params
             const userData: User = {
                 id: userId || '',
@@ -126,11 +137,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 isAdmin: role === 'admin' || params.get('isAdmin') === 'true',
                 status: status === 'warned' || status === 'silenced' || status === 'banned' ? status : 'active',
                 warningReason: params.get('warningReason') || '',
+                notices,
             };
             setUser(userData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             localStorage.setItem(TOKEN_KEY, token); // <-- Guardamos el Token
-            const notices = parseLoginNotices();
             if (notices.length > 0) {
                 sessionStorage.setItem('steamates_login_notices', JSON.stringify(notices));
             }
@@ -154,6 +165,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         isAdmin: parsed.isAdmin === true || parsed.role === 'admin',
                         status: parsed.status === 'warned' || parsed.status === 'silenced' || parsed.status === 'banned' ? parsed.status : 'active',
                         warningReason: typeof parsed.warningReason === 'string' ? parsed.warningReason : '',
+                        notices: Array.isArray(parsed.notices)
+                            ? parsed.notices
+                                .filter((item: any) => item?.action === 'warned' || item?.action === 'silenced')
+                                .map((item: any) => ({
+                                    action: item.action as 'warned' | 'silenced',
+                                    reason: typeof item.reason === 'string' ? item.reason : '',
+                                }))
+                            : [],
                     };
                     setUser(normalizedUser);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedUser));
