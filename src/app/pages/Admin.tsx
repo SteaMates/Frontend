@@ -10,6 +10,46 @@ import {
 
 type TabType = "moderation" | "users";
 
+type ModerationActionType = "warned" | "silenced" | "banned";
+
+const normalizeStatus = (status?: string) => (status || "").toLowerCase().trim();
+
+const isModerationActionCurrentlyActive = (item: any) => {
+  if (!item?.isActive) return false;
+  if (!item?.expiresAt) return true;
+  return new Date(item.expiresAt).getTime() > Date.now();
+};
+
+const getActiveActionSet = (user: any) => {
+  const actionSet = new Set<string>();
+  const history = Array.isArray(user?.moderationHistory) ? user.moderationHistory : [];
+
+  for (const item of history) {
+    if (!isModerationActionCurrentlyActive(item)) continue;
+    const action = normalizeStatus(item?.action);
+    if (action) {
+      actionSet.add(action);
+    }
+  }
+
+  const fallbackStatus = normalizeStatus(user?.status);
+  if (actionSet.size === 0) {
+    if (fallbackStatus === "warned") actionSet.add("warned");
+    if (fallbackStatus === "silenced") actionSet.add("silenced");
+    if (fallbackStatus === "banned" || fallbackStatus === "suspended") actionSet.add("banned");
+  }
+
+  return actionSet;
+};
+
+const isActionActiveForUser = (user: any, action: ModerationActionType) => {
+  const actions = getActiveActionSet(user);
+  if (action === "banned") {
+    return actions.has("banned") || actions.has("suspended");
+  }
+  return actions.has(action);
+};
+
 export function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("moderation");
@@ -59,10 +99,13 @@ export function Admin() {
       // Calcular stats
       const pendingCount = reportsData.filter(r => r.status === 'pending').length || 0;
       const resolvedCount = reportsData.filter(r => r.status === 'resolved').length || 0;
-      const warnedCount = usersData.filter(u => u.status === 'warned').length || 0;
-      const silencedCount = usersData.filter(u => u.status === 'silenced').length || 0;
-      const bannedCount = usersData.filter(u => u.status === 'banned').length || 0;
-      const activeCount = usersData.filter(u => u.status === 'active').length || 0;
+      const warnedCount = usersData.filter(u => isActionActiveForUser(u, "warned")).length || 0;
+      const silencedCount = usersData.filter(u => isActionActiveForUser(u, "silenced")).length || 0;
+      const bannedCount = usersData.filter(u => isActionActiveForUser(u, "banned")).length || 0;
+      const activeCount = usersData.filter(u => {
+        const actions = getActiveActionSet(u);
+        return !actions.has("warned") && !actions.has("silenced") && !actions.has("banned") && !actions.has("suspended");
+      }).length || 0;
 
       setStats({
         pending: pendingCount,
@@ -346,9 +389,6 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
   setSearchTerm: (val: string) => void;
   onReload: () => void;
 }) {
-  // Acciones soportadas por los botones de sanción del panel.
-  type ModerationActionType = "warned" | "silenced" | "banned";
-
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "warned" | "silenced" | "banned">("all");
   const [showActionModal, setShowActionModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
@@ -364,18 +404,14 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const normalizeStatus = (status?: string) => (status || "").toLowerCase().trim();
-
-  const isActionActiveForUser = (user: any, action: ModerationActionType) => {
-    const normalizedStatus = normalizeStatus(user?.status);
-    if (action === "banned") {
-      return normalizedStatus === "banned" || normalizedStatus === "suspended";
-    }
-    return normalizedStatus === action;
-  };
-
   const filteredUsers = users.filter(u =>
-    (statusFilter === "all" || (statusFilter === "banned" ? isActionActiveForUser(u, "banned") : normalizeStatus(u.status) === statusFilter)) &&
+    (
+      statusFilter === "all" ||
+      (statusFilter === "active" && !isActionActiveForUser(u, "warned") && !isActionActiveForUser(u, "silenced") && !isActionActiveForUser(u, "banned")) ||
+      (statusFilter === "warned" && isActionActiveForUser(u, "warned")) ||
+      (statusFilter === "silenced" && isActionActiveForUser(u, "silenced")) ||
+      (statusFilter === "banned" && isActionActiveForUser(u, "banned"))
+    ) &&
     (u.username?.toLowerCase().includes(searchTerm.toLowerCase()) || u.steamId?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
@@ -579,17 +615,47 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
               <div key={user._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex-1">
+                    {(() => {
+                      const hasWarned = isActionActiveForUser(user, "warned");
+                      const hasSilenced = isActionActiveForUser(user, "silenced");
+                      const hasBanned = isActionActiveForUser(user, "banned");
+                      const effectiveStatus = hasBanned
+                        ? "banned"
+                        : hasSilenced
+                          ? "silenced"
+                          : hasWarned
+                            ? "warned"
+                            : normalizeStatus(user.status) || "active";
+
+                      return (
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="text-sm font-bold text-white">{user.username}</h4>
-                      <span className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(user.status)}`}>
-                        {getStatusLabel(user.status)}
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(effectiveStatus)}`}>
+                        {getStatusLabel(effectiveStatus)}
                       </span>
+                      {hasWarned && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30">
+                          Advertencia activa
+                        </span>
+                      )}
+                      {hasSilenced && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400 border border-orange-500/30">
+                          Silencio activo
+                        </span>
+                      )}
+                      {hasBanned && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400 border border-red-500/30">
+                          Baneo activo
+                        </span>
+                      )}
                       {user.moderationHistory && user.moderationHistory.length > 0 && (
                         <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
                           {user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? 'es' : ''}
                         </span>
                       )}
                     </div>
+                      );
+                    })()}
                     <p className="text-xs text-slate-400">
                       SteamID: {user.steamId} • Miembro desde {new Date(user.createdAt).toLocaleDateString()}
                     </p>
