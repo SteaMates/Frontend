@@ -11,10 +11,6 @@ interface Message {
   hasScreenContext?: boolean;
   image?: string;
 }
-  text: string;
-  image?: string;
-}
-*/
 
 export function AssistantModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -388,10 +384,9 @@ export function AssistantModal() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const [isDragging, setIsDragging] = useState(false);
 
+  const processImageFile = (file: File) => {
     // Check if it's an image
     if (!file.type.startsWith('image/')) {
       alert('Por favor selecciona una imagen válida');
@@ -410,6 +405,47 @@ export function AssistantModal() {
       setAttachedImage(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processImageFile(file);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          processImageFile(file);
+        }
+        break;
+      }
+    }
   };
 
   const handleAttachImage = () => {
@@ -447,7 +483,10 @@ export function AssistantModal() {
               initial={{ opacity: 0, y: 100, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 100, scale: 0.9 }}
-              className={`fixed z-50 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all ${
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`fixed z-50 bg-slate-900 border ${isDragging ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'border-slate-700'} rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all ${
                 isExpanded
                   ? 'inset-4 md:inset-8 lg:inset-16' // Modo expandido (pantalla completa con margen)
                   : 'bottom-20 right-4 md:bottom-28 md:right-10 w-[calc(100vw-2rem)] sm:w-[400px] lg:w-[450px] h-[70vh] sm:h-[500px] md:h-[600px]' // Modo normal (responsive)
@@ -589,7 +628,8 @@ export function AssistantModal() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                      placeholder={hasScreenContext ? "Pregunta sobre lo que ves..." : "Escribe tu pregunta..."}
+                      onPaste={handlePaste}
+                      placeholder={hasScreenContext ? "Pregunta sobre lo que ves..." : "Escribe o pega una imagen..."}
                       className="flex-1 bg-transparent text-white placeholder-slate-500 focus:outline-none"
                     />
                     <button
