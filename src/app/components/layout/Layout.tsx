@@ -13,12 +13,21 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "motion/react";
 import { AssistantModal } from "../ai/AssistantModal";
 import { useAuth } from "../../context/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -26,6 +35,8 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
+  const [warningNoticeReason, setWarningNoticeReason] = useState("");
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
@@ -34,6 +45,27 @@ export function Layout() {
     ? `Has sido advertido por: \"${user.warningReason}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
     : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
   const isLoginPage = location.pathname === "/login";
+
+  useEffect(() => {
+    if (!user || user.status !== "warned") {
+      return;
+    }
+
+    const pendingNotice = sessionStorage.getItem("steamates_warning_notice");
+    if (!pendingNotice) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(pendingNotice) as { reason?: string };
+      setWarningNoticeReason(parsed.reason || user.warningReason || "");
+    } catch {
+      setWarningNoticeReason(user.warningReason || "");
+    }
+
+    setShowWarningDialog(true);
+    sessionStorage.removeItem("steamates_warning_notice");
+  }, [user]);
 
   const navItems = [
     { name: "Inicio", path: "/", icon: Home },
@@ -261,6 +293,34 @@ export function Layout() {
         </div>
       </main>
       <AssistantModal />
+
+      <AlertDialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+        <AlertDialogContent className="border-amber-500/30 bg-slate-950 text-slate-100 max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-amber-400">
+              <AlertTriangle size={18} /> Cuenta advertida
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300 leading-6">
+              {warningNoticeReason ? (
+                <>
+                  Has sido advertido por: <span className="text-slate-100">"{warningNoticeReason}"</span>.
+                  Respeta las normas de la comunidad para no ser baneado por un administrador.
+                </>
+              ) : (
+                <>
+                  Has sido advertido por incumplir las normas de la comunidad.
+                  Respeta las normas de la comunidad para no ser baneado por un administrador.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-amber-500 text-slate-950 hover:bg-amber-400">
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

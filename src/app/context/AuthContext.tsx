@@ -86,6 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             localStorage.setItem(TOKEN_KEY, token); // <-- Guardamos el Token
+            if (userData.status === 'warned') {
+                sessionStorage.setItem('steamates_warning_notice', JSON.stringify({
+                    reason: userData.warningReason || '',
+                    createdAt: Date.now(),
+                }));
+            }
             setLoading(false);
 
             // Clean the URL (remove query params)
