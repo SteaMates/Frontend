@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import {
   Gamepad2,
   Shield,
@@ -7,7 +8,17 @@ import {
   DollarSign,
   Users,
   TrendingUp,
+  AlertTriangle,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 const heroImage =
   "https://www.figma.com/api/mcp/asset/dc41ab6e-19d1-44f5-9001-cf6d17001138";
@@ -16,6 +27,20 @@ const steamLogo =
 
 export function Login() {
   const { user, login } = useAuth();
+  const location = useLocation();
+  const [bannedReason, setBannedReason] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("error") !== "user_banned") {
+      return;
+    }
+
+    setBannedReason(params.get("reason") || "");
+    localStorage.removeItem("steamates_user");
+    localStorage.removeItem("steamates_token");
+    window.history.replaceState({}, "", window.location.pathname);
+  }, [location.search, location.pathname]);
 
   if (user) {
     return <Navigate to="/profile" replace />;
@@ -228,6 +253,34 @@ export function Login() {
           </p>
         </div>
       </div>
+
+      <AlertDialog open={Boolean(bannedReason)} onOpenChange={(open) => !open && setBannedReason("")}>
+        <AlertDialogContent className="border-red-500/30 bg-slate-950 text-slate-100 max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-400">
+              <AlertTriangle size={18} /> Cuenta baneada
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-300 leading-6">
+              {bannedReason ? (
+                <>
+                  Has sido baneado por: <span className="text-slate-100">"{bannedReason}"</span>.
+                  No puedes iniciar sesión hasta que un administrador revise tu caso.
+                </>
+              ) : (
+                <>
+                  Has sido baneado por incumplir las normas de la comunidad.
+                  No puedes iniciar sesión hasta que un administrador revise tu caso.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-red-500 text-white hover:bg-red-400">
+              Entendido
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -13,6 +13,11 @@ export interface User {
     warningReason?: string;
 }
 
+type LoginNotice = {
+    action: 'warned' | 'silenced';
+    reason: string;
+};
+
 interface AuthContextType {
     user: User | null;
     loading: boolean;
@@ -57,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // If it crashes (token expired or invalid)
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(TOKEN_KEY);
+            sessionStorage.removeItem('steamates_login_notices');
             setUser(null);
         }
     };
@@ -69,6 +75,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userId = params.get('id');
         const role = params.get('role');
         const status = params.get('status');
+        const error = params.get('error');
+
+        if (error === 'user_banned') {
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(TOKEN_KEY);
+            sessionStorage.removeItem('steamates_login_notices');
+            setUser(null);
+            setLoading(false);
+            window.history.replaceState({}, '', window.location.pathname);
+            return;
+        }
+
+        const parseLoginNotices = (): LoginNotice[] => {
+            const noticesParam = params.get('notices');
+
+            if (noticesParam) {
+                try {
+                    const parsed = JSON.parse(noticesParam) as Array<Partial<LoginNotice>>;
+                    return parsed
+                        .filter((item): item is LoginNotice => item?.action === 'warned' || item?.action === 'silenced')
+                        .map((item) => ({
+                            action: item.action,
+                            reason: typeof item.reason === 'string' ? item.reason : '',
+                        }));
+                } catch {
+                    // Ignore malformed notices and fall back to status-specific notice.
+                }
+            }
+
+            if (status === 'warned' || status === 'silenced') {
+                return [{
+                    action: status,
+                    reason: params.get('warningReason') || '',
+                }];
+            }
+
+            return [];
+        };
 
         if (steamId && token) {
             // Steam callback — extract user data from URL params
@@ -86,11 +130,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             localStorage.setItem(TOKEN_KEY, token); // <-- Guardamos el Token
-            if (userData.status === 'warned') {
-                sessionStorage.setItem('steamates_warning_notice', JSON.stringify({
-                    reason: userData.warningReason || '',
-                    createdAt: Date.now(),
-                }));
+            const notices = parseLoginNotices();
+            if (notices.length > 0) {
+                sessionStorage.setItem('steamates_login_notices', JSON.stringify(notices));
             }
             setLoading(false);
 
