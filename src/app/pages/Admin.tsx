@@ -626,32 +626,22 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                           : hasWarned
                             ? "warned"
                             : normalizeStatus(user.status) || "active";
-                          const statusLabels = [
-                            hasWarned ? "Advertido" : null,
-                            hasSilenced ? "Silenciado" : null,
-                            hasBanned ? "Baneado" : null,
-                          ].filter(Boolean) as string[];
+                      const statusLabel = hasBanned
+                        ? "Baneado"
+                        : hasWarned && hasSilenced
+                          ? "Advertido y Silenciado"
+                          : hasWarned
+                            ? "Advertido"
+                            : hasSilenced
+                              ? "Silenciado"
+                              : getStatusLabel(effectiveStatus);
 
                       return (
                     <div className="flex items-center gap-2 mb-2">
                       <h4 className="text-sm font-bold text-white">{user.username}</h4>
                       <span className={`text-xs px-2 py-1 rounded font-medium ${getStatusColor(effectiveStatus)}`}>
-                        {getStatusLabel(effectiveStatus)}
+                        {statusLabel}
                       </span>
-                          {statusLabels.map((label) => (
-                            <span
-                              key={label}
-                              className={
-                                label === "Advertido"
-                                  ? "text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400 border border-amber-500/30"
-                                  : label === "Silenciado"
-                                    ? "text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400 border border-orange-500/30"
-                                    : "text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400 border border-red-500/30"
-                              }
-                            >
-                              {label}
-                            </span>
-                          ))}
                       {user.moderationHistory && user.moderationHistory.length > 0 && (
                         <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
                           {user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? 'es' : ''}
