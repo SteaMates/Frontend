@@ -29,7 +29,7 @@ export function Layout() {
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
-  const isWarnedUser = user?.status === "warned";
+  const isWarnedUser = user?.status === "warned" || Boolean(user?.warningReason?.trim());
   const warningTooltip = user?.warningReason
     ? `Has sido advertido por: \"${user.warningReason}\"`
     : "Has sido advertido por incumplir las normas de la comunidad.";

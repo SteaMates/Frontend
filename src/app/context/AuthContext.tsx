@@ -18,6 +18,7 @@ interface AuthContextType {
     loading: boolean;
     login: () => void;
     logout: () => void;
+    refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,6 +29,37 @@ const TOKEN_KEY = 'steamates_token';
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const refreshSession = async () => {
+        if (!localStorage.getItem(TOKEN_KEY)) {
+            setUser(null);
+            return;
+        }
+
+        try {
+            const res = await api.get('/api/auth/me');
+            if (res.data?.user) {
+                const userData: User = {
+                    id: res.data.user.id,
+                    steamid: res.data.user.steamId,
+                    personaname: res.data.user.username,
+                    avatarfull: res.data.user.avatar,
+                    profileurl: res.data.user.profileUrl || `https://steamcommunity.com/profiles/${res.data.user.steamId}`,
+                    role: res.data.user.role === 'admin' ? 'admin' : 'user',
+                    isAdmin: res.data.user.role === 'admin' || res.data.user.isAdmin === true,
+                    status: res.data.user.status === 'warned' || res.data.user.status === 'silenced' || res.data.user.status === 'banned' ? res.data.user.status : 'active',
+                    warningReason: res.data.user.warningReason || '',
+                };
+                setUser(userData);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            }
+        } catch {
+            // If it crashes (token expired or invalid)
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem(TOKEN_KEY);
+            setUser(null);
+        }
+    };
 
     useEffect(() => {
         // 1. Check if we're returning from Steam login (URL has steamId param)
@@ -58,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             // Clean the URL (remove query params)
             window.history.replaceState({}, '', window.location.pathname);
-            return;
         }
 
         // 2. Check localStorage for persisted session
@@ -85,38 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // 3. Fallback: verify the token validity with the backend
-        const checkAuth = async () => {
-            if (!localStorage.getItem(TOKEN_KEY)) {
-                setLoading(false);
-                return;
-            }
-            try {
-                const res = await api.get('/api/auth/me');
-                if (res.data?.user) {
-                    const userData: User = {
-                        id: res.data.user.id,
-                        steamid: res.data.user.steamId,
-                        personaname: res.data.user.username,
-                        avatarfull: res.data.user.avatar,
-                        profileurl: res.data.user.profileUrl || `https://steamcommunity.com/profiles/${res.data.user.steamId}`,
-                        role: res.data.user.role === 'admin' ? 'admin' : 'user',
-                        isAdmin: res.data.user.role === 'admin' || res.data.user.isAdmin === true,
-                        status: res.data.user.status === 'warned' || res.data.user.status === 'silenced' || res.data.user.status === 'banned' ? res.data.user.status : 'active',
-                        warningReason: res.data.user.warningReason || '',
-                    };
-                    setUser(userData);
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-                }
-            } catch {
-                // If it crashes (token expired or invalid)
-                localStorage.removeItem(STORAGE_KEY);
-                localStorage.removeItem(TOKEN_KEY);
-                setUser(null);
-            } finally {
-                setLoading(false);
-            }
+        const bootstrapAuth = async () => {
+            await refreshSession();
+            setLoading(false);
         };
-        checkAuth();
+
+        const onFocus = () => {
+            refreshSession();
+        };
+
+        window.addEventListener('focus', onFocus);
+        bootstrapAuth();
+
+        return () => {
+            window.removeEventListener('focus', onFocus);
+        };
     }, []);
 
     const login = () => {
@@ -137,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, refreshSession }}>
             {children}
         </AuthContext.Provider>
     );
