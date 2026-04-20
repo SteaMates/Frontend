@@ -31,8 +31,8 @@ export function Layout() {
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
   const isWarnedUser = user?.status === "warned" || Boolean(user?.warningReason?.trim());
   const warningTooltip = user?.warningReason
-    ? `Has sido advertido por: \"${user.warningReason}\"`
-    : "Has sido advertido por incumplir las normas de la comunidad.";
+    ? `Has sido advertido por: \"${user.warningReason}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
+    : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
   const isLoginPage = location.pathname === "/login";
 
   const navItems = [
