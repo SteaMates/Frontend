@@ -11,7 +11,6 @@ import api from "../../lib/api";
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS = [
-const SORT_OPTIONS = [
   { value: "Deal Rating",  label: "Más populares" },
   { value: "Savings",      label: "Mayor descuento" },
   { value: "Price",        label: "Más barato" },
