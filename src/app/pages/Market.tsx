@@ -11,18 +11,16 @@ import api from "../../lib/api";
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS = [
-  { value: "Deal Rating",  label: "Más populares" },
-  { value: "Savings",      label: "Mayor descuento" },
-  { value: "Price",        label: "Más barato" },
-  { value: "Release",      label: "Más recientes"  },
+  { value: "Popular", label: "Más populares" },
+  { value: "Savings", label: "Mayor descuento" },
+  { value: "Free",    label: "Gratis" },
 ];
 
 // Maps CheapShark sortBy values → Steam Store sort_by param (used in free-games mode)
 const STEAM_SORT_MAP: Record<string, string> = {
-  "Deal Rating": "Reviews_DESC",
-  "Savings":     "Reviews_DESC",
-  "Price":       "Price_ASC",
-  "Release":     "Released_DESC",
+  "Popular": "Reviews_DESC",
+  "Savings": "Reviews_DESC",
+  "Free":    "Reviews_DESC",
 };
 
 // ── AI recommendations component ─────────────────────────────────────────────
@@ -207,7 +205,7 @@ export function Market() {
 
   // filters
   const [search,   setSearch]   = useState("");
-  const [sortBy,   setSortBy]   = useState("Deal Rating");
+  const [sortBy,   setSortBy]   = useState("Popular");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
@@ -246,8 +244,8 @@ export function Market() {
   }, []);
 
   const hasPriceFilter = minPrice !== "" || maxPrice !== "";
-  const isFreeMode     = maxPrice === "0" && minPrice === "" && !search.trim();
-  const isPopularMode  = !search.trim() && sortBy === "Deal Rating";
+  const isFreeMode     = sortBy === "Free";
+  const isPopularMode  = !search.trim() && sortBy === "Popular";
 
   // tags filtering
   const [tagMap, setTagMap] = useState<Record<string, string[]>>({});
@@ -256,46 +254,55 @@ export function Market() {
   const [tagsLoading, setTagsLoading] = useState(false);
 
   // Derive visible games and appIds
-  const currentItems = isFreeMode || (!search && sortBy === "Deal Rating") || (deals.length === 0 && search) ? steamGames : deals;
+  const currentItems = isFreeMode || isPopularMode || (deals.length === 0 && search) ? steamGames : deals;
   const currentAppIds = currentItems.map(item => {
     if ('steamAppID' in item) return item.steamAppID;
     return item.steamAppID;
   }).filter(Boolean);
 
-  // Fetch tags for current items
+  // Fetch tags for current items (with polling for background fetched tags)
   useEffect(() => {
     if (currentAppIds.length === 0) return;
     
-    // Check if we need to fetch new ones
-    const missing = currentAppIds.filter(id => !tagMap[id]);
-    if (missing.length === 0) {
-      // Recompute available tags
-      const counts: Record<string, number> = {};
-      currentAppIds.forEach(id => {
-        (tagMap[id] || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
-      });
-      const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
-      setAvailableTags(sorted);
-      return;
-    }
+    let intervalId: ReturnType<typeof setInterval>;
 
-    setTagsLoading(true);
-    api.get(`/api/steam/tags?appIds=${missing.join(',')}`).then(res => {
-      const data = res.data || {};
-      setTagMap(prev => {
-        const next = {...prev, ...data};
-        // Recompute available tags
-        const counts: Record<string, number> = {};
-        currentAppIds.forEach(id => {
-          (next[id] || []).forEach((t: string) => { counts[t] = (counts[t] || 0) + 1; });
+    const fetchMissingTags = () => {
+      setTagMap(prevTagMap => {
+        const missing = currentAppIds.filter(id => !prevTagMap[id]);
+        if (missing.length === 0) {
+          if (intervalId) clearInterval(intervalId);
+          setTagsLoading(false);
+          return prevTagMap;
+        }
+
+        setTagsLoading(true);
+        api.get(`/api/steam/tags?appIds=${missing.join(',')}`).then(res => {
+          const data = res.data || {};
+          setTagMap(currentMap => {
+            const next = {...currentMap, ...data};
+            // Recompute available tags
+            const counts: Record<string, number> = {};
+            currentAppIds.forEach(id => {
+              (next[id] || []).forEach((t: string) => { counts[t] = (counts[t] || 0) + 1; });
+            });
+            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
+            setAvailableTags(sorted);
+            return next;
+          });
+        }).finally(() => {
+          // Keep loading true if there are still missing tags that will be polled next time
         });
-        const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
-        setAvailableTags(sorted);
-        return next;
+
+        return prevTagMap; // state update happens in the fetch then
       });
-    }).finally(() => {
-      setTagsLoading(false);
-    });
+    };
+
+    fetchMissingTags(); // initial fetch
+    intervalId = setInterval(fetchMissingTags, 4000); // poll every 4s
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [currentAppIds.join(',')]); // run when appIds change
 
   // Apply tag filters locally
@@ -318,8 +325,6 @@ export function Market() {
   // fetch deals — also handles "free games" and "popular paid" browse modes via Steam
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
     const searchTerm  = search.trim();
-    const isFreeMode  = maxPrice === "0" && minPrice === "" && !searchTerm;
-    const isPopularMode = !searchTerm && sortBy === "Deal Rating";
 
     if (append) setIsLoadingMore(true); else setLoading(true);
     if (!append) { setSteamGames([]); setSteamLoading(false); }
@@ -328,19 +333,22 @@ export function Market() {
     if (isFreeMode || isPopularMode) {
       try {
         const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
-        const endpoint = isFreeMode ? "/api/steam/free-games" : "/api/steam/popular-paid";
+        const endpoint = isFreeMode ? "/api/steam/free-games" : "/api/steam/most-played";
         const res = await api.get(`${endpoint}?sort=${steamSort}&page=${pg}`);
         const { games: raw = [], hasMore: more = false } = res.data ?? {};
-        const mapped: SteamGame[] = raw.map((item: any) => ({
-          id:        item.appId || item.name,
-          title:     item.name,
-          price:     "Gratis",
-          isFree:    true,
-          image:     item.appId
-            ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
-            : item.tinyImage ?? `https://placehold.co/460x215/1e293b/94a3b8?text=?`,
-          steamAppID: item.appId ?? "",
-        }));
+        const mapped: SteamGame[] = raw.map((item: any) => {
+          const priceVal = item.price === "Gratis" ? "Gratis" : (item.price === 0 || isFreeMode ? "Gratis" : `$${Number(item.price).toFixed(2)}`);
+          return {
+            id:        item.appId || item.name,
+            title:     item.name,
+            price:     priceVal,
+            isFree:    item.isFree || isFreeMode,
+            image:     item.appId
+              ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
+              : item.tinyImage ?? `https://placehold.co/460x215/1e293b/94a3b8?text=?`,
+            steamAppID: item.appId ?? "",
+          };
+        });
         setSteamGames(prev => append ? [...prev, ...mapped] : mapped);
         setHasMore(more);
         setDeals([]);
@@ -362,8 +370,8 @@ export function Market() {
       };
       
       // Fix bug: Cheapshark Price sort ascending gives cheapest first. 
-      // Do not add desc: 1 for Price.
-      if (sortBy !== "Price") {
+      // Do not add desc: 1 for Price (Free is not hitting cheapshark anymore)
+      if (sortBy !== "Price" && sortBy !== "Free") {
         params.desc = 1;
       }
 
