@@ -7,6 +7,7 @@ import {
   Package
 } from "lucide-react";
 import axios from "axios";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Brush } from "recharts";
 import { toast } from "sonner";
 import api, {
   addWishlistItem,
@@ -46,29 +47,31 @@ function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, c
     .filter((p) => p?.date && toNum(p.price) > 0)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  const bucket = new Map<string, PricePoint>();
+  if (sorted.length === 0) {
+    const d = new Date();
+    return [{ date: d, price: current, label: d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) }];
+  }
+
+  const uniqueDates = new Map<string, PricePoint>();
   sorted.forEach((p) => {
-    const key = `${p.date.getFullYear()}-${p.date.getMonth()}`;
-    const prev = bucket.get(key);
-    if (!prev || p.price < prev.price) bucket.set(key, p);
+    // Override if we find a lower price on the same day/label
+    const key = p.label;
+    const prev = uniqueDates.get(key);
+    if (!prev || p.price < prev.price) uniqueDates.set(key, p);
   });
 
-  const now = new Date();
-  const result: PricePoint[] = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 15);
-    const key = `${d.getFullYear()}-${d.getMonth()}`;
-    const found = bucket.get(key);
-    result.push({
-      date: d,
-      price: found ? found.price : (result.at(-1)?.price ?? current),
-      label: d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" }),
-    });
-  }
+  const result = Array.from(uniqueDates.values());
 
   const hasATL = result.some((p) => p.price <= allTimeMin * 1.01);
   if (!hasATL && allTimeMin < result[0].price) {
     result[0].price = allTimeMin;
+  }
+
+  // Always append today's price so the chart ends at the current day
+  const today = new Date();
+  const todayLabel = today.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+  if (!uniqueDates.has(todayLabel)) {
+    result.push({ date: today, price: current, label: todayLabel });
   }
 
   return result;
@@ -80,7 +83,7 @@ function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number): 
     .map(d => ({
     date:  new Date(d.lastChange * 1000),
     price: toNum(d.salePrice),
-    label: new Date(d.lastChange * 1000).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "2-digit" }),
+    label: new Date(d.lastChange * 1000).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
   }));
   return buildHistoryFromPoints(pointsInput, allTimeMin, current);
 }
@@ -93,126 +96,67 @@ function PriceChart({ points, current, atl, normal }: {
   atl:     number;
   normal:  number;
 }) {
-  const [hovered, setHovered] = useState<number | null>(null);
-
-  const W = 560; const H = 220;
-  const PAD = { top: 20, right: 16, bottom: 36, left: 44 };
-  const w = W - PAD.left - PAD.right;
-  const h = H - PAD.top  - PAD.bottom;
-
-  const prices  = points.map(p => p.price);
-  const maxP    = Math.max(...prices, normal) * 1.08;
-  const minP    = Math.max(0, Math.min(...prices, atl) * 0.92);
-  const range   = maxP - minP || 1;
-
-  const cx = (i: number) => PAD.left + (i / (points.length - 1)) * w;
-  const cy = (v: number) => PAD.top  + (1 - (v - minP) / range) * h;
-
-  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${cx(i)} ${cy(p.price)}`).join(" ");
-  const areaD = `${pathD} L ${cx(points.length - 1)} ${PAD.top + h} L ${PAD.left} ${PAD.top + h} Z`;
-
-  const ticks = 4;
-  const yTicks = Array.from({ length: ticks + 1 }, (_, i) => minP + (range * i) / ticks);
-
-  const hoveredPoint = hovered !== null ? points[hovered] : null;
+  const prices = points.map(p => p.price);
+  const maxP = Math.max(...prices, normal, current);
+  const minP = Math.max(0, Math.min(...prices, atl) * 0.9);
 
   return (
-    <div className="relative select-none">
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full h-auto"
-        onMouseLeave={() => setHovered(null)}
-      >
-        <defs>
-          <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor="#3b82f6" stopOpacity="0.4"/>
-            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
-          </linearGradient>
-        </defs>
-
-        {/* y-grid + labels */}
-        {yTicks.map(v => (
-          <g key={v}>
-            <line x1={PAD.left} y1={cy(v)} x2={PAD.left + w} y2={cy(v)} stroke="#1e293b" strokeDasharray="3 4"/>
-            <text x={PAD.left - 6} y={cy(v) + 4} fill="#64748b" fontSize="10" textAnchor="end">{fmt(v)}</text>
-          </g>
-        ))}
-
-        {/* all-time-low reference */}
-        {atl < maxP && atl > minP && (
-          <>
-            <line x1={PAD.left} y1={cy(atl)} x2={PAD.left + w} y2={cy(atl)}
-                  stroke="#22c55e" strokeDasharray="4 3" strokeWidth="1.5" opacity="0.7"/>
-            <text x={PAD.left + w - 2} y={cy(atl) - 4} fill="#22c55e" fontSize="9" textAnchor="end">
-              mínimo histórico {fmt(atl)}
-            </text>
-          </>
-        )}
-
-        {/* normal price reference */}
-        {normal > current && (
-          <>
-            <line x1={PAD.left} y1={cy(normal)} x2={PAD.left + w} y2={cy(normal)}
-                  stroke="#ef4444" strokeDasharray="4 3" strokeWidth="1" opacity="0.5"/>
-            <text x={PAD.left + 2} y={cy(normal) - 4} fill="#ef4444" fontSize="9" opacity="0.7">
-              precio base {fmt(normal)}
-            </text>
-          </>
-        )}
-
-        {/* area */}
-        <path d={areaD} fill="url(#areaGrad)"/>
-
-        {/* line */}
-        <path d={pathD} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round"/>
-
-        {/* x labels */}
-        {points.map((p, i) => {
-          if (i % 2 !== 0 && i !== points.length - 1) return null;
-          return (
-            <text key={i} x={cx(i)} y={H - 8} fill="#475569" fontSize="9" textAnchor="middle">
-              {p.label}
-            </text>
-          );
-        })}
-
-        {/* hover zones */}
-        {points.map((p, i) => (
-          <rect
-            key={i}
-            x={cx(i) - w / points.length / 2}
-            y={PAD.top}
-            width={w / points.length}
-            height={h}
-            fill="transparent"
-            onMouseEnter={() => setHovered(i)}
-            className="cursor-crosshair"
+    <div className="w-full h-80 select-none -ml-4 mt-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={points} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+          <XAxis 
+            dataKey="label" 
+            stroke="#64748b" 
+            fontSize={10} 
+            tickLine={false} 
+            axisLine={false}
+            minTickGap={30}
           />
-        ))}
-
-        {/* hover indicator */}
-        {hovered !== null && hoveredPoint && (
-          <>
-            <line x1={cx(hovered)} y1={PAD.top} x2={cx(hovered)} y2={PAD.top + h}
-                  stroke="#94a3b8" strokeDasharray="3 3" strokeWidth="1"/>
-            <circle cx={cx(hovered)} cy={cy(hoveredPoint.price)} r="5"
-                    fill="#3b82f6" stroke="#0f172a" strokeWidth="2"/>
-          </>
-        )}
-      </svg>
-
-      {/* tooltip */}
-      {hoveredPoint && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none">
-          <div className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs shadow-xl text-center">
-            <p className="text-white font-bold text-sm">{fmt(hoveredPoint.price)}</p>
-            <p className="text-slate-400">{hoveredPoint.label}</p>
-            {hoveredPoint.price <= atl * 1.01 && (
-              <p className="text-emerald-400 font-medium mt-0.5">🏆 Mínimo histórico</p>
-            )}
-          </div>
-        </div>
-      )}
+          <YAxis 
+            stroke="#64748b" 
+            fontSize={10} 
+            tickLine={false} 
+            axisLine={false} 
+            tickFormatter={(val) => `$${val}`}
+            domain={[minP, maxP * 1.05]}
+          />
+          <Tooltip
+            contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "0.75rem", color: "#fff" }}
+            itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
+            formatter={(value: number) => [fmt(value), "Precio"]}
+            labelStyle={{ color: "#94a3b8", marginBottom: "4px" }}
+          />
+          {atl < maxP && atl > minP && (
+            <ReferenceLine y={atl} stroke="#22c55e" strokeDasharray="4 4" strokeWidth={1} label={{ position: "insideTopLeft", value: `Mínimo ${fmt(atl)}`, fill: "#22c55e", fontSize: 10 }} />
+          )}
+          {normal > current && (
+            <ReferenceLine y={normal} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1} label={{ position: "insideTopLeft", value: `Base ${fmt(normal)}`, fill: "#ef4444", fontSize: 10, opacity: 0.8 }} />
+          )}
+          <Area 
+            type="stepAfter" 
+            dataKey="price" 
+            stroke="#3b82f6" 
+            strokeWidth={2} 
+            fillOpacity={1} 
+            fill="url(#colorPrice)" 
+            isAnimationActive={false}
+          />
+          <Brush 
+            dataKey="label" 
+            height={30} 
+            stroke="#1e293b" 
+            fill="#0f172a"
+            tickFormatter={() => ""}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     </div>
   );
 }
