@@ -42,14 +42,19 @@ function toNum(v?: string | number | null) {
 }
 function fmt(v: number) { return `$${v.toFixed(2)}`; }
 
-function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, current: number): PricePoint[] {
+function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, current: number, normal: number): PricePoint[] {
   const sorted = [...pointsInput]
     .filter((p) => p?.date && toNum(p.price) > 0)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   if (sorted.length === 0) {
     const d = new Date();
-    return [{ date: d, price: current, label: d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) }];
+    const dPast = new Date();
+    dPast.setMonth(dPast.getMonth() - 12);
+    return [
+      { date: dPast, price: normal, label: dPast.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) },
+      { date: d, price: current, label: d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) }
+    ];
   }
 
   const uniqueDates = new Map<string, PricePoint>();
@@ -67,6 +72,18 @@ function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, c
     result[0].price = allTimeMin;
   }
 
+  // Ensure a long time range by prepending a base point 12 months ago if needed
+  const oneYearAgo = new Date();
+  oneYearAgo.setMonth(oneYearAgo.getMonth() - 12);
+  
+  if (result.length > 0 && result[0].date > oneYearAgo) {
+    result.unshift({
+      date: oneYearAgo,
+      price: normal,
+      label: oneYearAgo.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
+    });
+  }
+
   // Always append today's price so the chart ends at the current day
   const today = new Date();
   const todayLabel = today.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
@@ -74,22 +91,10 @@ function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, c
     result.push({ date: today, price: current, label: todayLabel });
   }
 
-  // If there's only 1 point, the AreaChart will render a dot.
-  // Prepend a fake point 30 days ago to draw a flat horizontal line.
-  if (result.length === 1) {
-    const past = new Date(result[0].date);
-    past.setDate(past.getDate() - 30);
-    result.unshift({
-      date: past,
-      price: result[0].price,
-      label: past.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
-    });
-  }
-
   return result;
 }
 
-function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number): PricePoint[] {
+function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number): PricePoint[] {
   const pointsInput = [...deals]
     .filter(d => d.lastChange && toNum(d.salePrice) > 0)
     .map(d => ({
@@ -97,7 +102,7 @@ function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number): 
     price: toNum(d.salePrice),
     label: new Date(d.lastChange * 1000).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
   }));
-  return buildHistoryFromPoints(pointsInput, allTimeMin, current);
+  return buildHistoryFromPoints(pointsInput, allTimeMin, current, normal);
 }
 
 // ── Price Chart ───────────────────────────────────────────────────────────────
@@ -137,7 +142,7 @@ function PriceChart({ points, current, atl, normal }: {
             tickLine={false} 
             axisLine={false} 
             tickFormatter={(val) => `$${val.toFixed(2)}`}
-            domain={[minP, maxP * 1.05]}
+            domain={[0, maxP * 1.05]}
             width={45}
           />
           <Tooltip
@@ -328,10 +333,10 @@ export function GameDetail() {
 
   const priceHistory = useMemo(() => {
     if (itadHistory.length > 0) {
-      return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1);
+      return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1, normalPrice || 1);
     }
-    return buildHistory(offers, atl, currentPrice || 1);
-  }, [itadHistory, offers, atl, currentPrice]);
+    return buildHistory(offers, atl, currentPrice || 1, normalPrice || 1);
+  }, [itadHistory, offers, atl, currentPrice, normalPrice]);
 
   const discount    = normalPrice > 0 ? Math.round(((normalPrice - currentPrice) / normalPrice) * 100) : 0;
   const atlDiscount = normalPrice > 0 ? Math.round(((normalPrice - atl) / normalPrice) * 100) : 0;
