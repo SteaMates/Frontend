@@ -11,7 +11,8 @@ import api from "../../lib/api";
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS = [
-  { value: "Deal Rating",  label: "Mejor valorados" },
+const SORT_OPTIONS = [
+  { value: "Deal Rating",  label: "Más populares" },
   { value: "Savings",      label: "Mayor descuento" },
   { value: "Price",        label: "Más barato" },
   { value: "Release",      label: "Más recientes"  },
@@ -245,19 +246,87 @@ export function Market() {
     }
   }, []);
 
-  // fetch deals — also handles "free games" browse mode via Steam
+  // tags filtering
+  const [tagMap, setTagMap] = useState<Record<string, string[]>>({});
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<{name: string, count: number}[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(false);
+
+  // Derive visible games and appIds
+  const currentItems = isFreeMode || (!search && sortBy === "Deal Rating") || (deals.length === 0 && search) ? steamGames : deals;
+  const currentAppIds = currentItems.map(item => {
+    if ('steamAppID' in item) return item.steamAppID;
+    return item.steamAppID;
+  }).filter(Boolean);
+
+  // Fetch tags for current items
+  useEffect(() => {
+    if (currentAppIds.length === 0) return;
+    
+    // Check if we need to fetch new ones
+    const missing = currentAppIds.filter(id => !tagMap[id]);
+    if (missing.length === 0) {
+      // Recompute available tags
+      const counts: Record<string, number> = {};
+      currentAppIds.forEach(id => {
+        (tagMap[id] || []).forEach(t => { counts[t] = (counts[t] || 0) + 1; });
+      });
+      const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
+      setAvailableTags(sorted);
+      return;
+    }
+
+    setTagsLoading(true);
+    api.get(`/api/steam/tags?appIds=${missing.join(',')}`).then(res => {
+      const data = res.data || {};
+      setTagMap(prev => {
+        const next = {...prev, ...data};
+        // Recompute available tags
+        const counts: Record<string, number> = {};
+        currentAppIds.forEach(id => {
+          (next[id] || []).forEach((t: string) => { counts[t] = (counts[t] || 0) + 1; });
+        });
+        const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
+        setAvailableTags(sorted);
+        return next;
+      });
+    }).finally(() => {
+      setTagsLoading(false);
+    });
+  }, [currentAppIds.join(',')]); // run when appIds change
+
+  // Apply tag filters locally
+  const filteredDeals = deals.filter(d => {
+    if (activeTags.length === 0) return true;
+    const tags = tagMap[d.steamAppID] || [];
+    return activeTags.every(t => tags.includes(t));
+  });
+
+  const filteredSteamGames = steamGames.filter(g => {
+    if (activeTags.length === 0) return true;
+    const tags = tagMap[g.steamAppID] || [];
+    return activeTags.every(t => tags.includes(t));
+  });
+
+  const toggleTag = (tag: string) => {
+    setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  };
+
+  // fetch deals — also handles "free games" and "popular paid" browse modes via Steam
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
     const searchTerm  = search.trim();
     const isFreeMode  = maxPrice === "0" && minPrice === "" && !searchTerm;
+    const isPopularMode = !searchTerm && sortBy === "Deal Rating";
 
     if (append) setIsLoadingMore(true); else setLoading(true);
     if (!append) { setSteamGames([]); setSteamLoading(false); }
 
-    // ── FREE GAMES MODE: pull from Steam Store ────────────────────────────
-    if (isFreeMode) {
+    // ── STEAM MODES (Free or Popular) ────────────────────────────
+    if (isFreeMode || isPopularMode) {
       try {
         const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
-        const res = await api.get(`/api/steam/free-games?sort=${steamSort}&page=${pg}`);
+        const endpoint = isFreeMode ? "/api/steam/free-games" : "/api/steam/popular-paid";
+        const res = await api.get(`${endpoint}?sort=${steamSort}&page=${pg}`);
         const { games: raw = [], hasMore: more = false } = res.data ?? {};
         const mapped: SteamGame[] = raw.map((item: any) => ({
           id:        item.appId || item.name,
@@ -287,8 +356,13 @@ export function Market() {
         pageSize:   40,
         pageNumber: pg,
         sortBy,
-        desc:       1,
       };
+      
+      // Fix bug: Cheapshark Price sort ascending gives cheapest first. 
+      // Do not add desc: 1 for Price.
+      if (sortBy !== "Price") {
+        params.desc = 1;
+      }
 
       if (searchTerm) {
         // No price filters when searching by title so free games aren't excluded
@@ -337,6 +411,7 @@ export function Market() {
 
   const hasPriceFilter = minPrice !== "" || maxPrice !== "";
   const isFreeMode     = maxPrice === "0" && minPrice === "" && !search.trim();
+  const isPopularMode  = !search.trim() && sortBy === "Deal Rating";
 
   return (
     <div className="space-y-10 pb-20">
@@ -461,19 +536,55 @@ export function Market() {
       </div>
 
       {/* ── Results header ── */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingDown size={20} className="text-emerald-400"/>
-          {isFreeMode ? "Juegos gratuitos en Steam" : search ? `Resultados para "${search}"` : "Todas las ofertas"}
-          {!loading && !steamLoading && (
-            <span className="text-sm font-normal text-slate-500">
-              · {deals.length > 0 ? deals.length : steamGames.length} juegos
-              {(deals.length === 0 && steamGames.length > 0 && !isFreeMode) && (
-                <span className="ml-1 text-[10px] text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full align-middle">Steam Store</span>
-              )}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold text-white flex items-center gap-2">
+            <TrendingDown size={20} className="text-emerald-400"/>
+            {isFreeMode ? "Juegos gratuitos en Steam" : isPopularMode ? "Juegos Populares" : search ? `Resultados para "${search}"` : "Todas las ofertas"}
+            {!loading && !steamLoading && (
+              <span className="text-sm font-normal text-slate-500">
+                · {currentItems.length} juegos
+                {(isFreeMode || isPopularMode || (deals.length === 0 && steamGames.length > 0)) && (
+                  <span className="ml-1 text-[10px] text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full align-middle">Steam Store</span>
+                )}
+              </span>
+            )}
+          </h2>
+        </div>
+
+        {/* ── Dynamic Tags Filter ── */}
+        {(availableTags.length > 0 || tagsLoading) && !loading && !steamLoading && (
+          <div className="flex flex-wrap gap-2 items-center bg-slate-900/50 border border-slate-800 p-3 rounded-xl">
+            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
+              <Tag size={12}/> Filtros rápidos
+              {tagsLoading && <Loader2 size={10} className="animate-spin text-blue-400"/>}
             </span>
-          )}
-        </h2>
+            <div className="w-px h-4 bg-slate-700 mx-1"/>
+            {availableTags.map(({name, count}) => {
+              const isActive = activeTags.includes(name);
+              return (
+                <button
+                  key={name}
+                  onClick={() => toggleTag(name)}
+                  className={`text-xs px-2.5 py-1 rounded-full transition-all border flex items-center gap-1.5
+                    ${isActive 
+                      ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.1)]" 
+                      : "bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"}`}
+                >
+                  {name} <span className="opacity-50 text-[10px]">{count}</span>
+                </button>
+              );
+            })}
+            {activeTags.length > 0 && (
+              <button 
+                onClick={() => setActiveTags([])}
+                className="text-[11px] text-slate-400 hover:text-white ml-auto flex items-center gap-1"
+              >
+                Limpiar <X size={10}/>
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Game grid ── */}
@@ -483,10 +594,10 @@ export function Market() {
             <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse"/>
           ))}
         </div>
-      ) : deals.length > 0 ? (
+      ) : filteredDeals.length > 0 ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {deals.map(d => <DealCard key={d.dealID} deal={d}/>)}
+            {filteredDeals.map(d => <DealCard key={d.dealID} deal={d}/>)}
           </div>
           {hasMore && (
             <div className="flex justify-center pt-4">
@@ -505,7 +616,7 @@ export function Market() {
         <div className="space-y-3">
           <p className="text-xs text-slate-500 flex items-center gap-1.5">
             <Loader2 size={12} className="animate-spin"/>
-            {isFreeMode ? "Cargando juegos gratuitos de Steam..." : "Sin deals en CheapShark · buscando en Steam Store..."}
+            {isFreeMode || isPopularMode ? "Cargando juegos de Steam..." : "Sin deals en CheapShark · buscando en Steam Store..."}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -513,17 +624,17 @@ export function Market() {
             ))}
           </div>
         </div>
-      ) : steamGames.length > 0 ? (
-        // Steam Store results (free-games mode or text-search fallback)
+      ) : filteredSteamGames.length > 0 ? (
+        // Steam Store results (free-games mode, popular mode or text-search fallback)
         <div className="space-y-3">
-          {!isFreeMode && (
+          {!isFreeMode && !isPopularMode && (
             <p className="text-xs text-slate-500 flex items-center gap-2">
               <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
               Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
             </p>
           )}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
+            {filteredSteamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
           </div>
           {hasMore && (
             <div className="flex justify-center pt-4">
