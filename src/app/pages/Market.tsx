@@ -245,6 +245,10 @@ export function Market() {
     }
   }, []);
 
+  const hasPriceFilter = minPrice !== "" || maxPrice !== "";
+  const isFreeMode     = maxPrice === "0" && minPrice === "" && !search.trim();
+  const isPopularMode  = !search.trim() && sortBy === "Deal Rating";
+
   // tags filtering
   const [tagMap, setTagMap] = useState<Record<string, string[]>>({});
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -407,10 +411,6 @@ export function Market() {
     setPage(next);
     fetchDeals(next, true);
   };
-
-  const hasPriceFilter = minPrice !== "" || maxPrice !== "";
-  const isFreeMode     = maxPrice === "0" && minPrice === "" && !search.trim();
-  const isPopularMode  = !search.trim() && sortBy === "Deal Rating";
 
   return (
     <div className="space-y-10 pb-20">
