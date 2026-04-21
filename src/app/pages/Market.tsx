@@ -269,6 +269,8 @@ export function Market() {
   const isFreeMode     = sortBy === "Free";
   const isPopularMode  = !search.trim() && sortBy === "Popular";
 
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
   const toggleTag = (tagId: string) => {
     setSelectedTags(prev => prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]);
   };
