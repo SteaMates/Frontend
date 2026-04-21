@@ -74,6 +74,18 @@ function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, c
     result.push({ date: today, price: current, label: todayLabel });
   }
 
+  // If there's only 1 point, the AreaChart will render a dot.
+  // Prepend a fake point 30 days ago to draw a flat horizontal line.
+  if (result.length === 1) {
+    const past = new Date(result[0].date);
+    past.setDate(past.getDate() - 30);
+    result.unshift({
+      date: past,
+      price: result[0].price,
+      label: past.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
+    });
+  }
+
   return result;
 }
 
@@ -124,16 +136,18 @@ function PriceChart({ points, current, atl, normal }: {
             fontSize={10} 
             tickLine={false} 
             axisLine={false} 
-            tickFormatter={(val) => `$${val}`}
+            tickFormatter={(val) => `$${val.toFixed(2)}`}
             domain={[minP, maxP * 1.05]}
+            width={45}
           />
           <Tooltip
             contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "0.75rem", color: "#fff" }}
             itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
             formatter={(value: number) => [fmt(value), "Precio"]}
             labelStyle={{ color: "#94a3b8", marginBottom: "4px" }}
+            animationDuration={150}
           />
-          {atl < maxP && atl > minP && (
+          {atl < maxP && atl >= minP && (
             <ReferenceLine y={atl} stroke="#22c55e" strokeDasharray="4 4" strokeWidth={1} label={{ position: "insideTopLeft", value: `Mínimo ${fmt(atl)}`, fill: "#22c55e", fontSize: 10 }} />
           )}
           {normal > current && (
@@ -146,15 +160,18 @@ function PriceChart({ points, current, atl, normal }: {
             strokeWidth={2} 
             fillOpacity={1} 
             fill="url(#colorPrice)" 
-            isAnimationActive={false}
+            isAnimationActive={true}
+            animationDuration={800}
           />
-          <Brush 
-            dataKey="label" 
-            height={30} 
-            stroke="#1e293b" 
-            fill="#0f172a"
-            tickFormatter={() => ""}
-          />
+          {points.length > 2 && (
+            <Brush 
+              dataKey="label" 
+              height={30} 
+              stroke="#334155" 
+              fill="#0f172a"
+              tickFormatter={() => ""}
+            />
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>
