@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import {
   Search, ArrowUpDown, Star, Sparkles, Loader2, RefreshCw,
-  TrendingDown, Lock, Tag, X, SlidersHorizontal
+  TrendingDown, Lock, Tag, X, SlidersHorizontal, ExternalLink
 } from "lucide-react";
 import { DealCard, Deal } from "../components/market/DealCard";
 import { useAuth } from "../context/AuthContext";
@@ -134,6 +134,57 @@ function LockedRecs({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+// ── Steam fallback card ──────────────────────────────────────────────────────
+
+interface SteamGame {
+  id: string;
+  title: string;
+  price: string;
+  isFree: boolean;
+  image: string;
+  steamAppID: string;
+}
+
+function SteamGameCard({ game }: { game: SteamGame }) {
+  return (
+    <a
+      href={`https://store.steampowered.com/app/${game.steamAppID}/`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex flex-col h-full text-sm"
+    >
+      <div className="relative aspect-video overflow-hidden bg-slate-800">
+        <img
+          src={game.image}
+          alt={game.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          loading="lazy"
+          onError={(e) => {
+            const t = e.target as HTMLImageElement;
+            if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`;}
+          }}
+        />
+        <div className="absolute top-1.5 left-1.5 bg-[#171a21]/90 backdrop-blur text-[#c5c3c0] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-2.5 h-2.5" alt=""/> Steam
+        </div>
+      </div>
+      <div className="p-3 flex flex-col flex-1">
+        <h3 className="font-semibold text-slate-100 line-clamp-1 mb-2 text-sm hover:text-blue-400 transition-colors" title={game.title}>
+          {game.title}
+        </h3>
+        <div className="mt-auto flex items-center justify-between">
+          <span className={`text-base font-bold ${game.isFree ? "text-emerald-400" : "text-slate-200"}`}>
+            {game.price}
+          </span>
+          <div className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors">
+            <ExternalLink size={14}/>
+          </div>
+        </div>
+      </div>
+    </a>
+  );
+}
+
 // ── main Market component ─────────────────────────────────────────────────────
 
 export function Market() {
@@ -152,9 +203,54 @@ export function Market() {
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
+  // steam fallback (when CheapShark has 0 deals for a search term)
+  const [steamGames,   setSteamGames]   = useState<SteamGame[]>([]);
+  const [steamLoading, setSteamLoading] = useState(false);
+
+  // steam fallback search via existing backend endpoint
+  const fetchSteamFallback = useCallback(async (term: string) => {
+    setSteamLoading(true);
+    setSteamGames([]);
+    try {
+      const res = await api.get(`/api/steam/search?term=${encodeURIComponent(term)}`);
+      const mapped: SteamGame[] = (res.data ?? []).map((item: any) => {
+        const appId = item.appId?.toString() ?? "";
+        const rawPrice = item.price;
+        let price = "Desconocido";
+        let isFree = false;
+        if (item.isFree || rawPrice === 0 || rawPrice === "0" || rawPrice === "Free") {
+          price = "Gratis"; isFree = true;
+        } else if (typeof rawPrice === "number" && rawPrice > 0) {
+          price = `$${rawPrice.toFixed(2)}`;
+        } else if (typeof rawPrice === "string" && rawPrice.trim() !== "") {
+          const p = parseFloat(rawPrice);
+          if (!isNaN(p)) { price = p === 0 ? "Gratis" : `$${p.toFixed(2)}`; isFree = p === 0; }
+          else price = rawPrice; // already formatted e.g. "$9.99"
+        }
+        return {
+          id: appId || item.name,
+          title: item.name,
+          price,
+          isFree,
+          image: appId
+            ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`
+            : `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(item.name?.[0] ?? "?")}`,
+          steamAppID: appId,
+        };
+      });
+      setSteamGames(mapped);
+    } catch {
+      setSteamGames([]);
+    } finally {
+      setSteamLoading(false);
+    }
+  }, []);
+
   // fetch deals
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
     if (append) setIsLoadingMore(true); else setLoading(true);
+    // Reset steam fallback at the start of each new search
+    if (!append) { setSteamGames([]); setSteamLoading(false); }
     try {
       const params: Record<string, string | number> = {
         storeID:    "1",
@@ -167,18 +263,14 @@ export function Market() {
       const searchTerm = search.trim();
 
       if (searchTerm) {
-        // When searching by title, send NO price filters so free games (CS2, etc.) are included
+        // No price filters when searching by title so free games aren't excluded
         params.title = searchTerm;
       } else {
-        // Apply price filters only in browse mode
+        // Price filters only in browse mode
         const min = minPrice !== "" ? parseFloat(minPrice) : null;
         const max = maxPrice !== "" ? parseFloat(maxPrice) : null;
-
         if (min !== null && min === 0 && max !== null && max === 0) {
-          // Pure "free only" filter
-          params.upperPrice = 0;
-          params.lowerPrice = 0;
-          delete params.desc;
+          params.upperPrice = 0; params.lowerPrice = 0; delete params.desc;
         } else {
           if (min !== null && min > 0) params.lowerPrice = min;
           if (max !== null)            params.upperPrice = max;
@@ -189,12 +281,18 @@ export function Market() {
       const data: Deal[] = res.data ?? [];
       setHasMore(data.length === 40);
       setDeals(prev => append ? [...prev, ...data] : data);
+
+      // If CheapShark found nothing for a text search → try Steam fallback
+      if (data.length === 0 && search.trim() && !append) {
+        fetchSteamFallback(search.trim());
+      }
     } catch {
       setDeals([]);
+      if (search.trim()) fetchSteamFallback(search.trim());
     } finally {
       setLoading(false); setIsLoadingMore(false);
     }
-  }, [search, sortBy, minPrice, maxPrice]);
+  }, [search, sortBy, minPrice, maxPrice, fetchSteamFallback]);
 
   // re-fetch on filter change (debounced for search)
   useEffect(() => {
@@ -338,7 +436,14 @@ export function Market() {
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <TrendingDown size={20} className="text-emerald-400"/>
           {search ? `Resultados para "${search}"` : "Todas las ofertas"}
-          {!loading && <span className="text-sm font-normal text-slate-500">· {deals.length} juegos</span>}
+          {!loading && !steamLoading && (
+            <span className="text-sm font-normal text-slate-500">
+              · {deals.length > 0 ? deals.length : steamGames.length} juegos
+              {deals.length === 0 && steamGames.length > 0 && (
+                <span className="ml-1 text-[10px] text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full align-middle">Steam Store</span>
+              )}
+            </span>
+          )}
         </h2>
       </div>
 
@@ -366,15 +471,34 @@ export function Market() {
             </div>
           )}
         </>
+      ) : steamLoading ? (
+        // Steam fallback loading skeleton
+        <div className="space-y-3">
+          <p className="text-xs text-slate-500 flex items-center gap-1.5">
+            <Loader2 size={12} className="animate-spin"/>
+            Sin deals en CheapShark · buscando en Steam Store...
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
+            ))}
+          </div>
+        </div>
+      ) : steamGames.length > 0 ? (
+        // Steam Store fallback results
+        <div className="space-y-3">
+          <p className="text-xs text-slate-500 flex items-center gap-2">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
+            Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
+          </div>
+        </div>
       ) : (
         <div className="text-center py-20 text-slate-500">
           <Star size={40} className="mx-auto mb-4 text-slate-700"/>
-          <p className="text-lg">No se encontraron ofertas.</p>
-          {search && (
-            <p className="text-sm text-slate-600 mt-1">
-              Algunos juegos gratuitos (CS2, Dota 2…) no tienen deals en CheapShark ya que nunca se han vendido.
-            </p>
-          )}
+          <p className="text-lg">No se encontraron resultados.</p>
           <button
             onClick={() => { setSearch(""); setMinPrice(""); setMaxPrice(""); }}
             className="text-blue-400 text-sm mt-3 hover:underline"
