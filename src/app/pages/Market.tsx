@@ -174,42 +174,74 @@ interface SteamGame {
 }
 
 function SteamGameCard({ game }: { game: SteamGame }) {
+  // Synthesize a Deal object for the GameDetail state so the loading experience is smooth
+  const synthesizedDeal = {
+    title: game.title,
+    steamAppID: game.steamAppID,
+    thumb: game.image,
+    salePrice: game.isFree ? "0.00" : game.price.replace("$", ""),
+    normalPrice: game.isFree ? "0.00" : game.price.replace("$", ""),
+    dealID: "",
+    gameID: "",
+    storeID: "1"
+  };
+
+  const detailPath = `/game/${game.steamAppID || game.id}`;
+
   return (
-    <a
-      href={`https://store.steampowered.com/app/${game.steamAppID}/`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex flex-col h-full text-sm"
-    >
-      <div className="relative aspect-video overflow-hidden bg-slate-800">
+    <div className="group relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex flex-col h-full text-sm">
+      <Link
+        to={detailPath}
+        state={{ deal: synthesizedDeal }}
+        className="block relative aspect-video overflow-hidden bg-slate-800"
+      >
         <img
           src={game.image}
           alt={game.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-800"
           loading="lazy"
           onError={(e) => {
             const t = e.target as HTMLImageElement;
             if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`;}
           }}
         />
-        <div className="absolute top-1.5 left-1.5 bg-[#171a21]/90 backdrop-blur text-[#c5c3c0] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+        <div className="absolute top-1.5 left-1.5 bg-[#171a21]/90 backdrop-blur text-[#c5c3c0] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-lg">
           <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-2.5 h-2.5" alt=""/> Steam
         </div>
-      </div>
+      </Link>
+
       <div className="p-3 flex flex-col flex-1">
-        <h3 className="font-semibold text-slate-100 line-clamp-1 mb-2 text-sm hover:text-blue-400 transition-colors" title={game.title}>
-          {game.title}
-        </h3>
-        <div className="mt-auto flex items-center justify-between">
-          <span className={`text-base font-bold ${game.isFree ? "text-emerald-400" : "text-slate-200"}`}>
-            {game.price}
-          </span>
-          <div className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors">
-            <ExternalLink size={14}/>
+        <Link to={detailPath} state={{ deal: synthesizedDeal }}>
+          <h3
+            className="font-semibold text-slate-100 line-clamp-1 mb-1 hover:text-blue-400 transition-colors text-sm"
+            title={game.title}
+          >
+            {game.title}
+          </h3>
+        </Link>
+
+        <div className="mt-auto flex items-center justify-between pt-2">
+          <div className="flex flex-col">
+            <span
+              className={`text-base font-bold ${game.isFree ? "text-emerald-400" : "text-slate-200"}`}
+            >
+              {game.price}
+            </span>
           </div>
+
+          <a
+            href={`https://store.steampowered.com/app/${game.steamAppID}/`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors z-10"
+            title="Ver en Steam"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ExternalLink size={14} />
+          </a>
         </div>
       </div>
-    </a>
+    </div>
   );
 }
 
