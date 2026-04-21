@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
+import { Link } from "react-router";
 import {
   Search, ArrowUpDown, Star, Sparkles, Loader2, RefreshCw,
   TrendingDown, Lock, Tag, X, SlidersHorizontal, ExternalLink
@@ -7,7 +8,6 @@ import {
 import { DealCard, Deal } from "../components/market/DealCard";
 import { useAuth } from "../context/AuthContext";
 import api from "../../lib/api";
-
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS = [
