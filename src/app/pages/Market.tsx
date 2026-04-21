@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import {
-  Search, ArrowUpDown, ChevronDown, Star, Sparkles, Loader2, RefreshCw,
+  Search, ArrowUpDown, Star, Sparkles, Loader2, RefreshCw,
   TrendingDown, Lock, Tag, X, SlidersHorizontal
 } from "lucide-react";
 import { DealCard, Deal } from "../components/market/DealCard";
@@ -15,14 +15,6 @@ const SORT_OPTIONS = [
   { value: "Savings",      label: "Mayor descuento" },
   { value: "Price",        label: "Más barato" },
   { value: "Release",      label: "Más recientes"  },
-];
-
-const PRICE_PRESETS = [
-  { label: "Gratis",  min: "0", max: "0"   },
-  { label: "< $5",   min: "0", max: "5"   },
-  { label: "< $15",  min: "0", max: "15"  },
-  { label: "< $30",  min: "0", max: "30"  },
-  { label: "Todos",  min: "0", max: ""    },
 ];
 
 // ── AI recommendations component ─────────────────────────────────────────────
@@ -155,23 +147,10 @@ export function Market() {
   const [hasMore,        setHasMore]        = useState(true);
 
   // filters
-  const [search,         setSearch]         = useState("");
-  const [sortBy,         setSortBy]         = useState("Deal Rating");
-  const [minPrice,       setMinPrice]       = useState("0");
-  const [maxPrice,       setMaxPrice]       = useState("");
-  const [showPriceDD,    setShowPriceDD]    = useState(false);
-  const priceRef = useRef<HTMLDivElement>(null);
-
-  // close dropdown on outside click
-  useEffect(() => {
-    if (!showPriceDD) return;
-    const handler = (e: MouseEvent) => {
-      if (priceRef.current && !priceRef.current.contains(e.target as Node))
-        setShowPriceDD(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [showPriceDD]);
+  const [search,   setSearch]   = useState("");
+  const [sortBy,   setSortBy]   = useState("Deal Rating");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
 
   // fetch deals
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
@@ -185,20 +164,26 @@ export function Market() {
         desc:       1,
       };
 
-      const min = parseFloat(minPrice) || 0;
-      const max = maxPrice === "" ? null : parseFloat(maxPrice);
+      const searchTerm = search.trim();
 
-      // Solo precio gratis puro (sin búsqueda de texto)
-      if (max === 0 && min === 0 && !search.trim()) {
-        params.upperPrice = 0;
-        params.lowerPrice = 0;
-        delete params.desc;
+      if (searchTerm) {
+        // When searching by title, send NO price filters so free games (CS2, etc.) are included
+        params.title = searchTerm;
       } else {
-        if (min > 0) params.lowerPrice = min;
-        if (max !== null) params.upperPrice = max;
-      }
+        // Apply price filters only in browse mode
+        const min = minPrice !== "" ? parseFloat(minPrice) : null;
+        const max = maxPrice !== "" ? parseFloat(maxPrice) : null;
 
-      if (search.trim()) params.title = search.trim();
+        if (min !== null && min === 0 && max !== null && max === 0) {
+          // Pure "free only" filter
+          params.upperPrice = 0;
+          params.lowerPrice = 0;
+          delete params.desc;
+        } else {
+          if (min !== null && min > 0) params.lowerPrice = min;
+          if (max !== null)            params.upperPrice = max;
+        }
+      }
 
       const res = await axios.get("https://www.cheapshark.com/api/1.0/deals", { params });
       const data: Deal[] = res.data ?? [];
@@ -224,15 +209,7 @@ export function Market() {
     fetchDeals(next, true);
   };
 
-  const priceLabel = (() => {
-    const hasMin = parseFloat(minPrice) > 0;
-    const hasMax = maxPrice !== "";
-    if (!hasMin && !hasMax) return "Precio";
-    if (!hasMin && maxPrice === "0") return "Gratis";
-    if (hasMin && hasMax) return `$${minPrice}–$${maxPrice}`;
-    if (hasMin) return `> $${minPrice}`;
-    return `< $${maxPrice}`;
-  })();
+  const hasPriceFilter = minPrice !== "" || maxPrice !== "";
 
   return (
     <div className="space-y-10 pb-20">
@@ -256,8 +233,9 @@ export function Market() {
       <div className="border-t border-slate-800"/>
 
       {/* ── Filters ── */}
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
+
           {/* search */}
           <div className="relative flex-1 min-w-[200px]">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"/>
@@ -265,7 +243,7 @@ export function Market() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar juego..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-9 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
@@ -274,83 +252,45 @@ export function Market() {
             )}
           </div>
 
-          {/* price dropdown */}
-          <div className="relative" ref={priceRef}>
-            <button
-              onClick={() => setShowPriceDD(p => !p)}
-              className={`flex items-center gap-2 bg-slate-900 border rounded-lg px-3 py-2 text-sm text-slate-200 hover:border-blue-500 transition-colors min-w-[130px] ${
-                (parseFloat(minPrice) > 0 || maxPrice !== "") ? "border-blue-500 text-blue-400" : "border-slate-700"
-              }`}
-            >
-              <SlidersHorizontal size={14} className="text-slate-500"/>
-              <span className="flex-1 text-left">{priceLabel}</span>
-              <ChevronDown size={13} className={`text-slate-500 transition-transform ${showPriceDD ? "rotate-180" : ""}`}/>
-            </button>
-            {showPriceDD && (
-              <div className="absolute mt-2 left-0 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-4 space-y-4 min-w-[220px]">
-                {/* Presets rápidos */}
-                <div>
-                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">Acceso rápido</p>
-                  <div className="grid grid-cols-2 gap-1">
-                    {PRICE_PRESETS.map(p => {
-                      const active = minPrice === p.min && maxPrice === p.max;
-                      return (
-                        <button
-                          key={p.label}
-                          onClick={() => { setMinPrice(p.min); setMaxPrice(p.max); setShowPriceDD(false); }}
-                          className={`px-2 py-1.5 rounded-lg text-xs transition-colors ${
-                            active ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"
-                          }`}
-                        >
-                          {p.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Rango personalizado */}
-                <div>
-                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">Rango personalizado</p>
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1">
-                      <label className="text-[10px] text-slate-500 block mb-1">Mín ($)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="999"
-                        value={minPrice}
-                        onChange={e => setMinPrice(e.target.value)}
-                        placeholder="0"
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <span className="text-slate-500 text-sm pt-4">–</span>
-                    <div className="flex-1">
-                      <label className="text-[10px] text-slate-500 block mb-1">Máx ($)</label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="999"
-                        value={maxPrice}
-                        onChange={e => setMaxPrice(e.target.value)}
-                        placeholder="∞"
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Limpiar */}
-                {(parseFloat(minPrice) > 0 || maxPrice !== "") && (
-                  <button
-                    onClick={() => { setMinPrice("0"); setMaxPrice(""); setShowPriceDD(false); }}
-                    className="w-full text-xs text-slate-400 hover:text-white flex items-center justify-center gap-1 py-1"
-                  >
-                    <X size={11}/> Limpiar filtro de precio
-                  </button>
-                )}
-              </div>
+          {/* ── price range: always-visible inline inputs ── */}
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={14} className="text-slate-500 shrink-0"/>
+            <span className="text-slate-500 text-xs hidden sm:block">Precio:</span>
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none select-none">$</span>
+              <input
+                type="number"
+                min="0"
+                max="9999"
+                step="0.01"
+                value={minPrice}
+                onChange={e => setMinPrice(e.target.value)}
+                placeholder="Mín"
+                className="w-[76px] bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+            <span className="text-slate-500 text-sm select-none">–</span>
+            <div className="relative">
+              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none select-none">$</span>
+              <input
+                type="number"
+                min="0"
+                max="9999"
+                step="0.01"
+                value={maxPrice}
+                onChange={e => setMaxPrice(e.target.value)}
+                placeholder="Máx"
+                className="w-[76px] bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+            </div>
+            {hasPriceFilter && (
+              <button
+                onClick={() => { setMinPrice(""); setMaxPrice(""); }}
+                className="text-slate-500 hover:text-white transition-colors"
+                title="Limpiar precio"
+              >
+                <X size={14}/>
+              </button>
             )}
           </div>
 
@@ -369,6 +309,28 @@ export function Market() {
           </div>
         </div>
 
+        {/* active filter pills */}
+        {(search || hasPriceFilter) && (
+          <div className="flex items-center gap-2 flex-wrap">
+            {search && (
+              <span className="flex items-center gap-1.5 bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs px-2.5 py-1 rounded-full">
+                <Search size={10}/> "{search}"
+                <button onClick={() => setSearch("")} className="hover:text-white ml-0.5"><X size={10}/></button>
+              </span>
+            )}
+            {hasPriceFilter && (
+              <span className="flex items-center gap-1.5 bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full">
+                <Tag size={10}/>
+                {minPrice && maxPrice
+                  ? `$${minPrice} – $${maxPrice}`
+                  : minPrice
+                  ? `> $${minPrice}`
+                  : `< $${maxPrice}`}
+                <button onClick={() => { setMinPrice(""); setMaxPrice(""); }} className="hover:text-white ml-0.5"><X size={10}/></button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* ── Results header ── */}
@@ -376,7 +338,7 @@ export function Market() {
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <TrendingDown size={20} className="text-emerald-400"/>
           {search ? `Resultados para "${search}"` : "Todas las ofertas"}
-          {!loading && <span className="text-sm font-normal text-slate-500"> · {deals.length} juegos</span>}
+          {!loading && <span className="text-sm font-normal text-slate-500">· {deals.length} juegos</span>}
         </h2>
       </div>
 
@@ -390,7 +352,7 @@ export function Market() {
       ) : deals.length > 0 ? (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {deals.map(d => <DealCard key={d.dealID} deal={d}/>) }
+            {deals.map(d => <DealCard key={d.dealID} deal={d}/>)}
           </div>
           {hasMore && (
             <div className="flex justify-center pt-4">
@@ -408,9 +370,14 @@ export function Market() {
         <div className="text-center py-20 text-slate-500">
           <Star size={40} className="mx-auto mb-4 text-slate-700"/>
           <p className="text-lg">No se encontraron ofertas.</p>
+          {search && (
+            <p className="text-sm text-slate-600 mt-1">
+              Algunos juegos gratuitos (CS2, Dota 2…) no tienen deals en CheapShark ya que nunca se han vendido.
+            </p>
+          )}
           <button
-            onClick={() => { setSearch(""); setMinPrice("0"); setMaxPrice(""); }}
-            className="text-blue-400 text-sm mt-2 hover:underline"
+            onClick={() => { setSearch(""); setMinPrice(""); setMaxPrice(""); }}
+            className="text-blue-400 text-sm mt-3 hover:underline"
           >
             Limpiar filtros
           </button>
