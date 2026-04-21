@@ -201,6 +201,7 @@ export function GameDetail() {
   const [historySource,  setHistorySource]  = useState<"itad" | "cheapshark">("cheapshark");
   const [cheapestEver,   setCheapestEver]   = useState<{ price: string; date: number } | undefined>();
   const [steamGame,      setSteamGame]      = useState<any>(null);
+  const [activePlayers,  setActivePlayers]  = useState<number | null>(null);
   const [expanded,       setExpanded]       = useState(false);
   const [loadError,      setLoadError]      = useState("");
   const [isWishlisted,   setIsWishlisted]   = useState(false);
@@ -296,6 +297,14 @@ export function GameDetail() {
           // Fall back to CheapShark history when ITAD is unavailable.
         }
 
+        let players = null;
+        if (appId) {
+          try {
+            const pRes = await api.get(`/api/steam/players/${appId}`);
+            if (pRes.data?.result === 1) players = pRes.data.player_count;
+          } catch { /* ignore */ }
+        }
+
         if (!cancelled) {
           const fallbackTitle = meta?.info?.title ?? dealFromState?.title ?? "Juego";
           const fallbackThumb = meta?.info?.thumb  ?? dealFromState?.thumb ?? "";
@@ -308,6 +317,7 @@ export function GameDetail() {
           setHistorySource(itadPoints.length > 0 ? "itad" : "cheapshark");
           setCheapestEver(meta?.cheapestPriceEver);
           setSteamGame(steam);
+          setActivePlayers(players);
           if (!steam && !meta && !allDeals.length) setLoadError("No se pudo obtener información para este juego.");
         }
       } catch {
@@ -568,19 +578,31 @@ export function GameDetail() {
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-transparent"/>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent"/>
-        <div className="absolute bottom-6 left-6 right-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{gameTitle}</h1>
-          <div className="flex flex-wrap items-center gap-3">
-            {discount > 0 && (
-              <span className="bg-emerald-500 text-white text-sm font-bold px-2.5 py-0.5 rounded-lg">
-                -{discount}%
-              </span>
-            )}
-            <span className="text-2xl font-black text-white">{fmt(currentPrice)}</span>
-            {normalPrice > currentPrice && (
-              <span className="text-slate-400 line-through text-sm">{fmt(normalPrice)}</span>
-            )}
+        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{gameTitle}</h1>
+            <div className="flex flex-wrap items-center gap-3">
+              {discount > 0 && (
+                <span className="bg-emerald-500 text-white text-sm font-bold px-2.5 py-0.5 rounded-lg">
+                  -{discount}%
+                </span>
+              )}
+              <span className="text-2xl font-black text-white">{fmt(currentPrice)}</span>
+              {normalPrice > currentPrice && (
+                <span className="text-slate-400 line-through text-sm">{fmt(normalPrice)}</span>
+              )}
+            </div>
           </div>
+          
+          {activePlayers !== null && activePlayers > 0 && (
+            <div className="hidden sm:block text-right bg-slate-900/60 backdrop-blur-md border border-slate-700/50 rounded-xl px-4 py-2">
+              <div className="flex items-center gap-2 justify-end mb-1">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                <div className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider">Activos Ahora</div>
+              </div>
+              <div className="text-2xl font-black text-white leading-none">{activePlayers.toLocaleString('es-ES')}</div>
+            </div>
+          )}
         </div>
       </div>
 
