@@ -17,9 +17,9 @@ const SORT_OPTIONS = [
 ];
 
 const STEAM_SORT_MAP: Record<string, string> = {
-  "Popular": "Reviews_DESC",
+  "Popular": "_ASC",
   "Savings": "Reviews_DESC",
-  "Free":    "Reviews_DESC",
+  "Free":    "_ASC",
 };
 
 export const GLOBAL_TAGS = [
