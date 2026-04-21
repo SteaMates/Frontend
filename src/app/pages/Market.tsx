@@ -16,12 +16,34 @@ const SORT_OPTIONS = [
   { value: "Free",    label: "Gratis" },
 ];
 
-// Maps CheapShark sortBy values → Steam Store sort_by param (used in free-games mode)
 const STEAM_SORT_MAP: Record<string, string> = {
   "Popular": "Reviews_DESC",
   "Savings": "Reviews_DESC",
   "Free":    "Reviews_DESC",
 };
+
+export const GLOBAL_TAGS = [
+  { id: "19", name: "Acción" },
+  { id: "21", name: "Aventura" },
+  { id: "122", name: "RPG" },
+  { id: "9", name: "Estrategia" },
+  { id: "599", name: "Simulación" },
+  { id: "701", name: "Deportes" },
+  { id: "699", name: "Carreras" },
+  { id: "492", name: "Indie" },
+  { id: "128", name: "MMO" },
+  { id: "597", name: "Casual" },
+  { id: "1663", name: "FPS" },
+  { id: "3859", name: "Mundo Abierto" },
+  { id: "3871", name: "2D" },
+  { id: "4182", name: "Un Jugador" },
+  { id: "3843", name: "Multijugador" },
+  { id: "1664", name: "Puzles" },
+  { id: "1667", name: "Terror" },
+  { id: "1625", name: "Plataformas" },
+  { id: "1742", name: "Buena Trama" },
+  { id: "1695", name: "Ciencia Ficción" },
+];
 
 // ── AI recommendations component ─────────────────────────────────────────────
 
@@ -247,95 +269,33 @@ export function Market() {
   const isFreeMode     = sortBy === "Free";
   const isPopularMode  = !search.trim() && sortBy === "Popular";
 
-  // tags filtering
-  const [tagMap, setTagMap] = useState<Record<string, string[]>>({});
-  const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<{name: string, count: number}[]>([]);
-  const [tagsLoading, setTagsLoading] = useState(false);
-
-  // Derive visible games and appIds
-  const currentItems = isFreeMode || isPopularMode || (deals.length === 0 && search) ? steamGames : deals;
-  const currentAppIds = currentItems.map(item => {
-    if ('steamAppID' in item) return item.steamAppID;
-    return item.steamAppID;
-  }).filter(Boolean);
-
-  // Fetch tags for current items (with polling for background fetched tags)
-  useEffect(() => {
-    if (currentAppIds.length === 0) return;
-    
-    let intervalId: ReturnType<typeof setInterval>;
-
-    const fetchMissingTags = () => {
-      setTagMap(prevTagMap => {
-        const missing = currentAppIds.filter(id => !prevTagMap[id]);
-        if (missing.length === 0) {
-          if (intervalId) clearInterval(intervalId);
-          setTagsLoading(false);
-          return prevTagMap;
-        }
-
-        setTagsLoading(true);
-        api.get(`/api/steam/tags?appIds=${missing.join(',')}`).then(res => {
-          const data = res.data || {};
-          setTagMap(currentMap => {
-            const next = {...currentMap, ...data};
-            // Recompute available tags
-            const counts: Record<string, number> = {};
-            currentAppIds.forEach(id => {
-              (next[id] || []).forEach((t: string) => { counts[t] = (counts[t] || 0) + 1; });
-            });
-            const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 15).map(([name, count]) => ({name, count}));
-            setAvailableTags(sorted);
-            return next;
-          });
-        }).finally(() => {
-          // Keep loading true if there are still missing tags that will be polled next time
-        });
-
-        return prevTagMap; // state update happens in the fetch then
-      });
-    };
-
-    fetchMissingTags(); // initial fetch
-    intervalId = setInterval(fetchMissingTags, 4000); // poll every 4s
-
-    return () => {
-      if (intervalId) clearInterval(intervalId);
-    };
-  }, [currentAppIds.join(',')]); // run when appIds change
-
-  // Apply tag filters locally
-  const filteredDeals = deals.filter(d => {
-    if (activeTags.length === 0) return true;
-    const tags = tagMap[d.steamAppID] || [];
-    return activeTags.every(t => tags.includes(t));
-  });
-
-  const filteredSteamGames = steamGames.filter(g => {
-    if (activeTags.length === 0) return true;
-    const tags = tagMap[g.steamAppID] || [];
-    return activeTags.every(t => tags.includes(t));
-  });
-
-  const toggleTag = (tag: string) => {
-    setActiveTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+  const toggleTag = (tagId: string) => {
+    setSelectedTags(prev => prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]);
   };
 
-  // fetch deals — also handles "free games" and "popular paid" browse modes via Steam
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
     const searchTerm  = search.trim();
 
     if (append) setIsLoadingMore(true); else setLoading(true);
     if (!append) { setSteamGames([]); setSteamLoading(false); }
 
-    // ── STEAM MODES (Free or Popular) ────────────────────────────
-    if (isFreeMode || isPopularMode) {
+    if (selectedTags.length > 0 || isFreeMode || isPopularMode) {
       try {
         const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
-        const endpoint = isFreeMode ? "/api/steam/free-games" : "/api/steam/most-played";
-        const res = await api.get(`${endpoint}?sort=${steamSort}&page=${pg}`);
+        let endpoint = "";
+        
+        if (selectedTags.length > 0) {
+          endpoint = `/api/steam/by-tags?tags=${selectedTags.join(',')}&isFree=${isFreeMode}`;
+        } else if (isFreeMode) {
+          endpoint = "/api/steam/free-games";
+        } else {
+          endpoint = "/api/steam/most-played";
+        }
+        
+        const connector = endpoint.includes('?') ? '&' : '?';
+        const res = await api.get(`${endpoint}${connector}sort=${steamSort}&page=${pg}`);
         const { games: raw = [], hasMore: more = false } = res.data ?? {};
+        
         const mapped: SteamGame[] = raw.map((item: any) => {
           const priceVal = item.price === "Gratis" ? "Gratis" : (item.price === 0 || isFreeMode ? "Gratis" : `$${Number(item.price).toFixed(2)}`);
           return {
@@ -352,34 +312,30 @@ export function Market() {
         setSteamGames(prev => append ? [...prev, ...mapped] : mapped);
         setHasMore(more);
         setDeals([]);
-      } catch {
+      } catch (err) {
+        console.error(err);
         setSteamGames([]);
       } finally {
         setLoading(false); setIsLoadingMore(false);
       }
-      return;  // skip CheapShark entirely
+      return;
     }
 
-    // ── REGULAR MODE: CheapShark ──────────────────────────────────────────
     try {
-      const params: Record<string, string | number> = {
+      const params: Record<string, any> = {
         storeID:    "1",
         pageSize:   40,
         pageNumber: pg,
         sortBy,
       };
       
-      // Fix bug: Cheapshark Price sort ascending gives cheapest first. 
-      // Do not add desc: 1 for Price (Free is not hitting cheapshark anymore)
       if (sortBy !== "Price" && sortBy !== "Free") {
         params.desc = 1;
       }
 
       if (searchTerm) {
-        // No price filters when searching by title so free games aren't excluded
         params.title = searchTerm;
       } else {
-        // Price filters only in browse mode
         const min = minPrice !== "" ? parseFloat(minPrice) : null;
         const max = maxPrice !== "" ? parseFloat(maxPrice) : null;
         if (min !== null && min === 0 && max !== null && max === 0) {
@@ -395,7 +351,6 @@ export function Market() {
       setHasMore(data.length === 40);
       setDeals(prev => append ? [...prev, ...data] : data);
 
-      // If CheapShark found nothing for a text search → try Steam fallback
       if (data.length === 0 && searchTerm && !append) {
         fetchSteamFallback(searchTerm);
       }
@@ -405,14 +360,13 @@ export function Market() {
     } finally {
       setLoading(false); setIsLoadingMore(false);
     }
-  }, [search, sortBy, minPrice, maxPrice, fetchSteamFallback]);
+  }, [search, sortBy, minPrice, maxPrice, selectedTags, isFreeMode, isPopularMode, fetchSteamFallback]);
 
-  // re-fetch on filter change (debounced for search)
   useEffect(() => {
     setPage(0);
     const id = setTimeout(() => fetchDeals(0, false), search ? 400 : 0);
     return () => clearTimeout(id);
-  }, [search, sortBy, minPrice, maxPrice]);
+  }, [search, sortBy, minPrice, maxPrice, selectedTags, fetchDeals]);
 
   const loadMore = () => {
     const next = page + 1;
@@ -423,7 +377,6 @@ export function Market() {
   return (
     <div className="space-y-10 pb-20">
 
-      {/* ── Header ── */}
       <div>
         <h1 className="text-3xl font-bold text-white">Mercado</h1>
         <p className="text-slate-400 text-sm mt-1">
@@ -431,180 +384,162 @@ export function Market() {
         </p>
       </div>
 
-      {/* ── AI recommendations ── */}
       {user ? (
         <AIRecommendations steamId={user.steamid}/>
       ) : (
         <LockedRecs onLogin={login}/>
       )}
 
-      {/* ── separator ── */}
       <div className="border-t border-slate-800"/>
 
-      {/* ── Filters ── */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center flex-wrap">
-
-          {/* search */}
-          <div className="relative flex-1 min-w-[200px]">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"/>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1 group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-cyan-400 transition-colors" />
             <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+              type="text"
               placeholder="Buscar juego..."
-              className="w-full bg-slate-900 border border-slate-700 rounded-lg pl-9 pr-9 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-slate-800/50 text-white pl-12 pr-4 py-3 rounded-xl border border-slate-700/50 
+                         focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 focus:outline-none transition-all
+                         placeholder:text-slate-500"
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white">
-                <X size={13}/>
-              </button>
-            )}
-          </div>
-
-          {/* ── price range: always-visible inline inputs ── */}
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal size={14} className="text-slate-500 shrink-0"/>
-            <span className="text-slate-500 text-xs hidden sm:block">Precio:</span>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none select-none">$</span>
-              <input
-                type="number"
-                min="0"
-                max="9999"
-                step="0.01"
-                value={minPrice}
-                onChange={e => setMinPrice(e.target.value)}
-                placeholder="Mín"
-                className="w-[76px] bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
-            <span className="text-slate-500 text-sm select-none">–</span>
-            <div className="relative">
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none select-none">$</span>
-              <input
-                type="number"
-                min="0"
-                max="9999"
-                step="0.01"
-                value={maxPrice}
-                onChange={e => setMaxPrice(e.target.value)}
-                placeholder="Máx"
-                className="w-[76px] bg-slate-900 border border-slate-700 rounded-lg pl-5 pr-2 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-            </div>
-            {hasPriceFilter && (
               <button
-                onClick={() => { setMinPrice(""); setMaxPrice(""); }}
-                className="text-slate-500 hover:text-white transition-colors"
-                title="Limpiar precio"
+                onClick={() => setSearch("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-white rounded-full hover:bg-slate-700/50 transition-colors"
               >
-                <X size={14}/>
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
-          {/* sort */}
-          <div className="relative">
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="appearance-none bg-slate-900 border border-slate-700 rounded-lg pl-3 pr-8 py-2 text-sm text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer"
-            >
-              {SORT_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-            <ArrowUpDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"/>
-          </div>
-        </div>
-
-        {/* active filter pills */}
-        {(search || hasPriceFilter) && (
-          <div className="flex items-center gap-2 flex-wrap">
-            {search && (
-              <span className="flex items-center gap-1.5 bg-blue-600/20 border border-blue-500/30 text-blue-300 text-xs px-2.5 py-1 rounded-full">
-                <Search size={10}/> "{search}"
-                <button onClick={() => setSearch("")} className="hover:text-white ml-0.5"><X size={10}/></button>
-              </span>
+          <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
+            {selectedTags.length === 0 && !isPopularMode && !isFreeMode && (
+              <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-1.5 border border-slate-700/50 hidden md:flex">
+                <div className="flex items-center gap-2 px-3 text-sm text-slate-400">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>Precio:</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                    <input
+                      type="number"
+                      placeholder="Mín"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
+                      className="w-20 bg-slate-900/50 text-white pl-7 pr-3 py-1.5 rounded-lg border border-slate-700/50 
+                               focus:border-cyan-500/50 focus:outline-none text-sm placeholder:text-slate-600"
+                    />
+                  </div>
+                  <span className="text-slate-600">-</span>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">$</span>
+                    <input
+                      type="number"
+                      placeholder="Máx"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
+                      className="w-20 bg-slate-900/50 text-white pl-7 pr-3 py-1.5 rounded-lg border border-slate-700/50 
+                               focus:border-cyan-500/50 focus:outline-none text-sm placeholder:text-slate-600"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
-            {hasPriceFilter && (
-              <span className="flex items-center gap-1.5 bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 text-xs px-2.5 py-1 rounded-full">
-                <Tag size={10}/>
-                {minPrice && maxPrice
-                  ? `$${minPrice} – $${maxPrice}`
-                  : minPrice
-                  ? `> $${minPrice}`
-                  : `< $${maxPrice}`}
-                <button onClick={() => { setMinPrice(""); setMaxPrice(""); }} className="hover:text-white ml-0.5"><X size={10}/></button>
-              </span>
-            )}
-          </div>
-        )}
-      </div>
 
-      {/* ── Results header ── */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <TrendingDown size={20} className="text-emerald-400"/>
-            {isFreeMode ? "Juegos gratuitos en Steam" : isPopularMode ? "Juegos Populares" : search ? `Resultados para "${search}"` : "Todas las ofertas"}
-            {!loading && !steamLoading && (
-              <span className="text-sm font-normal text-slate-500">
-                · {currentItems.length} juegos
-                {(isFreeMode || isPopularMode || (deals.length === 0 && steamGames.length > 0)) && (
-                  <span className="ml-1 text-[10px] text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full align-middle">Steam Store</span>
-                )}
-              </span>
-            )}
-          </h2>
-        </div>
-
-        {/* ── Dynamic Tags Filter ── */}
-        {(availableTags.length > 0 || tagsLoading) && !loading && !steamLoading && (
-          <div className="flex flex-wrap gap-2 items-center bg-slate-900/50 border border-slate-800 p-3 rounded-xl">
-            <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-              <Tag size={12}/> Filtros rápidos
-              {tagsLoading && <Loader2 size={10} className="animate-spin text-blue-400"/>}
-            </span>
-            <div className="w-px h-4 bg-slate-700 mx-1"/>
-            {availableTags.map(({name, count}) => {
-              const isActive = activeTags.includes(name);
-              return (
-                <button
-                  key={name}
-                  onClick={() => toggleTag(name)}
-                  className={`text-xs px-2.5 py-1 rounded-full transition-all border flex items-center gap-1.5
-                    ${isActive 
-                      ? "bg-blue-600/20 border-blue-500/50 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.1)]" 
-                      : "bg-slate-800 border-slate-700 text-slate-300 hover:border-slate-500 hover:text-white"}`}
-                >
-                  {name} <span className="opacity-50 text-[10px]">{count}</span>
-                </button>
-              );
-            })}
-            {activeTags.length > 0 && (
-              <button 
-                onClick={() => setActiveTags([])}
-                className="text-[11px] text-slate-400 hover:text-white ml-auto flex items-center gap-1"
+            <div className="relative min-w-[180px] group flex-1 md:flex-none">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="w-full appearance-none bg-slate-800/50 text-white pl-4 pr-10 py-3 rounded-xl 
+                           border border-slate-700/50 focus:border-cyan-500/50 focus:ring-2 focus:ring-cyan-500/20 
+                           focus:outline-none transition-all cursor-pointer font-medium"
               >
-                Limpiar <X size={10}/>
-              </button>
-            )}
+                {SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value} className="bg-slate-800 py-2">
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ArrowUpDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none group-focus-within:text-cyan-400 transition-colors" />
+            </div>
           </div>
-        )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 text-slate-400 mr-2">
+            <Tag className="w-4 h-4" />
+            <span className="text-sm font-medium">Categorías:</span>
+          </div>
+          
+          {GLOBAL_TAGS.map(tag => {
+            const isActive = selectedTags.includes(tag.id);
+            return (
+              <button
+                key={tag.id}
+                onClick={() => toggleTag(tag.id)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+                  isActive
+                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
+                    : "bg-slate-800/50 text-slate-400 border border-slate-700/50 hover:bg-slate-700 hover:text-slate-200"
+                }`}
+              >
+                {tag.name}
+                {isActive && <X className="w-3 h-3" />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ── Game grid ── */}
+      <div className="flex items-center gap-3">
+        <Sparkles className="w-6 h-6 text-cyan-400" />
+        <h2 className="text-xl font-bold text-white flex items-center gap-3">
+          {search ? (
+            <>
+              Resultados para "{search}"
+              <span className="text-sm font-normal text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                {deals.length > 0 ? deals.length : steamGames.length}
+              </span>
+            </>
+          ) : selectedTags.length > 0 ? (
+            <>
+              Juegos por Categoría
+              <span className="text-sm font-normal text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                Steam Store
+              </span>
+            </>
+          ) : isFreeMode ? (
+            <>
+              Juegos Gratuitos
+              <span className="text-sm font-normal text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                Steam Store
+              </span>
+            </>
+          ) : (
+            <>
+              Juegos Populares
+              <span className="text-sm font-normal text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                Steam Store
+              </span>
+            </>
+          )}
+        </h2>
+      </div>
+
       {loading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {Array.from({ length: 18 }).map((_, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse"/>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
           ))}
         </div>
-      ) : filteredDeals.length > 0 ? (
+      ) : deals.length > 0 ? (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filteredDeals.map(d => <DealCard key={d.dealID} deal={d}/>)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {deals.map(d => <DealCard key={d.dealID} deal={d}/>)}
           </div>
           {hasMore && (
             <div className="flex justify-center pt-4">
@@ -619,29 +554,27 @@ export function Market() {
           )}
         </>
       ) : steamLoading ? (
-        // Steam loading skeleton (fallback or free-games mode)
         <div className="space-y-3">
           <p className="text-xs text-slate-500 flex items-center gap-1.5">
             <Loader2 size={12} className="animate-spin"/>
-            {isFreeMode || isPopularMode ? "Cargando juegos de Steam..." : "Sin deals en CheapShark · buscando en Steam Store..."}
+            Cargando juegos de Steam...
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
             ))}
           </div>
         </div>
-      ) : filteredSteamGames.length > 0 ? (
-        // Steam Store results (free-games mode, popular mode or text-search fallback)
+      ) : steamGames.length > 0 ? (
         <div className="space-y-3">
-          {!isFreeMode && !isPopularMode && (
+          {!isFreeMode && !isPopularMode && selectedTags.length === 0 && (
             <p className="text-xs text-slate-500 flex items-center gap-2">
               <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
               Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
             </p>
           )}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {filteredSteamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
           </div>
           {hasMore && (
             <div className="flex justify-center pt-4">
