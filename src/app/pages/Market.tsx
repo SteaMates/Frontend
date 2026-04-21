@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import {
   Search, ArrowUpDown, ChevronDown, Star, Sparkles, Loader2, RefreshCw,
-  TrendingDown, Lock, Tag, X
+  TrendingDown, Lock, Tag, X, SlidersHorizontal
 } from "lucide-react";
 import { DealCard, Deal } from "../components/market/DealCard";
 import { useAuth } from "../context/AuthContext";
@@ -18,11 +18,11 @@ const SORT_OPTIONS = [
 ];
 
 const PRICE_PRESETS = [
-  { label: "Gratis",  max: "0"   },
-  { label: "< $5",   max: "5"   },
-  { label: "< $15",  max: "15"  },
-  { label: "< $30",  max: "30"  },
-  { label: "Todos",  max: "100" },
+  { label: "Gratis",  min: "0", max: "0"   },
+  { label: "< $5",   min: "0", max: "5"   },
+  { label: "< $15",  min: "0", max: "15"  },
+  { label: "< $30",  min: "0", max: "30"  },
+  { label: "Todos",  min: "0", max: ""    },
 ];
 
 // ── AI recommendations component ─────────────────────────────────────────────
@@ -157,7 +157,8 @@ export function Market() {
   // filters
   const [search,         setSearch]         = useState("");
   const [sortBy,         setSortBy]         = useState("Deal Rating");
-  const [maxPrice,       setMaxPrice]       = useState("100");
+  const [minPrice,       setMinPrice]       = useState("0");
+  const [maxPrice,       setMaxPrice]       = useState("");
   const [showPriceDD,    setShowPriceDD]    = useState(false);
   const priceRef = useRef<HTMLDivElement>(null);
 
@@ -177,18 +178,26 @@ export function Market() {
     if (append) setIsLoadingMore(true); else setLoading(true);
     try {
       const params: Record<string, string | number> = {
-        storeID:     "1",
-        upperPrice:  maxPrice === "100" ? 100 : Number(maxPrice),
-        pageSize:    40,
-        pageNumber:  pg,
+        storeID:    "1",
+        pageSize:   40,
+        pageNumber: pg,
         sortBy,
-        desc:        1,
+        desc:       1,
       };
-      if (maxPrice === "0") {
+
+      const min = parseFloat(minPrice) || 0;
+      const max = maxPrice === "" ? null : parseFloat(maxPrice);
+
+      // Solo precio gratis puro (sin búsqueda de texto)
+      if (max === 0 && min === 0 && !search.trim()) {
         params.upperPrice = 0;
         params.lowerPrice = 0;
         delete params.desc;
+      } else {
+        if (min > 0) params.lowerPrice = min;
+        if (max !== null) params.upperPrice = max;
       }
+
       if (search.trim()) params.title = search.trim();
 
       const res = await axios.get("https://www.cheapshark.com/api/1.0/deals", { params });
@@ -200,14 +209,14 @@ export function Market() {
     } finally {
       setLoading(false); setIsLoadingMore(false);
     }
-  }, [search, sortBy, maxPrice]);
+  }, [search, sortBy, minPrice, maxPrice]);
 
   // re-fetch on filter change (debounced for search)
   useEffect(() => {
     setPage(0);
     const id = setTimeout(() => fetchDeals(0, false), search ? 400 : 0);
     return () => clearTimeout(id);
-  }, [search, sortBy, maxPrice]);
+  }, [search, sortBy, minPrice, maxPrice]);
 
   const loadMore = () => {
     const next = page + 1;
@@ -215,10 +224,15 @@ export function Market() {
     fetchDeals(next, true);
   };
 
-  const priceLabel =
-    maxPrice === "0"   ? "Gratis"   :
-    maxPrice === "100" ? "Precio"   :
-    `< $${maxPrice}`;
+  const priceLabel = (() => {
+    const hasMin = parseFloat(minPrice) > 0;
+    const hasMax = maxPrice !== "";
+    if (!hasMin && !hasMax) return "Precio";
+    if (!hasMin && maxPrice === "0") return "Gratis";
+    if (hasMin && hasMax) return `$${minPrice}–$${maxPrice}`;
+    if (hasMin) return `> $${minPrice}`;
+    return `< $${maxPrice}`;
+  })();
 
   return (
     <div className="space-y-10 pb-20">
@@ -264,30 +278,78 @@ export function Market() {
           <div className="relative" ref={priceRef}>
             <button
               onClick={() => setShowPriceDD(p => !p)}
-              className="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 hover:border-blue-500 transition-colors min-w-[120px]"
+              className={`flex items-center gap-2 bg-slate-900 border rounded-lg px-3 py-2 text-sm text-slate-200 hover:border-blue-500 transition-colors min-w-[130px] ${
+                (parseFloat(minPrice) > 0 || maxPrice !== "") ? "border-blue-500 text-blue-400" : "border-slate-700"
+              }`}
             >
-              <Tag size={14} className="text-slate-500"/>
+              <SlidersHorizontal size={14} className="text-slate-500"/>
               <span className="flex-1 text-left">{priceLabel}</span>
               <ChevronDown size={13} className={`text-slate-500 transition-transform ${showPriceDD ? "rotate-180" : ""}`}/>
             </button>
             {showPriceDD && (
-              <div className="absolute mt-2 left-0 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-3 space-y-2 min-w-[180px]">
-                <p className="text-[11px] text-slate-500 uppercase tracking-wider px-1">Precio máximo</p>
-                <div className="grid grid-cols-1 gap-1">
-                  {PRICE_PRESETS.map(p => (
-                    <button
-                      key={p.max}
-                      onClick={() => { setMaxPrice(p.max); setShowPriceDD(false); }}
-                      className={`w-full text-left px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                        maxPrice === p.max
-                          ? "bg-blue-600 text-white"
-                          : "text-slate-300 hover:bg-slate-800"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
+              <div className="absolute mt-2 left-0 z-50 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-4 space-y-4 min-w-[220px]">
+                {/* Presets rápidos */}
+                <div>
+                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">Acceso rápido</p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {PRICE_PRESETS.map(p => {
+                      const active = minPrice === p.min && maxPrice === p.max;
+                      return (
+                        <button
+                          key={p.label}
+                          onClick={() => { setMinPrice(p.min); setMaxPrice(p.max); setShowPriceDD(false); }}
+                          className={`px-2 py-1.5 rounded-lg text-xs transition-colors ${
+                            active ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"
+                          }`}
+                        >
+                          {p.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
+
+                {/* Rango personalizado */}
+                <div>
+                  <p className="text-[11px] text-slate-500 uppercase tracking-wider mb-2">Rango personalizado</p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <label className="text-[10px] text-slate-500 block mb-1">Mín ($)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="999"
+                        value={minPrice}
+                        onChange={e => setMinPrice(e.target.value)}
+                        placeholder="0"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <span className="text-slate-500 text-sm pt-4">–</span>
+                    <div className="flex-1">
+                      <label className="text-[10px] text-slate-500 block mb-1">Máx ($)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="999"
+                        value={maxPrice}
+                        onChange={e => setMaxPrice(e.target.value)}
+                        placeholder="∞"
+                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Limpiar */}
+                {(parseFloat(minPrice) > 0 || maxPrice !== "") && (
+                  <button
+                    onClick={() => { setMinPrice("0"); setMaxPrice(""); setShowPriceDD(false); }}
+                    className="w-full text-xs text-slate-400 hover:text-white flex items-center justify-center gap-1 py-1"
+                  >
+                    <X size={11}/> Limpiar filtro de precio
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -347,7 +409,7 @@ export function Market() {
           <Star size={40} className="mx-auto mb-4 text-slate-700"/>
           <p className="text-lg">No se encontraron ofertas.</p>
           <button
-            onClick={() => { setSearch(""); setMaxPrice("100"); }}
+            onClick={() => { setSearch(""); setMinPrice("0"); setMaxPrice(""); }}
             className="text-blue-400 text-sm mt-2 hover:underline"
           >
             Limpiar filtros

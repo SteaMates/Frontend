@@ -179,14 +179,50 @@ export function Lists() {
         setIsSearchingGames(true);
         try {
           const res = await api.get(`/api/steam/search?term=${encodeURIComponent(createGameQuery)}`);
-          const results = res.data.map((item: any) => ({
-            id: item.appId.toString(),
-            title: item.name,
-            year: "-",
-            price: item.price,
-            score: "-",
-            image: `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
-          }));
+          const results = res.data.map((item: any) => {
+            // Format price
+            let priceLabel = "Desconocido";
+            if (item.price === 0 || item.price === "0" || item.isFree === true) {
+              priceLabel = "Gratis";
+            } else if (typeof item.price === "number" && item.price > 0) {
+              priceLabel = `$${item.price.toFixed(2)}`;
+            } else if (typeof item.price === "string" && item.price.trim() !== "" && item.price !== "-") {
+              // Try to parse if it's a number string
+              const parsed = parseFloat(item.price);
+              if (!isNaN(parsed)) {
+                priceLabel = parsed === 0 ? "Gratis" : `$${parsed.toFixed(2)}`;
+              } else {
+                // Already formatted (e.g. "$9.99")
+                priceLabel = item.price;
+              }
+            }
+
+            // Image: prefer Steam CDN, fallback to API-provided thumb
+            const appId = item.appId ? item.appId.toString() : null;
+            const steamImg = appId
+              ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`
+              : null;
+            const fallbackImg = item.thumb || item.imageUrl || item.image || null;
+            const image = steamImg || fallbackImg || `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(item.name?.[0] ?? '?')}`;
+
+            // Year
+            let year = "—";
+            if (item.releaseDate) {
+              const d = new Date(item.releaseDate * 1000);
+              if (!isNaN(d.getFullYear())) year = d.getFullYear().toString();
+            } else if (item.year && item.year !== "-") {
+              year = item.year;
+            }
+
+            return {
+              id: appId || item.name,
+              title: item.name,
+              year,
+              price: priceLabel,
+              score: "-",
+              image,
+            };
+          });
           setSearchGamesOptions(results);
         } catch (err) {
           console.error("Error searching games:", err);
@@ -842,14 +878,21 @@ export function Lists() {
                           <img
                             src={game.image}
                             alt={game.title}
-                            className="h-10 w-10 rounded-[10px] object-cover"
+                            className="h-10 w-10 rounded-[10px] object-cover bg-[#1d293d]"
+                            onError={(e) => {
+                              const t = e.target as HTMLImageElement;
+                              if (!t.dataset.fallback) {
+                                t.dataset.fallback = "1";
+                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? '?')}`;
+                              }
+                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-[14px] text-white truncate">
                               {game.title}
                             </p>
                             <p className="text-[10px] text-[#62748e]">
-                              {game.year} · {game.price}
+                              {game.year !== "—" && game.year !== "-" ? game.year : ""}{game.year !== "—" && game.year !== "-" ? " · " : ""}{game.price}
                             </p>
                           </div>
                           <button
@@ -895,7 +938,14 @@ export function Lists() {
                           <img
                             src={game.image}
                             alt={game.title}
-                            className="h-10 w-10 rounded-[10px] object-cover"
+                            className="h-10 w-10 rounded-[10px] object-cover bg-[#1d293d]"
+                            onError={(e) => {
+                              const t = e.target as HTMLImageElement;
+                              if (!t.dataset.fallback) {
+                                t.dataset.fallback = "1";
+                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? '?')}`;
+                              }
+                            }}
                           />
                           <div className="flex-1 min-w-0">
                             <p className="text-[14px] font-medium text-[#cad5e2] truncate">
