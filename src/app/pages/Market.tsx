@@ -207,7 +207,7 @@ export function Market() {
   const [steamGames,   setSteamGames]   = useState<SteamGame[]>([]);
   const [steamLoading, setSteamLoading] = useState(false);
 
-  // steam fallback search via existing backend endpoint
+  // steam fallback search via existing backend endpoint (returns only type=game)
   const fetchSteamFallback = useCallback(async (term: string) => {
     setSteamLoading(true);
     setSteamGames([]);
@@ -215,18 +215,9 @@ export function Market() {
       const res = await api.get(`/api/steam/search?term=${encodeURIComponent(term)}`);
       const mapped: SteamGame[] = (res.data ?? []).map((item: any) => {
         const appId = item.appId?.toString() ?? "";
-        const rawPrice = item.price;
-        let price = "Desconocido";
-        let isFree = false;
-        if (item.isFree || rawPrice === 0 || rawPrice === "0" || rawPrice === "Free") {
-          price = "Gratis"; isFree = true;
-        } else if (typeof rawPrice === "number" && rawPrice > 0) {
-          price = `$${rawPrice.toFixed(2)}`;
-        } else if (typeof rawPrice === "string" && rawPrice.trim() !== "") {
-          const p = parseFloat(rawPrice);
-          if (!isNaN(p)) { price = p === 0 ? "Gratis" : `$${p.toFixed(2)}`; isFree = p === 0; }
-          else price = rawPrice; // already formatted e.g. "$9.99"
-        }
+        // Backend now sends isFree (boolean) and price (number in dollars)
+        const isFree = item.isFree === true || item.price === 0;
+        const price = isFree ? "Gratis" : `$${Number(item.price).toFixed(2)}`;
         return {
           id: appId || item.name,
           title: item.name,
