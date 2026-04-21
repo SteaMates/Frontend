@@ -17,6 +17,14 @@ const SORT_OPTIONS = [
   { value: "Release",      label: "Más recientes"  },
 ];
 
+// Maps CheapShark sortBy values → Steam Store sort_by param (used in free-games mode)
+const STEAM_SORT_MAP: Record<string, string> = {
+  "Deal Rating": "Reviews_DESC",
+  "Savings":     "Reviews_DESC",
+  "Price":       "Price_ASC",
+  "Release":     "Released_DESC",
+};
+
 // ── AI recommendations component ─────────────────────────────────────────────
 
 interface RecommendedDeal extends Deal {
@@ -237,11 +245,42 @@ export function Market() {
     }
   }, []);
 
-  // fetch deals
+  // fetch deals — also handles "free games" browse mode via Steam
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
+    const searchTerm  = search.trim();
+    const isFreeMode  = maxPrice === "0" && minPrice === "" && !searchTerm;
+
     if (append) setIsLoadingMore(true); else setLoading(true);
-    // Reset steam fallback at the start of each new search
     if (!append) { setSteamGames([]); setSteamLoading(false); }
+
+    // ── FREE GAMES MODE: pull from Steam Store ────────────────────────────
+    if (isFreeMode) {
+      try {
+        const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
+        const res = await api.get(`/api/steam/free-games?sort=${steamSort}&page=${pg}`);
+        const { games: raw = [], hasMore: more = false } = res.data ?? {};
+        const mapped: SteamGame[] = raw.map((item: any) => ({
+          id:        item.appId || item.name,
+          title:     item.name,
+          price:     "Gratis",
+          isFree:    true,
+          image:     item.appId
+            ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
+            : item.tinyImage ?? `https://placehold.co/460x215/1e293b/94a3b8?text=?`,
+          steamAppID: item.appId ?? "",
+        }));
+        setSteamGames(prev => append ? [...prev, ...mapped] : mapped);
+        setHasMore(more);
+        setDeals([]);
+      } catch {
+        setSteamGames([]);
+      } finally {
+        setLoading(false); setIsLoadingMore(false);
+      }
+      return;  // skip CheapShark entirely
+    }
+
+    // ── REGULAR MODE: CheapShark ──────────────────────────────────────────
     try {
       const params: Record<string, string | number> = {
         storeID:    "1",
@@ -250,8 +289,6 @@ export function Market() {
         sortBy,
         desc:       1,
       };
-
-      const searchTerm = search.trim();
 
       if (searchTerm) {
         // No price filters when searching by title so free games aren't excluded
@@ -274,8 +311,8 @@ export function Market() {
       setDeals(prev => append ? [...prev, ...data] : data);
 
       // If CheapShark found nothing for a text search → try Steam fallback
-      if (data.length === 0 && search.trim() && !append) {
-        fetchSteamFallback(search.trim());
+      if (data.length === 0 && searchTerm && !append) {
+        fetchSteamFallback(searchTerm);
       }
     } catch {
       setDeals([]);
@@ -299,6 +336,7 @@ export function Market() {
   };
 
   const hasPriceFilter = minPrice !== "" || maxPrice !== "";
+  const isFreeMode     = maxPrice === "0" && minPrice === "" && !search.trim();
 
   return (
     <div className="space-y-10 pb-20">
@@ -426,11 +464,11 @@ export function Market() {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
           <TrendingDown size={20} className="text-emerald-400"/>
-          {search ? `Resultados para "${search}"` : "Todas las ofertas"}
+          {isFreeMode ? "Juegos gratuitos en Steam" : search ? `Resultados para "${search}"` : "Todas las ofertas"}
           {!loading && !steamLoading && (
             <span className="text-sm font-normal text-slate-500">
               · {deals.length > 0 ? deals.length : steamGames.length} juegos
-              {deals.length === 0 && steamGames.length > 0 && (
+              {(deals.length === 0 && steamGames.length > 0 && !isFreeMode) && (
                 <span className="ml-1 text-[10px] text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full align-middle">Steam Store</span>
               )}
             </span>
@@ -463,28 +501,41 @@ export function Market() {
           )}
         </>
       ) : steamLoading ? (
-        // Steam fallback loading skeleton
+        // Steam loading skeleton (fallback or free-games mode)
         <div className="space-y-3">
           <p className="text-xs text-slate-500 flex items-center gap-1.5">
             <Loader2 size={12} className="animate-spin"/>
-            Sin deals en CheapShark · buscando en Steam Store...
+            {isFreeMode ? "Cargando juegos gratuitos de Steam..." : "Sin deals en CheapShark · buscando en Steam Store..."}
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
             ))}
           </div>
         </div>
       ) : steamGames.length > 0 ? (
-        // Steam Store fallback results
+        // Steam Store results (free-games mode or text-search fallback)
         <div className="space-y-3">
-          <p className="text-xs text-slate-500 flex items-center gap-2">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
-            Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
-          </p>
+          {!isFreeMode && (
+            <p className="text-xs text-slate-500 flex items-center gap-2">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
+              Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
+            </p>
+          )}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
           </div>
+          {hasMore && (
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={loadMore}
+                disabled={isLoadingMore}
+                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
+              >
+                {isLoadingMore ? <><Loader2 size={15} className="animate-spin"/> Cargando...</> : "Cargar más"}
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-center py-20 text-slate-500">
