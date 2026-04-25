@@ -42,6 +42,9 @@ export const respondToGamingSession = (
 export const cancelGamingSession = (id: string) =>
   api.patch(`/api/sessions/${id}/cancel`);
 
+export const leaveGamingSession = (id: string) =>
+  api.patch(`/api/sessions/${id}/leave`);
+
 // --- Notifications ---
 export const getNotifications = (params?: { unread?: boolean; limit?: number }) =>
   api.get("/api/notifications", { params });

@@ -114,9 +114,16 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     try {
       await markNotificationRead(id);
       setNotifications((prev) =>
-        prev.map((n) =>
-          n._id === id ? { ...n, readAt: new Date().toISOString() } : n
-        )
+        prev.map((n) => {
+          if (n._id !== id) return n;
+          // Don't set readAt locally for unresponded invites — it would hide
+          // the toast on next render. The backend is updated but local state
+          // keeps readAt null until the user explicitly responds/dismisses.
+          if (n.type === "session_invite" && !respondedIds.current.has(id)) {
+            return n;
+          }
+          return { ...n, readAt: new Date().toISOString() };
+        })
       );
     } catch {
       // ignore
@@ -153,12 +160,15 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
 
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
-  // Pending invites = session_invites the user hasn't explicitly responded to or dismissed.
-  // We intentionally do NOT filter by readAt here — opening the bell panel
-  // marks notifications as read but should not remove the invite toast.
+  // Pending invites = session_invites that:
+  // - Have no readAt (not yet read/responded, survives page reloads)
+  // - Haven't been responded/dismissed in this session
+  // readAt is set by the backend when the user responds, so it's the
+  // reliable source of truth across reloads.
   const pendingInvites = notifications.filter(
     (n) =>
       n.type === "session_invite" &&
+      !n.readAt &&
       !respondedIds.current.has(n._id) &&
       !shownInviteIds.current.has(n._id)
   );

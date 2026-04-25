@@ -29,6 +29,7 @@ import api, {
   getMyGamingSessions,
   getNotifications,
   cancelGamingSession,
+  leaveGamingSession,
 } from "../../lib/api";
 import {
   SessionBooking,
@@ -1523,6 +1524,7 @@ export function Friends() {
       (p) => p.user?.steamId === user?.steamid
     );
     const myParticipantStatus = myEntry?.status as 'invited' | 'accepted' | 'declined' | undefined;
+    const isHost = !myEntry; // if not in participants array, current user is the host
 
     return {
       id: session._id,
@@ -1536,6 +1538,7 @@ export function Friends() {
       friends: participantFriends,
       confirmed: session.status !== "cancelled",
       myParticipantStatus,
+      isHost,
     };
   };
 
@@ -1930,6 +1933,7 @@ export function Friends() {
                   ) : (
                     <UpcomingSessions
                       sessions={scheduledSessions}
+                      currentUserSteamId={user?.steamid}
                       onRemove={async (id: string) => {
                         try {
                           await cancelGamingSession(id);
@@ -1937,6 +1941,14 @@ export function Friends() {
                           await loadNotifications();
                         } catch (error) {
                           console.error("Error cancelling session:", error);
+                        }
+                      }}
+                      onLeave={async (id: string) => {
+                        try {
+                          await leaveGamingSession(id);
+                          await loadSessions();
+                        } catch (error) {
+                          console.error("Error leaving session:", error);
                         }
                       }}
                     />

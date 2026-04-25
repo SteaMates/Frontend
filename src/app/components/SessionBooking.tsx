@@ -38,6 +38,7 @@ export interface ScheduledSession {
   friends: SessionFriend[];
   confirmed: boolean;
   myParticipantStatus?: 'invited' | 'accepted' | 'declined';
+  isHost?: boolean;
 }
 
 interface Props {
@@ -608,9 +609,13 @@ export function SessionBooking({
 export function UpcomingSessions({
   sessions,
   onRemove,
+  onLeave,
+  currentUserSteamId,
 }: {
   sessions: ScheduledSession[];
   onRemove: (id: string) => void;
+  onLeave?: (id: string) => void;
+  currentUserSteamId?: string;
 }) {
   if (sessions.length === 0) return null;
 
@@ -693,13 +698,24 @@ export function UpcomingSessions({
               </span>
             )}
 
-            <button
-              onClick={() => onRemove(session.id)}
-              className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-              title="Cancelar sesión"
-            >
-              <X size={14} />
-            </button>
+            {/* Host cancels, participant leaves */}
+            {session.isHost || !session.myParticipantStatus ? (
+              <button
+                onClick={() => onRemove(session.id)}
+                className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                title="Cancelar sesión"
+              >
+                <X size={14} />
+              </button>
+            ) : (
+              <button
+                onClick={() => onLeave?.(session.id)}
+                className="text-[10px] px-2.5 py-1 rounded-full border border-slate-600 text-slate-400 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap font-medium"
+                title="Abandonar sesión"
+              >
+                Abandonar
+              </button>
+            )}
           </div>
         ))}
       </div>
