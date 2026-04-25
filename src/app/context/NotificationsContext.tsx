@@ -108,6 +108,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
     };
   }, [user, fetchNotifications, refresh]);
 
+  const respondedIds = useRef<Set<string>>(new Set());
+
   const markRead = useCallback(async (id: string) => {
     try {
       await markNotificationRead(id);
@@ -140,36 +142,26 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       response: "accepted" | "declined"
     ) => {
       await respondToGamingSession(sessionId, response);
-      // Mark the notification as read after responding
-      await markRead(notificationId);
-      // Remove from local state so toast disappears
+      // Mark as responded locally so the toast disappears immediately
+      respondedIds.current.add(notificationId);
       shownInviteIds.current.add(notificationId);
-      setNotifications((prev) =>
-        prev.map((n) =>
-          n._id === notificationId
-            ? { ...n, readAt: new Date().toISOString() }
-            : n
-        )
-      );
+      // Mark as read in backend too
+      await markRead(notificationId);
     },
     [markRead]
   );
 
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
-  // Pending invites = unread session_invites that haven't been shown yet
-  // We surface them as interactive toasts
+  // Pending invites = session_invites the user hasn't explicitly responded to or dismissed.
+  // We intentionally do NOT filter by readAt here — opening the bell panel
+  // marks notifications as read but should not remove the invite toast.
   const pendingInvites = notifications.filter(
     (n) =>
       n.type === "session_invite" &&
-      !n.readAt &&
+      !respondedIds.current.has(n._id) &&
       !shownInviteIds.current.has(n._id)
   );
-
-  // Track shown invite IDs so we don't show duplicates
-  useEffect(() => {
-    pendingInvites.forEach((n) => shownInviteIds.current.add(n._id));
-  }, [pendingInvites]);
 
   return (
     <NotificationsContext.Provider

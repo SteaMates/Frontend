@@ -144,12 +144,13 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
  * Place this once inside Layout — it reads from NotificationsContext.
  */
 export function NotificationToasts() {
-  const { pendingInvites, markRead } = useNotifications();
-  // Dismissed locally (before polling clears them)
+  const { pendingInvites, markRead, respondInvite: ctxRespondInvite } = useNotifications();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
+  // Visible = pending invites not yet dismissed locally
   const visible = pendingInvites.filter((n) => !dismissed.has(n._id));
 
+  // Dismiss without responding (X button) — just hides the toast and marks read
   const dismiss = (id: string) => {
     setDismissed((prev) => new Set(prev).add(id));
     markRead(id);
