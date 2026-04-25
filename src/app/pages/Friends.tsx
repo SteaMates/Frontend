@@ -54,6 +54,11 @@ interface CommonGame extends SessionGame {
 
 interface SessionApiItem {
   _id: string;
+  host?: {
+    steamId?: string;
+    username?: string;
+    avatar?: string;
+  };
   game: {
     appId?: number;
     appid?: number;
@@ -1519,12 +1524,14 @@ export function Friends() {
         participantStatus: p.status as 'invited' | 'accepted' | 'declined' | undefined,
       })) || [];
 
+    // Determine if current user is the host using the host field from the API
+    const isHost = session.host?.steamId === user?.steamid;
+
     // Find the current user's own participant entry to show their personal status
-    const myEntry = session.participants?.find(
-      (p) => p.user?.steamId === user?.steamid
-    );
+    const myEntry = !isHost
+      ? session.participants?.find((p) => p.user?.steamId === user?.steamid)
+      : undefined;
     const myParticipantStatus = myEntry?.status as 'invited' | 'accepted' | 'declined' | undefined;
-    const isHost = !myEntry; // if not in participants array, current user is the host
 
     return {
       id: session._id,
@@ -1548,7 +1555,11 @@ export function Friends() {
     setLoadingSessions(true);
     try {
       const res = await getMyGamingSessions();
-      const sessions = (res.data?.sessions || []).map(normalizeSession);
+      const sessions = (res.data?.sessions || [])
+        .map(normalizeSession)
+        // Hide sessions the user has declined/abandoned — they're still in the
+        // DB but shouldn't appear in the participant's list anymore.
+        .filter((s) => s.myParticipantStatus !== 'declined');
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
@@ -1945,10 +1956,15 @@ export function Friends() {
                       }}
                       onLeave={async (id: string) => {
                         try {
+                          // Remove immediately from UI for instant feedback
+                          setScheduledSessions((prev) => prev.filter((s) => s.id !== id));
                           await leaveGamingSession(id);
+                          // Then sync with backend
                           await loadSessions();
                         } catch (error) {
                           console.error("Error leaving session:", error);
+                          // Revert on error
+                          await loadSessions();
                         }
                       }}
                     />
