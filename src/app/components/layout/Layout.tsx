@@ -20,6 +20,8 @@ import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { motion, AnimatePresence } from "motion/react";
 import { AssistantModal } from "../ai/AssistantModal";
+import { NotificationBell } from "../notifications/NotificationBell";
+import { NotificationToasts } from "../notifications/NotificationToasts";
 import { useAuth } from "../../context/AuthContext";
 import {
   AlertDialog,
@@ -168,6 +170,9 @@ export function Layout() {
               </Link>
             );
           })}
+
+          {/* Notifications bell - only for logged in users */}
+          {user && <NotificationBell />}
 
           {/* Admin Panel Link - Only for admins */}
           {isAdmin && (
@@ -327,6 +332,9 @@ export function Layout() {
         </div>
       </main>
       <AssistantModal />
+
+      {/* Floating invite toasts */}
+      <NotificationToasts />
 
       <AlertDialog
         open={Boolean(activeNotice)}

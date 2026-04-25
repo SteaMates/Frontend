@@ -12,6 +12,7 @@ import { Friends } from './pages/Friends';
 import { GameDetail } from './pages/GameDetail';
 import { Admin } from './pages/Admin';
 import { AuthProvider } from './context/AuthContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 
 function NotFound() {
   return <div className="p-4 text-center text-slate-400">404 - Page Not Found</div>;
@@ -40,8 +41,10 @@ const router = createBrowserRouter([
 export default function App() {
   return (
     <AuthProvider>
-      <RouterProvider router={router} />
-      <Toaster position="top-center" />
+      <NotificationsProvider>
+        <RouterProvider router={router} />
+        <Toaster position="top-center" />
+      </NotificationsProvider>
     </AuthProvider>
   );
 }
