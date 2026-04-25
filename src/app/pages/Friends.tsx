@@ -67,7 +67,7 @@ interface SessionApiItem {
       username?: string;
       avatar?: string;
     };
-    status?: "pending" | "accepted" | "declined";
+    status?: "invited" | "accepted" | "declined";
   }>;
   status?: "scheduled" | "cancelled";
 }
@@ -1515,7 +1515,14 @@ export function Friends() {
         username: p.user?.username || "Usuario",
         avatar: p.user?.avatar || "https://via.placeholder.com/64?text=U",
         status: p.status === "accepted" ? 1 : 0,
+        participantStatus: p.status as 'invited' | 'accepted' | 'declined' | undefined,
       })) || [];
+
+    // Find the current user's own participant entry to show their personal status
+    const myEntry = session.participants?.find(
+      (p) => p.user?.steamId === user?.steamid
+    );
+    const myParticipantStatus = myEntry?.status as 'invited' | 'accepted' | 'declined' | undefined;
 
     return {
       id: session._id,
@@ -1528,6 +1535,7 @@ export function Friends() {
       time: session.time,
       friends: participantFriends,
       confirmed: session.status !== "cancelled",
+      myParticipantStatus,
     };
   };
 

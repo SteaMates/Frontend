@@ -21,6 +21,7 @@ export interface SessionFriend {
   username: string;
   avatar: string;
   status: number;
+  participantStatus?: 'invited' | 'accepted' | 'declined';
 }
 
 export interface SessionGame {
@@ -36,6 +37,7 @@ export interface ScheduledSession {
   time: string;
   friends: SessionFriend[];
   confirmed: boolean;
+  myParticipantStatus?: 'invited' | 'accepted' | 'declined';
 }
 
 interface Props {
@@ -668,10 +670,28 @@ export function UpcomingSessions({
               ))}
             </div>
 
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
-              <Check size={10} className="inline mr-0.5" />
-              Confirmada
-            </span>
+            {/* Status badge — reflects real participant response */}
+            {session.myParticipantStatus === 'declined' ? (
+              <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
+                <X size={10} className="inline mr-0.5" />
+                Rechazada
+              </span>
+            ) : session.myParticipantStatus === 'accepted' ? (
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
+                <Check size={10} className="inline mr-0.5" />
+                Confirmada
+              </span>
+            ) : session.myParticipantStatus === 'invited' ? (
+              <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
+                Pendiente
+              </span>
+            ) : (
+              // Host view — show overall session status
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
+                <Check size={10} className="inline mr-0.5" />
+                Programada
+              </span>
+            )}
 
             <button
               onClick={() => onRemove(session.id)}
