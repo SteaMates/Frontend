@@ -133,7 +133,7 @@ export function NotificationBell() {
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
             className={`absolute left-full ml-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden ${openUpward ? "bottom-0" : "top-0"}`}
-            style={{ maxHeight: "480px" }}
+            style={{ maxHeight: "560px" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
@@ -168,7 +168,7 @@ export function NotificationBell() {
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto" style={{ maxHeight: "400px" }}>
+            <div className="overflow-y-auto" style={{ maxHeight: "480px" }}>
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                   <Bell size={32} className="mb-3 opacity-30" />
@@ -184,12 +184,12 @@ export function NotificationBell() {
             </div>
 
             {notifications.length > 0 && (
-              <div className="border-t border-slate-800 px-4 py-2.5 flex justify-end">
+              <div className="border-t border-slate-800 px-4 py-3 flex justify-end">
                 <button
                   onClick={markAllRead}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
+                  className="flex items-center gap-2 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors px-3 py-1.5 rounded-lg"
                 >
-                  <Check size={12} />
+                  <Check size={13} />
                   Marcar todo como leído
                 </button>
               </div>
