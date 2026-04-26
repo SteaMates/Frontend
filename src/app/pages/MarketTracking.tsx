@@ -59,7 +59,7 @@ function getDetailId(item: { steamAppId?: string; gameId?: string }) {
 }
 
 function formatPrice(value?: number | null) {
-  if (typeof value !== "number" || Number.isNaN(value)) return "N/D";
+  if (typeof value !== "number" || Number.isNaN(value)) return "Sin precio";
   return `$${value.toFixed(2)}`;
 }
 

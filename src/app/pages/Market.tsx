@@ -162,6 +162,12 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-4">{error}</p>
       )}
 
+      {!loading && !error && deals.length === 0 && (
+        <p className="text-sm text-slate-500 bg-slate-900/50 border border-slate-800 rounded-xl p-4 text-center">
+          No se encontraron recomendaciones personalizadas. Tu perfil de Steam puede estar privado o aún no tienes suficientes juegos.
+        </p>
+      )}
+
       {!loading && deals.length > 0 && (
         <div 
           ref={scrollRef}
