@@ -378,7 +378,11 @@ export function Market() {
     if (append) setIsLoadingMore(true); else setLoading(true);
     if (!append) { setSteamGames([]); setSteamLoading(false); }
 
-    if (selectedTags.length > 0 || isFreeMode || isPopularMode) {
+    // "Mayor descuento" always routes to CheapShark (has real discount data).
+    // Popular / Free / Tags use Steam API — UNLESS a price filter is active.
+    const isSavingsMode = sortBy === "Savings";
+
+    if (!isSavingsMode && !hasPriceFilter && (selectedTags.length > 0 || isFreeMode || isPopularMode)) {
       try {
         const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
         let endpoint = "";
@@ -515,7 +519,8 @@ export function Market() {
           </div>
 
           <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-            {selectedTags.length === 0 && !isPopularMode && !isFreeMode && (
+            {/* Price filter: always visible when no tags selected and not in free mode */}
+            {selectedTags.length === 0 && !isFreeMode && (
               <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-1.5 border border-slate-700/50 hidden md:flex">
                 <div className="flex items-center gap-2 px-3 text-sm text-slate-400">
                   <SlidersHorizontal className="w-4 h-4" />
@@ -642,6 +647,13 @@ export function Market() {
                 Steam Store
               </span>
             </>
+          ) : sortBy === "Savings" ? (
+            <>
+              Mayor Descuento
+              <span className="text-sm font-normal text-slate-400 bg-slate-800 px-3 py-1 rounded-full">
+                CheapShark
+              </span>
+            </>
           ) : (
             <>
               Juegos Populares
@@ -652,6 +664,7 @@ export function Market() {
           )}
         </h2>
       </div>
+
 
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">

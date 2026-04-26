@@ -48,7 +48,7 @@ function makeDateLabel(d: Date): string {
 
 /**
  * Build a complete price timeline that:
- * - Starts at the game's launch date (or 12 months ago as fallback)
+ * - Starts at the game's REAL launch date (no year cap)
  * - Preserves BOTH price drops AND recoveries (so short sales show as real dips)
  * - Inserts synthetic "return to normal" points one day after each sale ends
  * - Marks sale points with isSale flag and savings %
@@ -62,18 +62,21 @@ function buildHistoryFromPoints(
 ): PricePoint[] {
   const today = new Date();
 
-  // Filter out obviously wrong entries (prices > 150% of normal, price 0 unless free)
+  // Filter out obviously wrong entries (prices > 160% of normal)
   const sorted = [...pointsInput]
     .filter((p) => p?.date && isFinite(p.date.getTime()))
     .filter((p) => p.price >= 0)
     .filter((p) => normal === 0 || p.price <= normal * 1.6)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
-  // Determine start date: real launch date, or earliest data point, or 12m ago
+  // Start date = real launch date (no cap!).
+  // Fallback to 12m ago only when launch date is unknown.
+  const tenYearsAgo = new Date();
+  tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10); // hard cap to avoid broken dates
   const fallbackStart = new Date();
   fallbackStart.setMonth(fallbackStart.getMonth() - 12);
-  const startDate = launchDate && launchDate < today
-    ? (launchDate > fallbackStart ? launchDate : fallbackStart) // cap at fallbackStart if very old
+  const startDate = launchDate && launchDate < today && launchDate > tenYearsAgo
+    ? launchDate   // ← use real launch date, no 12-month cap
     : fallbackStart;
 
   if (sorted.length === 0) {
