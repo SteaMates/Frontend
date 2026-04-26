@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link, useParams } from "react-router";
 import api from "../../lib/api";
@@ -290,21 +290,23 @@ export function Profile() {
         }
 
         setResolvedSteamId(steamIdToLoad);
-        const profileEndpoint = routeSteamId
-          ? `/api/steam/profile/${steamIdToLoad}`
-          : "/api/steam/me/profile";
-        const gamesEndpoint = routeSteamId
-          ? `/api/steam/games/${steamIdToLoad}`
-          : "/api/steam/me/games";
-        const recentEndpoint = routeSteamId
-          ? `/api/steam/recent/${steamIdToLoad}`
-          : "/api/steam/me/recent";
-        const genresEndpoint = routeSteamId
-          ? `/api/steam/stats/genres/${steamIdToLoad}`
-          : "/api/steam/stats/me/genres";
-        const achievementsEndpoint = routeSteamId
-          ? `/api/steam/stats/achievements/${steamIdToLoad}`
-          : "/api/steam/stats/me/achievements";
+        const useMeEndpoint = isOwnProfile;
+
+        const profileEndpoint = useMeEndpoint
+          ? "/api/steam/me/profile"
+          : `/api/steam/profile/${steamIdToLoad}`;
+        const gamesEndpoint = useMeEndpoint
+          ? "/api/steam/me/games"
+          : `/api/steam/games/${steamIdToLoad}`;
+        const recentEndpoint = useMeEndpoint
+          ? "/api/steam/me/recent"
+          : `/api/steam/recent/${steamIdToLoad}`;
+        const genresEndpoint = useMeEndpoint
+          ? "/api/steam/stats/me/genres"
+          : `/api/steam/stats/genres/${steamIdToLoad}`;
+        const achievementsEndpoint = useMeEndpoint
+          ? "/api/steam/stats/me/achievements"
+          : `/api/steam/stats/achievements/${steamIdToLoad}`;
 
         const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
           api.get(profileEndpoint),
@@ -458,16 +460,24 @@ export function Profile() {
   const feedbackTitle = usingSnapshot
     ? "Mostrando tu último snapshot"
     : noLibraryReason === "private_or_unavailable"
-      ? "Steam no ha devuelto datos públicos"
+      ? isOwnProfile
+        ? "Tu biblioteca de Steam es privada"
+        : "Steam no ha devuelto datos públicos"
       : noLibraryReason === "no_games"
-        ? "Esta cuenta no muestra juegos visibles"
+        ? isOwnProfile
+          ? "No tienes juegos visibles"
+          : "Esta cuenta no muestra juegos visibles"
         : null;
   const feedbackText = usingSnapshot
     ? "Steam no ha respondido con datos completos en esta carga, así que se usa el último estado guardado para que no veas todo a 0."
     : noLibraryReason === "private_or_unavailable"
-      ? "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
+      ? isOwnProfile
+        ? "Steam Web API no permite acceder a bibliotecas privadas, incluso si has iniciado sesión en la app (OpenID no otorga permisos de lectura). Cambia la privacidad de 'Detalles de los juegos' a 'Público' en Steam para verlos aquí."
+        : "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
       : noLibraryReason === "no_games"
-        ? "No hay biblioteca visible para este perfil en este momento."
+        ? isOwnProfile
+          ? "No hay juegos visibles en tu cuenta de Steam actualmente."
+          : "No hay biblioteca visible para este perfil en este momento."
         : null;
   const totalHours = sourceGames.reduce(
     (acc, game) => acc + hoursFromMinutes(game.playtime),
@@ -840,21 +850,6 @@ export function Profile() {
               )}
             </div>
           </div>
-        </section>
-      )}
-
-      {hasNoLibraryData && (
-        <section className="rounded-[14px] border border-[#314158] bg-[rgba(29,41,61,0.35)] px-4 py-3">
-          <p className="text-[#e2e8f0] text-[13px] font-medium">
-            {noLibraryReason === "no_games"
-              ? "Esta cuenta no tiene juegos visibles en la biblioteca."
-              : "Steam no ha devuelto datos de biblioteca para este perfil."}
-          </p>
-          <p className="mt-1 text-[#90a1b9] text-[12px]">
-            {noLibraryReason === "no_games"
-              ? "Si tiene juegos pero no aparecen, revisa la privacidad de Steam en 'Detalles del juego'."
-              : "Suele ocurrir cuando los detalles de juegos/logros son privados en Steam o no son accesibles desde la Web API."}
-          </p>
         </section>
       )}
 
