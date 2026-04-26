@@ -50,6 +50,21 @@ interface RecentGame {
   lastPlayed?: number;
 }
 
+type LibraryDataStatus = {
+  hasData: boolean;
+  reason: "no_games" | "private_or_unavailable" | null;
+  gameCount: number;
+};
+
+type ProfileSnapshot = {
+  profile: ProfileData | null;
+  games: Game[];
+  recentGames: RecentGame[];
+  genreData: any;
+  achievementsData: any;
+  cachedAt: number;
+};
+
 type LibraryFilter = "top" | "recent" | "unplayed";
 
 type GenreItem = {
@@ -62,6 +77,31 @@ type GenreItem = {
 
 const PROFILE_BANNER =
   "https://www.figma.com/api/mcp/asset/b2b60ae7-56b6-4f7c-a29c-84dd359f42ac";
+const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
+
+function snapshotKey(steamId: string) {
+  return `${PROFILE_SNAPSHOT_PREFIX}:${steamId}`;
+}
+
+function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
+  try {
+    const raw = localStorage.getItem(snapshotKey(steamId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ProfileSnapshot;
+    if (!parsed || !Array.isArray(parsed.games)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeProfileSnapshot(steamId: string, snapshot: ProfileSnapshot) {
+  try {
+    localStorage.setItem(snapshotKey(steamId), JSON.stringify(snapshot));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
 
 const GENRE_COLORS = [
   "#ef4444",
@@ -167,6 +207,9 @@ function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
     [];
 
   if (candidate.length === 0) {
+    if (totalHours <= 0) {
+      return [];
+    }
     const base = totalHours > 0 ? totalHours : 8486;
     const fallback = [
       { name: "FPS / Shooter", pct: 42, games: 12 },
@@ -217,6 +260,9 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [resolvedSteamId, setResolvedSteamId] = useState<string | null>(null);
+  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(null);
+  const [usingSnapshot, setUsingSnapshot] = useState(false);
+  const [snapshotCachedAt, setSnapshotCachedAt] = useState<number | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
 
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
@@ -244,13 +290,27 @@ export function Profile() {
         }
 
         setResolvedSteamId(steamIdToLoad);
+        const profileEndpoint = routeSteamId
+          ? `/api/steam/profile/${steamIdToLoad}`
+          : "/api/steam/me/profile";
+        const gamesEndpoint = routeSteamId
+          ? `/api/steam/games/${steamIdToLoad}`
+          : "/api/steam/me/games";
+        const recentEndpoint = routeSteamId
+          ? `/api/steam/recent/${steamIdToLoad}`
+          : "/api/steam/me/recent";
+        const genresEndpoint = routeSteamId
+          ? `/api/steam/stats/genres/${steamIdToLoad}`
+          : "/api/steam/stats/me/genres";
+        const achievementsEndpoint = routeSteamId
+          ? `/api/steam/stats/achievements/${steamIdToLoad}`
+          : "/api/steam/stats/me/achievements";
+
         const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
-          api.get(`/api/steam/profile/${steamIdToLoad}`),
-          api.get(`/api/steam/games/${steamIdToLoad}`),
-          api.get(`/api/steam/recent/${steamIdToLoad}`),
-          api
-            .get(`/api/steam/stats/genres/${steamIdToLoad}`)
-            .catch(() => ({ data: null })),
+          api.get(profileEndpoint),
+          api.get(gamesEndpoint),
+          api.get(recentEndpoint),
+          api.get(genresEndpoint).catch(() => ({ data: null })),
         ]);
 
         const profileData = profileRes.data || {};
@@ -258,16 +318,72 @@ export function Profile() {
           profileData.libraryValue = gamesRes.data.libraryValue;
         }
 
-        setProfile(Object.keys(profileData).length > 0 ? profileData : null);
-        setGames(gamesRes.data?.games || []);
-        setRecentGames(recentRes.data?.games || []);
-        setGenreData(genresRes?.data || null);
+        const currentLibraryStatus: LibraryDataStatus | null =
+          gamesRes.data?.dataStatus || null;
+
+        setLibraryStatus(currentLibraryStatus);
+
+        const liveGames: Game[] = gamesRes.data?.games || [];
+        const liveRecent: RecentGame[] = recentRes.data?.games || [];
+        const liveGenreData = genresRes?.data || null;
+
+        if (isOwnProfile && steamIdToLoad && liveGames.length === 0) {
+          const snapshot = readProfileSnapshot(steamIdToLoad);
+          if (snapshot && snapshot.games.length > 0) {
+            setProfile(snapshot.profile || (Object.keys(profileData).length > 0 ? profileData : null));
+            setGames(snapshot.games || []);
+            setRecentGames(snapshot.recentGames || []);
+            setGenreData(snapshot.genreData || null);
+            setAchievementsData(snapshot.achievementsData || null);
+            setUsingSnapshot(true);
+            setSnapshotCachedAt(snapshot.cachedAt || null);
+          } else {
+            setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+            setGames(liveGames);
+            setRecentGames(liveRecent);
+            setGenreData(liveGenreData);
+            setUsingSnapshot(false);
+            setSnapshotCachedAt(null);
+          }
+        } else {
+          setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+          setGames(liveGames);
+          setRecentGames(liveRecent);
+          setGenreData(liveGenreData);
+          setUsingSnapshot(false);
+          setSnapshotCachedAt(null);
+        }
         setLoading(false);
+
+        if (isOwnProfile && steamIdToLoad && liveGames.length > 0) {
+          writeProfileSnapshot(steamIdToLoad, {
+            profile: Object.keys(profileData).length > 0 ? profileData : null,
+            games: liveGames,
+            recentGames: liveRecent,
+            genreData: liveGenreData,
+            achievementsData: null,
+            cachedAt: Date.now(),
+          });
+        }
 
         // Fetch achievements lazily (takes longer)
         api
-          .get(`/api/steam/stats/achievements/${steamIdToLoad}`)
-          .then((res) => setAchievementsData(res.data || { empty: true }))
+          .get(achievementsEndpoint)
+          .then((res) => {
+            const nextAchievements = res.data || { empty: true };
+            setAchievementsData(nextAchievements);
+
+            if (isOwnProfile && steamIdToLoad && liveGames.length > 0) {
+              const prev = readProfileSnapshot(steamIdToLoad);
+              if (prev) {
+                writeProfileSnapshot(steamIdToLoad, {
+                  ...prev,
+                  achievementsData: nextAchievements,
+                  cachedAt: Date.now(),
+                });
+              }
+            }
+          })
           .catch((err) => {
             console.error("Error loading achievements:", err);
             setAchievementsData({ error: true });
@@ -327,6 +443,32 @@ export function Profile() {
   const displaySteamId = targetSteamId || user.steamid;
 
   const sourceGames = games;
+  const hasNoLibraryData = sourceGames.length === 0;
+  const noLibraryReason = libraryStatus?.reason || null;
+  const snapshotDateLabel = snapshotCachedAt
+    ? new Date(snapshotCachedAt).toLocaleString("es-ES")
+    : "";
+  const feedbackTone = usingSnapshot
+    ? "from-[#155dfc]/20 to-[#00b8db]/10 border-[#2b5cb4]"
+    : noLibraryReason === "private_or_unavailable"
+      ? "from-[#7c2d12]/20 to-[#dc2626]/10 border-[#7f1d1d]"
+      : noLibraryReason === "no_games"
+        ? "from-[#92400e]/20 to-[#f59e0b]/10 border-[#b45309]"
+        : "from-[#0f172b] to-[#0f172b] border-[#1d293d]";
+  const feedbackTitle = usingSnapshot
+    ? "Mostrando tu último snapshot"
+    : noLibraryReason === "private_or_unavailable"
+      ? "Steam no ha devuelto datos públicos"
+      : noLibraryReason === "no_games"
+        ? "Esta cuenta no muestra juegos visibles"
+        : null;
+  const feedbackText = usingSnapshot
+    ? "Steam no ha respondido con datos completos en esta carga, así que se usa el último estado guardado para que no veas todo a 0."
+    : noLibraryReason === "private_or_unavailable"
+      ? "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
+      : noLibraryReason === "no_games"
+        ? "No hay biblioteca visible para este perfil en este momento."
+        : null;
   const totalHours = sourceGames.reduce(
     (acc, game) => acc + hoursFromMinutes(game.playtime),
     0,
@@ -450,13 +592,7 @@ export function Profile() {
   const genreItems = normalizeGenres(genreData, totalHours);
 
   const genreTotalHours = genreItems.reduce((sum, item) => sum + item.hours, 0);
-  const genreFocus = genreItems[0] || {
-    name: "FPS / Shooter",
-    hours: 3583,
-    games: 12,
-    color: "#ef4444",
-    pct: 42,
-  };
+  const genreFocus = genreItems[0] || null;
 
   const gradientStops = (() => {
     let acc = 0;
@@ -673,6 +809,55 @@ export function Profile() {
         ))}
       </section>
 
+      {usingSnapshot && (
+        <section className="rounded-[14px] border border-[#2b5cb4] bg-[rgba(21,93,252,0.14)] px-4 py-3">
+          <p className="text-[#dbeafe] text-[13px] font-medium">
+            Mostrando tu último snapshot guardado porque Steam no devolvió datos en esta carga.
+          </p>
+          {snapshotDateLabel && (
+            <p className="mt-1 text-[#bfdbfe] text-[12px]">Snapshot: {snapshotDateLabel}</p>
+          )}
+        </section>
+      )}
+
+      {feedbackTitle && feedbackText && (
+        <section className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}>
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 h-9 w-9 shrink-0 rounded-[12px] bg-[#0f172b]/70 border border-white/10 flex items-center justify-center">
+              <Sparkles size={16} className="text-[#f8fafc]" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-white font-semibold text-[15px] leading-6">
+                {feedbackTitle}
+              </h3>
+              <p className="mt-1 text-[#cbd5e1] text-[13px] leading-5">
+                {feedbackText}
+              </p>
+              {snapshotDateLabel && usingSnapshot && (
+                <p className="mt-2 text-[#bfdbfe] text-[12px]">
+                  Snapshot guardado: {snapshotDateLabel}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {hasNoLibraryData && (
+        <section className="rounded-[14px] border border-[#314158] bg-[rgba(29,41,61,0.35)] px-4 py-3">
+          <p className="text-[#e2e8f0] text-[13px] font-medium">
+            {noLibraryReason === "no_games"
+              ? "Esta cuenta no tiene juegos visibles en la biblioteca."
+              : "Steam no ha devuelto datos de biblioteca para este perfil."}
+          </p>
+          <p className="mt-1 text-[#90a1b9] text-[12px]">
+            {noLibraryReason === "no_games"
+              ? "Si tiene juegos pero no aparecen, revisa la privacidad de Steam en 'Detalles del juego'."
+              : "Suele ocurrir cuando los detalles de juegos/logros son privados en Steam o no son accesibles desde la Web API."}
+          </p>
+        </section>
+      )}
+
       <section className="grid grid-cols-1 xl:grid-cols-[1.53fr_1fr] gap-6">
         <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-4">
@@ -690,6 +875,11 @@ export function Profile() {
             </div>
 
             <div className="relative z-10 space-y-4">
+              {topGames.length === 0 && (
+                <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
+                  Sin datos de juego disponibles
+                </div>
+              )}
               {topGames.map((game, index) => {
                 const hours = hoursFromMinutes(game.playtime);
                 const width = (hours / axisMax) * 100;
@@ -742,30 +932,34 @@ export function Profile() {
               Favoritos
             </h3>
             <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
-              {genreTotalHours || 8486}h total
+              {genreTotalHours || 0}h total
             </span>
           </div>
 
           <div className="h-[250px] flex items-center justify-center">
-            <div className="relative w-[198px] h-[198px]">
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: `conic-gradient(${gradientStops || "#ef4444 0deg 360deg"})`,
-                }}
-              />
-              <div className="absolute inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
-                <p className="text-white text-[24px] font-bold leading-none">
-                  {genreFocus.name}
-                </p>
-                <p className="text-[#94a3b8] text-[11px] mt-1">
-                  {genreFocus.hours}h - {genreFocus.pct}%
-                </p>
-                <p className="text-[#64748b] text-[10px]">
-                  {genreFocus.games} juegos
-                </p>
+            {genreFocus ? (
+              <div className="relative w-[198px] h-[198px]">
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: `conic-gradient(${gradientStops || "#ef4444 0deg 360deg"})`,
+                  }}
+                />
+                <div className="absolute inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
+                  <p className="text-white text-[24px] font-bold leading-none">
+                    {genreFocus.name}
+                  </p>
+                  <p className="text-[#94a3b8] text-[11px] mt-1">
+                    {genreFocus.hours}h - {genreFocus.pct}%
+                  </p>
+                  <p className="text-[#64748b] text-[10px]">
+                    {genreFocus.games} juegos
+                  </p>
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-[#62748e] text-[12px]">Sin datos de géneros disponibles</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-2 mt-2">
