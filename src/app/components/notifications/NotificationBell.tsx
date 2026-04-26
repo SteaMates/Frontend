@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, Check, CheckCheck, Gamepad2, X, Loader2 } from "lucide-react";
+import { BellDot, Bell, Check, CheckCheck, Gamepad2, X, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useNotifications, AppNotification } from "../../context/NotificationsContext";
 
@@ -81,7 +81,9 @@ export function NotificationBell() {
   const { notifications, unreadCount, markRead, markAllRead, loading, refresh } =
     useNotifications();
   const [open, setOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Close on outside click
   useEffect(() => {
@@ -95,6 +97,11 @@ export function NotificationBell() {
   }, [open]);
 
   const handleOpen = () => {
+    if (!open && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setOpenUpward(spaceBelow < 500);
+    }
     setOpen((v) => !v);
     if (!open) refresh();
   };
@@ -103,11 +110,12 @@ export function NotificationBell() {
     <div ref={panelRef} className="relative">
       {/* Bell button */}
       <button
+        ref={buttonRef}
         onClick={handleOpen}
         className="relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 w-full"
         aria-label="Notificaciones"
       >
-        <Bell size={20} />
+        <BellDot size={20} />
         <span>Notificaciones</span>
         {unreadCount > 0 && (
           <span className="ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold leading-none">
@@ -124,7 +132,7 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute left-full top-0 ml-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className={`absolute left-full ml-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden ${openUpward ? "bottom-0" : "top-0"}`}
             style={{ maxHeight: "480px" }}
           >
             {/* Header */}
