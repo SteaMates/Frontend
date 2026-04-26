@@ -281,7 +281,7 @@ export function MarketTracking() {
             Aún no tienes juegos en wishlist. Desde el detalle de cualquier juego puedes guardarlo.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
             {wishlist.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
@@ -290,33 +290,33 @@ export function MarketTracking() {
               return (
                 <div
                   key={identity || `${item.title}-${item.addedAt}`}
-                  className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden"
+                  className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
                 >
-                  <div className="aspect-video bg-slate-800">
+                  <div className="aspect-[16/9] bg-slate-800">
                     {item.thumb ? (
                       <img src={item.thumb} alt={item.title} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">
+                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
                         Sin imagen
                       </div>
                     )}
                   </div>
 
-                  <div className="p-4 space-y-3">
+                  <div className="p-3 space-y-2 flex-grow flex flex-col">
                     {detailId ? (
-                      <Link to={`/game/${detailId}`} className="font-semibold text-slate-100 hover:text-blue-400">
+                      <Link to={`/game/${detailId}`} className="font-medium text-sm text-slate-100 hover:text-blue-400 line-clamp-2">
                         {item.title}
                       </Link>
                     ) : (
-                      <p className="font-semibold text-slate-100">{item.title}</p>
+                      <p className="font-medium text-sm text-slate-100 line-clamp-2">{item.title}</p>
                     )}
 
-                    <div className="text-sm">
-                      <p className="text-slate-500">Precio actual</p>
-                      <div className="flex items-end gap-2">
-                        <span className="text-emerald-400 text-xl font-bold">{formatPrice(item.currentPrice)}</span>
+                    <div className="mt-auto pt-2">
+                      <p className="text-slate-500 text-[10px]">Precio actual</p>
+                      <div className="flex items-end gap-1.5 line-clamp-1">
+                        <span className="text-emerald-400 text-base font-bold leading-none">{formatPrice(item.currentPrice)}</span>
                         {typeof item.normalPrice === "number" && item.normalPrice > (item.currentPrice || 0) && (
-                          <span className="text-slate-500 line-through text-xs pb-0.5">
+                          <span className="text-slate-500 line-through text-[10px] pb-0.5">
                             {formatPrice(item.normalPrice)}
                           </span>
                         )}
@@ -324,16 +324,16 @@ export function MarketTracking() {
                     </div>
 
                     {savings > 0 && (
-                      <div className="inline-flex items-center gap-1 text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-full">
-                        <TrendingDown size={12} /> {savings}% de descuento
+                      <div className="inline-flex w-fit items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded-full">
+                        <TrendingDown size={10} /> {savings}% dto
                       </div>
                     )}
 
                     <button
                       onClick={() => onRemoveWishlist(item)}
-                      className="w-full inline-flex items-center justify-center gap-2 py-2.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium transition-colors"
+                      className="w-full mt-2 inline-flex items-center justify-center gap-1.5 py-1.5 rounded border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium transition-colors"
                     >
-                      <Trash2 size={14} /> Quitar de wishlist
+                      <Trash2 size={12} /> Quitar
                     </button>
                   </div>
                 </div>

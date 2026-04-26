@@ -63,7 +63,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
     try {
       const res = await api.post("/api/chat/market-recommendations", {
         steamId,
-        limit: 6,
+        limit: 12,
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
@@ -99,9 +99,9 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       </div>
 
       {loading && (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse"/>
+            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse snap-start"/>
           ))}
         </div>
       )}
@@ -111,9 +111,9 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       )}
 
       {!loading && deals.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x">
           {deals.map(deal => (
-            <div key={deal.dealID} className="relative group">
+            <div key={deal.dealID} className="flex-shrink-0 w-[240px] relative group snap-start">
               <DealCard deal={deal}/>
               {deal.reason && (
                 <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -135,9 +135,9 @@ function AIRecommendations({ steamId }: { steamId: string }) {
 function LockedRecs({ onLogin }: { onLogin: () => void }) {
   return (
     <section className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/50">
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 p-6 blur-sm opacity-40 pointer-events-none select-none">
+      <div className="flex overflow-x-hidden gap-4 p-6 blur-sm opacity-40 pointer-events-none select-none">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="bg-slate-800 rounded-xl h-52"/>
+          <div key={i} className="flex-shrink-0 w-[240px] bg-slate-800 rounded-xl h-52"/>
         ))}
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-[2px]">
@@ -503,29 +503,42 @@ export function Market() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 text-slate-400 mr-2">
-            <Tag className="w-4 h-4" />
-            <span className="text-sm font-medium">Categorías:</span>
+        <div className="flex flex-col gap-3 pt-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-slate-300">
+              <Tag className="w-4 h-4 text-cyan-400" />
+              <span className="text-sm font-semibold tracking-wide">
+                Categorías {selectedTags.length > 0 && <span className="bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded-md text-xs">{selectedTags.length} seleccionadas</span>}
+              </span>
+            </div>
+            {selectedTags.length > 0 && (
+              <button
+                onClick={() => setSelectedTags([])}
+                className="text-xs text-slate-400 hover:text-red-400 transition-colors flex items-center gap-1"
+              >
+                <X className="w-3 h-3" /> Limpiar filtros
+              </button>
+            )}
           </div>
           
-          {GLOBAL_TAGS.map(tag => {
-            const isActive = selectedTags.includes(tag.id);
-            return (
-              <button
-                key={tag.id}
-                onClick={() => toggleTag(tag.id)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
-                  isActive
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/30"
-                    : "bg-slate-800/50 text-slate-400 border border-slate-700/50 hover:bg-slate-700 hover:text-slate-200"
-                }`}
-              >
-                {tag.name}
-                {isActive && <X className="w-3 h-3" />}
-              </button>
-            );
-          })}
+          <div className="flex overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none gap-2 snap-x">
+            {GLOBAL_TAGS.map(tag => {
+              const isActive = selectedTags.includes(tag.id);
+              return (
+                <button
+                  key={tag.id}
+                  onClick={() => toggleTag(tag.id)}
+                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 snap-center ${
+                    isActive
+                      ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
+                      : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

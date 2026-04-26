@@ -44,7 +44,9 @@ function fmt(v: number) { return `$${v.toFixed(2)}`; }
 
 function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, current: number, normal: number): PricePoint[] {
   const sorted = [...pointsInput]
-    .filter((p) => p?.date && toNum(p.price) > 0)
+    .filter((p) => p?.date && toNum(p.price) >= 0) // Permitir 0 si es gratis
+    // Filtrar precios anómalos (por ejemplo DLCs o bundles que cuestan mucho más que el juego base)
+    .filter((p) => normal === 0 || p.price <= normal * 1.5)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
   if (sorted.length === 0) {
@@ -96,7 +98,7 @@ function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, c
 
 function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number): PricePoint[] {
   const pointsInput = [...deals]
-    .filter(d => d.lastChange && toNum(d.salePrice) > 0)
+    .filter(d => d.lastChange && toNum(d.salePrice) >= 0)
     .map(d => ({
     date:  new Date(d.lastChange * 1000),
     price: toNum(d.salePrice),
@@ -342,6 +344,15 @@ export function GameDetail() {
   const atl = toNum(cheapestEver?.price) || currentPrice;
 
   const priceHistory = useMemo(() => {
+    // Si el juego base es completamente gratis, el historial debe reflejar esto
+    // y evitar picos de precios que corresponden a DLCs o Soundtracks.
+    if (normalPrice === 0) {
+      return [
+        { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), price: 0, label: "0" },
+        { date: new Date(), price: 0, label: "0" }
+      ];
+    }
+    
     if (itadHistory.length > 0) {
       return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1, normalPrice || 1);
     }
@@ -363,11 +374,11 @@ export function GameDetail() {
   }, [priceHistory]);
 
   const recommendation = useMemo(() => {
-    if (currentPrice <= atl * 1.03) return { label: "Compra ahora", color: "text-emerald-400", icon: "🏆" };
-    if (discount >= 60)             return { label: "Gran oferta",  color: "text-emerald-400", icon: "🔥" };
-    if (discount >= 30)             return { label: "Buen descuento", color: "text-blue-400",  icon: "👍" };
-    if (priceTrend === "down")      return { label: "Precio bajando", color: "text-yellow-400", icon: "📉" };
-    return { label: "Precio estable", color: "text-slate-400", icon: "📊" };
+    if (currentPrice <= atl * 1.03) return { label: "Compra ahora", color: "text-emerald-400", icon: <Award size={20} className="text-emerald-400" /> };
+    if (discount >= 60)             return { label: "Gran oferta",  color: "text-emerald-400", icon: <Star size={20} className="text-emerald-400" /> };
+    if (discount >= 30)             return { label: "Buen descuento", color: "text-blue-400",  icon: <Tag size={20} className="text-blue-400" /> };
+    if (priceTrend === "down")      return { label: "Precio bajando", color: "text-yellow-400", icon: <TrendingDown size={20} className="text-yellow-400" /> };
+    return { label: "Precio estable", color: "text-slate-400", icon: <Info size={20} className="text-slate-400" /> };
   }, [currentPrice, atl, discount, priceTrend]);
 
   const steamStoreUrl = steamAppId ? `https://store.steampowered.com/app/${steamAppId}` : undefined;
