@@ -432,7 +432,9 @@ export function Market() {
         sortBy,
       };
       
-      if (sortBy !== "Price" && sortBy !== "Free") {
+      // "Savings" (Mayor descuento) is naturally sorted highest to lowest savings by CheapShark.
+      // Setting desc = 1 artificially reverses it to lowest savings first, which breaks the UI.
+      if (sortBy !== "Price" && sortBy !== "Free" && sortBy !== "Savings") {
         params.desc = 1;
       }
 
@@ -519,8 +521,8 @@ export function Market() {
           </div>
 
           <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-            {/* Price filter: always visible when no tags selected and not in free mode */}
-            {selectedTags.length === 0 && !isFreeMode && (
+            {/* Price filter: always visible except in free mode */}
+            {!isFreeMode && (
               <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-1.5 border border-slate-700/50 hidden md:flex">
                 <div className="flex items-center gap-2 px-3 text-sm text-slate-400">
                   <SlidersHorizontal className="w-4 h-4" />

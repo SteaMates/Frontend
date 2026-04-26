@@ -464,8 +464,19 @@ export function GameDetail() {
           // Parse launch date from Steam appdetails
           if (steam?.release_date?.date) {
             try {
-              // Steam dates come in various formats: "26 abr 2020", "Apr 26, 2020", "2020-04-26"
-              const parsed = new Date(steam.release_date.date);
+              // Steam dates in Spanish: "26 abr 2020", "dic 2023", etc.
+              let rawDate = steam.release_date.date.toLowerCase();
+              const esMonths: Record<string, string> = {
+                "ene": "Jan", "feb": "Feb", "mar": "Mar", "abr": "Apr", "may": "May", "jun": "Jun",
+                "jul": "Jul", "ago": "Aug", "sep": "Sep", "oct": "Oct", "nov": "Nov", "dic": "Dec"
+              };
+              for (const [es, en] of Object.entries(esMonths)) {
+                if (rawDate.includes(es)) {
+                  rawDate = rawDate.replace(es, en);
+                  break;
+                }
+              }
+              const parsed = new Date(rawDate);
               if (!Number.isNaN(parsed.getTime()) && parsed.getFullYear() > 1990) {
                 setLaunchDate(parsed);
               }
