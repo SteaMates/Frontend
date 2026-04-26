@@ -22,10 +22,20 @@ function useDraggableScroll() {
       if (ref.current) {
         setStartX(e.pageX - ref.current.offsetLeft);
         setScrollLeft(ref.current.scrollLeft);
+        document.body.style.cursor = 'grabbing';
+        document.body.style.userSelect = 'none';
       }
     },
-    onMouseLeave: () => setIsDragging(false),
-    onMouseUp: () => setIsDragging(false),
+    onMouseLeave: () => {
+      setIsDragging(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    },
+    onMouseUp: () => {
+      setIsDragging(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    },
     onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
       if (!isDragging) return;
       e.preventDefault();

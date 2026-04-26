@@ -292,12 +292,191 @@ export function MarketTracking() {
                   key={identity || `${item.title}-${item.addedAt}`}
                   className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
                 >
-                  <div className="aspect-[16/9] bg-slate-800">
+                  <Link 
+                    to={`/game/${detailId}`}
+                    state={{ deal: {
+                      title: item.title,
+                      steamAppID: item.steamAppId,
+                      thumb: item.thumb,
+                      salePrice: item.currentPrice,
+                      normalPrice: item.normalPrice,
+                      dealID: "",
+                      gameID: item.gameId,
+                      storeID: "1"
+                    }}}
+                    className="block relative aspect-video bg-slate-800 group"
+                  >
                     {item.thumb ? (
-                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover" />
+                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
                         Sin imagen
+                      </div>
+                    )}
+                    {item.hasDiscount && savings > 0 && (
+                      <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">
+                        -{savings}%
+                      </div>
+                    )}
+                  </Link>
+
+                  <div className="p-3 flex flex-col flex-1">
+                    <Link
+                      to={`/game/${detailId}`}
+                      className="font-semibold text-slate-100 line-clamp-1 mb-2 hover:text-blue-400 transition-colors text-sm"
+                      title={item.title}
+                    >
+                      {item.title}
+                    </Link>
+
+                    <div className="mt-auto flex items-end justify-between">
+                      <div className="flex flex-col">
+                        {item.hasDiscount && item.normalPrice ? (
+                          <span className="text-xs text-slate-500 line-through">
+                            {formatPrice(item.normalPrice)}
+                          </span>
+                        ) : null}
+                        <span className="text-base font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
+                          {formatPrice(item.currentPrice)}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => onRemoveWishlist(item)}
+                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
+                        title="Quitar de wishlist"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+          <TrendingDown size={18} className="text-indigo-400" /> Alertas de Precio
+        </h2>
+
+        {alerts.length === 0 ? (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
+            No has configurado alertas de precio. Añade alertas desde el detalle de los juegos.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+            {alerts.map((item) => {
+              const identity = getActionId(item);
+              const detailId = getDetailId(item);
+              const savings = typeof item.savings === "number" ? Math.round(item.savings) : 0;
+
+              return (
+                <div
+                  key={identity || `alert-${item.title}`}
+                  className={`bg-slate-900 border rounded-lg overflow-hidden flex flex-col transition-colors ${
+                    item.triggered
+                      ? "border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                      : "border-slate-800"
+                  }`}
+                >
+                  <Link
+                    to={`/game/${detailId}`}
+                    state={{ deal: {
+                      title: item.title,
+                      steamAppID: item.steamAppId,
+                      thumb: item.thumb,
+                      salePrice: item.currentPrice,
+                      normalPrice: item.normalPrice,
+                      dealID: "",
+                      gameID: item.gameId,
+                      storeID: "1"
+                    }}}
+                    className="block relative aspect-video bg-slate-800 group"
+                  >
+                    {item.thumb ? (
+                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
+                        Sin imagen
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
+                      {item.hasDiscount && savings > 0 && (
+                        <div className="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-lg">
+                          -{savings}%
+                        </div>
+                      )}
+                      {item.triggered && (
+                        <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                          ¡OBJETIVO!
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="p-3 flex flex-col flex-1">
+                    <Link
+                      to={`/game/${detailId}`}
+                      className="font-semibold text-slate-100 line-clamp-1 mb-2 hover:text-blue-400 transition-colors text-sm flex-1"
+                      title={item.title}
+                    >
+                      {item.title}
+                    </Link>
+
+                    <div className="flex items-center justify-between py-2 border-t border-slate-800/50 mb-2">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Actual</span>
+                        <span className={`text-sm font-bold ${item.triggered ? "text-emerald-400" : "text-slate-200"}`}>
+                          {formatPrice(item.currentPrice)}
+                        </span>
+                      </div>
+                      <div className="h-6 w-px bg-slate-800/50" />
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold flex items-center gap-1">
+                          Objetivo 
+                          <button onClick={() => onEditTarget(item)} className="hover:text-blue-400" title="Editar objetivo">
+                            <Pencil size={10} />
+                          </button>
+                        </span>
+                        <span className="text-sm font-bold text-indigo-400">
+                          {formatPrice(item.targetPrice)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <button
+                        onClick={() => onToggleAlert(item)}
+                        className={`p-1.5 rounded-md transition-colors flex items-center justify-center flex-1 mr-2 ${
+                          item.enabled
+                            ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+                            : "bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300"
+                        }`}
+                        title={item.enabled ? "Desactivar alerta" : "Activar alerta"}
+                      >
+                        {item.enabled ? <Bell size={14} /> : <BellOff size={14} />}
+                      </button>
+                      <button
+                        onClick={() => onDeleteAlert(item)}
+                        className="p-1.5 text-slate-500 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-md transition-colors"
+                        title="Eliminar alerta"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
                       </div>
                     )}
                   </div>
