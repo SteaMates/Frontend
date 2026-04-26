@@ -155,7 +155,7 @@ function buildHistoryFromPoints(
   return result;
 }
 
-function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number, launchDate?: Date | null): PricePoint[] {
+function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number, launchDate?: Date | null, cheapestEver?: { price: string; date: number }): PricePoint[] {
   const pointsInput = [...deals]
     .filter(d => d.lastChange && toNum(d.salePrice) >= 0)
     .map(d => ({
@@ -163,6 +163,22 @@ function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, n
       price: toNum(d.salePrice),
       label: makeDateLabel(new Date(d.lastChange * 1000)),
     }));
+
+  // Inject the all-time-low if we have it and it's not already represented
+  if (cheapestEver && cheapestEver.price && cheapestEver.date) {
+    const atlDate = new Date(cheapestEver.date * 1000);
+    const atlPrice = toNum(cheapestEver.price);
+    // Only add if it's significantly older or different from current points
+    const exists = pointsInput.some(p => Math.abs(p.date.getTime() - atlDate.getTime()) < 86400000);
+    if (!exists && atlPrice > 0) {
+      pointsInput.push({
+        date: atlDate,
+        price: atlPrice,
+        label: makeDateLabel(atlDate),
+      });
+    }
+  }
+
   return buildHistoryFromPoints(pointsInput, allTimeMin, current, normal, launchDate);
 }
 
@@ -520,8 +536,8 @@ export function GameDetail() {
     if (itadHistory.length > 0) {
       return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1, normalPrice || 1, launchDate);
     }
-    return buildHistory(offers, atl, currentPrice || 1, normalPrice || 1, launchDate);
-  }, [itadHistory, offers, atl, currentPrice, normalPrice, launchDate]);
+    return buildHistory(offers, atl, currentPrice || 1, normalPrice || 1, launchDate, cheapestEver);
+  }, [itadHistory, offers, atl, currentPrice, normalPrice, launchDate, cheapestEver]);
 
   const discount    = normalPrice > 0 ? Math.round(((normalPrice - currentPrice) / normalPrice) * 100) : 0;
   const atlDiscount = normalPrice > 0 ? Math.round(((normalPrice - atl) / normalPrice) * 100) : 0;
