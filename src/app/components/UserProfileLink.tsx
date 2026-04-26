@@ -61,7 +61,7 @@ export function UserProfileLink({
         onClick={handleClick}
         className={`${
           isClickable
-            ? 'cursor-pointer text-[#51a2ff] hover:text-[#7cb8ff] underline transition-colors'
+            ? 'cursor-pointer text-[#51a2ff] hover:text-[#7cb8ff] no-underline transition-colors'
             : 'text-white'
         } ${nameClassName} ${className}`}
         title={isClickable ? `Ver perfil de ${username}` : undefined}
@@ -90,7 +90,7 @@ export function UserProfileLink({
         <span
           className={`${
             isClickable
-              ? 'text-[#51a2ff] hover:text-[#7cb8ff] underline'
+              ? 'text-[#51a2ff] hover:text-[#7cb8ff] no-underline'
               : 'text-white'
           } ${nameClassName}`}
         >
