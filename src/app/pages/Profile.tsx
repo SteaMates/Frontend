@@ -216,24 +216,40 @@ export function Profile() {
   const [achievementsData, setAchievementsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [resolvedSteamId, setResolvedSteamId] = useState<string | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
 
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
-  const targetSteamId = routeSteamId || user?.steamid;
+  const targetSteamId = routeSteamId || resolvedSteamId || user?.steamid;
 
   useEffect(() => {
-    if (!user || !targetSteamId) return;
+    if (!user) return;
 
     const fetchData = async () => {
       try {
         setLoading(true);
         setLoadError(null);
+        setAchievementsData(null);
+
+        let steamIdToLoad = routeSteamId || user.steamid;
+        if (!routeSteamId) {
+          try {
+            const meRes = await api.get("/api/auth/me");
+            if (meRes.data?.user?.steamId) {
+              steamIdToLoad = meRes.data.user.steamId;
+            }
+          } catch {
+            // Ignore and fallback to auth context steamid
+          }
+        }
+
+        setResolvedSteamId(steamIdToLoad);
         const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
-          api.get(`/api/steam/profile/${targetSteamId}`),
-          api.get(`/api/steam/games/${targetSteamId}`),
-          api.get(`/api/steam/recent/${targetSteamId}`),
+          api.get(`/api/steam/profile/${steamIdToLoad}`),
+          api.get(`/api/steam/games/${steamIdToLoad}`),
+          api.get(`/api/steam/recent/${steamIdToLoad}`),
           api
-            .get(`/api/steam/stats/genres/${targetSteamId}`)
+            .get(`/api/steam/stats/genres/${steamIdToLoad}`)
             .catch(() => ({ data: null })),
         ]);
 
@@ -250,7 +266,7 @@ export function Profile() {
 
         // Fetch achievements lazily (takes longer)
         api
-          .get(`/api/steam/stats/achievements/${targetSteamId}`)
+          .get(`/api/steam/stats/achievements/${steamIdToLoad}`)
           .then((res) => setAchievementsData(res.data || { empty: true }))
           .catch((err) => {
             console.error("Error loading achievements:", err);
@@ -271,7 +287,7 @@ export function Profile() {
     };
 
     fetchData();
-  }, [user, targetSteamId]);
+  }, [user, routeSteamId]);
 
   if (!user) return <Navigate to="/login" replace />;
 

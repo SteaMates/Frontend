@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../lib/api";
 import axios from "axios";
+import { UserProfileLink } from "../components/UserProfileLink";
 import {
   ArrowRight,
   Clock3,
@@ -38,6 +39,7 @@ interface TrendingDeal {
 }
 
 interface FriendActivity {
+  steamId: string;
   username: string;
   avatar: string;
   currentGame: string | null;
@@ -162,10 +164,12 @@ export function Home() {
   const activityFeed = useMemo(() => {
     return friends.slice(0, 3).map((friend, index) => ({
       key: `${friend.username}-${index}`,
+      steamId: friend.steamId,
+      username: friend.username,
       avatar: friend.avatar,
-      text: friend.currentGame
-        ? `${friend.username} esta jugando ${friend.currentGame}`
-        : `${friend.username} esta online`,
+      actionText: friend.currentGame
+        ? `esta jugando ${friend.currentGame}`
+        : "esta online",
       time: index === 0 ? "Ahora" : index === 1 ? "Hace 15 min" : "Hace 2h",
       online: friend.status > 0,
     }));
@@ -365,10 +369,12 @@ export function Home() {
                     className="h-12 rounded-[14px] px-2 flex items-center gap-3"
                   >
                     <div className="relative w-8 h-8 shrink-0">
-                      <img
-                        src={item.avatar}
-                        alt="avatar"
-                        className="w-8 h-8 rounded-full border border-[#314158] object-cover"
+                      <UserProfileLink
+                        steamId={item.steamId}
+                        username={item.username}
+                        avatar={item.avatar}
+                        variant="avatar"
+                        avatarClassName="w-8 h-8 rounded-full border border-[#314158] object-cover"
                       />
                       {item.online && (
                         <span className="absolute -right-0.5 -bottom-0.5 w-[10px] h-[10px] rounded-full border-2 border-[#0f172b] bg-[#00c950]" />
@@ -376,7 +382,13 @@ export function Home() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] text-white truncate">
-                        {item.text}
+                        <UserProfileLink
+                          steamId={item.steamId}
+                          username={item.username}
+                          variant="name"
+                          nameClassName="text-white hover:text-[#7cb8ff]"
+                        />{" "}
+                        <span>{item.actionText}</span>
                       </p>
                       <p className="text-[10px] text-[#45556c]">{item.time}</p>
                     </div>
