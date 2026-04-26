@@ -32,7 +32,7 @@ type CheapGame = {
   cheapestPriceEver?: { price: string; date: number };
   deals:  Array<{ storeID: string; dealID: string; price: string; retailPrice: string; savings: string }>;
 };
-type PricePoint = { date: Date; price: number; label: string };
+type PricePoint = { date: Date; price: number; label: string; isSale?: boolean; savings?: number; };
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -42,72 +42,157 @@ function toNum(v?: string | number | null) {
 }
 function fmt(v: number) { return `$${v.toFixed(2)}`; }
 
-function buildHistoryFromPoints(pointsInput: PricePoint[], allTimeMin: number, current: number, normal: number): PricePoint[] {
+function makeDateLabel(d: Date): string {
+  return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+/**
+ * Build a complete price timeline that:
+ * - Starts at the game's launch date (or 12 months ago as fallback)
+ * - Preserves BOTH price drops AND recoveries (so short sales show as real dips)
+ * - Inserts synthetic "return to normal" points one day after each sale ends
+ * - Marks sale points with isSale flag and savings %
+ */
+function buildHistoryFromPoints(
+  pointsInput: PricePoint[],
+  allTimeMin: number,
+  current: number,
+  normal: number,
+  launchDate?: Date | null,
+): PricePoint[] {
+  const today = new Date();
+
+  // Filter out obviously wrong entries (prices > 150% of normal, price 0 unless free)
   const sorted = [...pointsInput]
-    .filter((p) => p?.date && toNum(p.price) >= 0) // Permitir 0 si es gratis
-    // Filtrar precios anómalos (por ejemplo DLCs o bundles que cuestan mucho más que el juego base)
-    .filter((p) => normal === 0 || p.price <= normal * 1.5)
+    .filter((p) => p?.date && isFinite(p.date.getTime()))
+    .filter((p) => p.price >= 0)
+    .filter((p) => normal === 0 || p.price <= normal * 1.6)
     .sort((a, b) => a.date.getTime() - b.date.getTime());
 
+  // Determine start date: real launch date, or earliest data point, or 12m ago
+  const fallbackStart = new Date();
+  fallbackStart.setMonth(fallbackStart.getMonth() - 12);
+  const startDate = launchDate && launchDate < today
+    ? (launchDate > fallbackStart ? launchDate : fallbackStart) // cap at fallbackStart if very old
+    : fallbackStart;
+
   if (sorted.length === 0) {
-    const d = new Date();
-    const dPast = new Date();
-    dPast.setMonth(dPast.getMonth() - 12);
     return [
-      { date: dPast, price: normal, label: dPast.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) },
-      { date: d, price: current, label: d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) }
+      { date: startDate, price: normal || current, label: makeDateLabel(startDate) },
+      { date: today,     price: current,            label: makeDateLabel(today) },
     ];
   }
 
-  const uniqueDates = new Map<string, PricePoint>();
-  sorted.forEach((p) => {
-    // Override if we find a lower price on the same day/label
-    const key = p.label;
-    const prev = uniqueDates.get(key);
-    if (!prev || p.price < prev.price) uniqueDates.set(key, p);
-  });
-
-  const result = Array.from(uniqueDates.values());
-
-  const hasATL = result.some((p) => p.price <= allTimeMin * 1.01);
-  if (!hasATL && allTimeMin < result[0].price) {
-    result[0].price = allTimeMin;
+  // Collapse same-millisecond duplicates keeping the lowest price
+  const collapsed: PricePoint[] = [];
+  for (const p of sorted) {
+    const last = collapsed[collapsed.length - 1];
+    if (last && last.date.getTime() === p.date.getTime()) {
+      if (p.price < last.price) collapsed[collapsed.length - 1] = p;
+    } else {
+      collapsed.push({ ...p });
+    }
   }
 
-  // Ensure a long time range by prepending a base point 12 months ago if needed
-  const oneYearAgo = new Date();
-  oneYearAgo.setMonth(oneYearAgo.getMonth() - 12);
-  
-  if (result.length > 0 && result[0].date > oneYearAgo) {
-    result.unshift({
-      date: oneYearAgo,
-      price: normal,
-      label: oneYearAgo.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
+  // Now build a step-wise timeline:
+  // For each consecutive pair of points, if price RISES back toward normal,
+  // that rise already exists. We just need to make sure we handle short sales.
+  // Strategy: walk through collapsed points and, whenever a sale ends (price rises),
+  // the existing next point already captures that. We annotate each point.
+  const annotated: PricePoint[] = collapsed.map((p) => {
+    const isSale = normal > 0 && p.price < normal * 0.98;
+    const savings = isSale ? Math.round(((normal - p.price) / normal) * 100) : 0;
+    return { ...p, isSale, savings };
+  });
+
+  // Prepend a start-of-history point at the base price (launch or fallback)
+  const firstPoint = annotated[0];
+  const chartStart = startDate < firstPoint.date ? startDate : firstPoint.date;
+  const result: PricePoint[] = [];
+
+  if (chartStart < firstPoint.date) {
+    result.push({
+      date: chartStart,
+      price: normal || current,
+      label: makeDateLabel(chartStart),
+      isSale: false,
+      savings: 0,
     });
   }
 
-  // Always append today's price so the chart ends at the current day
-  const today = new Date();
-  const todayLabel = today.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
-  if (!uniqueDates.has(todayLabel)) {
-    result.push({ date: today, price: current, label: todayLabel });
+  // Walk through the annotated points.
+  // Between any two consecutive points, if a sale ends (p[i] is sale, p[i+1] is not sale or is higher)
+  // and the gap between them is > 2 days, inject a synthetic recovery point 1 day after p[i].
+  for (let i = 0; i < annotated.length; i++) {
+    result.push(annotated[i]);
+    const next = annotated[i + 1];
+    if (next) {
+      const gapDays = (next.date.getTime() - annotated[i].date.getTime()) / 86400000;
+      const priceRises = next.price > annotated[i].price * 1.03;
+      // If price rises AND there's a gap > 1 day, insert synthetic recovery 1 day after this point
+      if (priceRises && gapDays > 1.5) {
+        const recoveryDate = new Date(annotated[i].date.getTime() + 86400000);
+        result.push({
+          date: recoveryDate,
+          price: next.price,
+          label: makeDateLabel(recoveryDate),
+          isSale: next.isSale,
+          savings: next.savings,
+        });
+      }
+    }
+  }
+
+  // Ensure today is the last point
+  const lastResult = result[result.length - 1];
+  if (!lastResult || lastResult.date < today) {
+    result.push({ date: today, price: current, label: makeDateLabel(today), isSale: false, savings: 0 });
   }
 
   return result;
 }
 
-function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number): PricePoint[] {
+function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number, launchDate?: Date | null): PricePoint[] {
   const pointsInput = [...deals]
     .filter(d => d.lastChange && toNum(d.salePrice) >= 0)
     .map(d => ({
-    date:  new Date(d.lastChange * 1000),
-    price: toNum(d.salePrice),
-    label: new Date(d.lastChange * 1000).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }),
-  }));
-  return buildHistoryFromPoints(pointsInput, allTimeMin, current, normal);
+      date:  new Date(d.lastChange * 1000),
+      price: toNum(d.salePrice),
+      label: makeDateLabel(new Date(d.lastChange * 1000)),
+    }));
+  return buildHistoryFromPoints(pointsInput, allTimeMin, current, normal, launchDate);
 }
 
 // ── Price Chart ───────────────────────────────────────────────────────────────
+
+interface TooltipPayloadItem {
+  value: number;
+  payload: PricePoint;
+}
+
+function PriceTooltip({ active, payload, label, normal }: {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: string;
+  normal: number;
+}) {
+  if (!active || !payload?.length) return null;
+  const price = payload[0].value;
+  const point = payload[0].payload;
+  const savings = point.savings ?? (normal > 0 && price < normal * 0.98 ? Math.round(((normal - price) / normal) * 100) : 0);
+  return (
+    <div className="bg-slate-950 border border-slate-700 rounded-xl p-3 shadow-2xl min-w-[160px]">
+      <p className="text-slate-400 text-xs mb-2">{label}</p>
+      <p className="text-blue-400 font-black text-lg leading-none">{fmt(price)}</p>
+      {savings > 0 && (
+        <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/25 px-1.5 py-0.5 rounded-full">
+          -{savings}% descuento
+        </span>
+      )}
+      {price === 0 && <span className="text-emerald-400 text-xs font-bold">Gratis</span>}
+    </div>
+  );
+}
 
 function PriceChart({ points, current, atl, normal }: {
   points:  PricePoint[];
@@ -116,66 +201,117 @@ function PriceChart({ points, current, atl, normal }: {
   normal:  number;
 }) {
   const prices = points.map(p => p.price);
-  const maxP = Math.max(...prices, normal, current);
-  const minP = Math.max(0, Math.min(...prices, atl) * 0.9);
+  const maxP   = Math.max(...prices, normal, current);
+  const minVal = Math.min(...prices, atl, current);
+  const domainMin = Math.max(0, minVal * 0.85);
+
+  // Count distinct dates to decide tick density
+  const totalSpanDays = points.length > 1
+    ? (points[points.length - 1].date.getTime() - points[0].date.getTime()) / 86400000
+    : 365;
+  const minTickGap = totalSpanDays > 365 ? 60 : totalSpanDays > 90 ? 40 : 20;
 
   return (
     <div className="w-full h-80 select-none -ml-4 mt-4">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={points} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
+        <AreaChart data={points} margin={{ top: 24, right: 20, left: 0, bottom: 0 }}>
           <defs>
-            <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+            <linearGradient id="priceGradFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%"  stopColor="#3b82f6" stopOpacity={0.35} />
+              <stop offset="80%" stopColor="#1d4ed8" stopOpacity={0.04} />
+            </linearGradient>
+            <linearGradient id="priceGradStroke" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"  stopColor="#60a5fa" />
+              <stop offset="100%" stopColor="#38bdf8" />
             </linearGradient>
           </defs>
+
           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-          <XAxis 
-            dataKey="label" 
-            stroke="#64748b" 
-            fontSize={10} 
-            tickLine={false} 
+
+          <XAxis
+            dataKey="label"
+            stroke="#475569"
+            fontSize={10}
+            tickLine={false}
+            axisLine={{ stroke: "#1e293b" }}
+            minTickGap={minTickGap}
+            tick={{ fill: "#64748b" }}
+          />
+          <YAxis
+            stroke="#475569"
+            fontSize={10}
+            tickLine={false}
             axisLine={false}
-            minTickGap={30}
+            tickFormatter={(val) => `$${val % 1 === 0 ? val : val.toFixed(2)}`}
+            domain={[domainMin, maxP * 1.08]}
+            width={52}
+            tick={{ fill: "#64748b" }}
           />
-          <YAxis 
-            stroke="#64748b" 
-            fontSize={10} 
-            tickLine={false} 
-            axisLine={false} 
-            tickFormatter={(val) => `$${val.toFixed(2)}`}
-            domain={[0, maxP * 1.05]}
-            width={45}
-          />
+
           <Tooltip
-            contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "0.75rem", color: "#fff" }}
-            itemStyle={{ color: "#3b82f6", fontWeight: "bold" }}
-            formatter={(value: number) => [fmt(value), "Precio"]}
-            labelStyle={{ color: "#94a3b8", marginBottom: "4px" }}
-            animationDuration={150}
+            content={(props: any) => <PriceTooltip {...props} normal={normal} />}
+            animationDuration={100}
+            cursor={{ stroke: "#334155", strokeWidth: 1, strokeDasharray: "4 4" }}
           />
-          {atl < maxP && atl >= minP && (
-            <ReferenceLine y={atl} stroke="#22c55e" strokeDasharray="4 4" strokeWidth={1} label={{ position: "insideTopLeft", value: `Mínimo ${fmt(atl)}`, fill: "#22c55e", fontSize: 10 }} />
+
+          {/* All-time low reference line */}
+          {atl > 0 && atl < normal * 0.99 && (
+            <ReferenceLine
+              y={atl}
+              stroke="#22c55e"
+              strokeDasharray="4 3"
+              strokeWidth={1}
+              label={{
+                position: "insideTopLeft",
+                value: `Mín. hist. ${fmt(atl)}`,
+                fill: "#22c55e",
+                fontSize: 10,
+                fontWeight: 600,
+              }}
+            />
           )}
-          {normal > current && (
-            <ReferenceLine y={normal} stroke="#ef4444" strokeDasharray="4 4" strokeWidth={1} label={{ position: "insideTopLeft", value: `Base ${fmt(normal)}`, fill: "#ef4444", fontSize: 10, opacity: 0.8 }} />
+          {/* Normal (base) price reference line — only when currently on sale */}
+          {normal > 0 && current < normal * 0.98 && (
+            <ReferenceLine
+              y={normal}
+              stroke="#f87171"
+              strokeDasharray="4 3"
+              strokeWidth={1}
+              label={{
+                position: "insideTopLeft",
+                value: `Precio base ${fmt(normal)}`,
+                fill: "#f87171",
+                fontSize: 10,
+                fontWeight: 600,
+              }}
+            />
           )}
-          <Area 
-            type="stepAfter" 
-            dataKey="price" 
-            stroke="#3b82f6" 
-            strokeWidth={2} 
-            fillOpacity={1} 
-            fill="url(#colorPrice)" 
-            isAnimationActive={true}
-            animationDuration={800}
+
+          <Area
+            type="stepAfter"
+            dataKey="price"
+            stroke="url(#priceGradStroke)"
+            strokeWidth={2.5}
+            fillOpacity={1}
+            fill="url(#priceGradFill)"
+            isAnimationActive
+            animationDuration={900}
+            dot={false}
+            activeDot={{
+              r: 5,
+              fill: "#3b82f6",
+              stroke: "#0f172a",
+              strokeWidth: 2,
+            }}
           />
-          {points.length > 2 && (
-            <Brush 
-              dataKey="label" 
-              height={30} 
-              stroke="#334155" 
+
+          {points.length > 3 && (
+            <Brush
+              dataKey="label"
+              height={28}
+              stroke="#1e293b"
               fill="#0f172a"
+              travellerWidth={6}
               tickFormatter={() => ""}
             />
           )}
@@ -203,6 +339,7 @@ export function GameDetail() {
   const [historySource,  setHistorySource]  = useState<"itad" | "cheapshark">("cheapshark");
   const [cheapestEver,   setCheapestEver]   = useState<{ price: string; date: number } | undefined>();
   const [steamGame,      setSteamGame]      = useState<any>(null);
+  const [launchDate,     setLaunchDate]     = useState<Date | null>(null);
   const [activePlayers,  setActivePlayers]  = useState<number | null>(null);
   const [expanded,       setExpanded]       = useState(false);
   const [loadError,      setLoadError]      = useState("");
@@ -320,6 +457,18 @@ export function GameDetail() {
           setCheapestEver(meta?.cheapestPriceEver);
           setSteamGame(steam);
           setActivePlayers(players);
+
+          // Parse launch date from Steam appdetails
+          if (steam?.release_date?.date) {
+            try {
+              // Steam dates come in various formats: "26 abr 2020", "Apr 26, 2020", "2020-04-26"
+              const parsed = new Date(steam.release_date.date);
+              if (!Number.isNaN(parsed.getTime()) && parsed.getFullYear() > 1990) {
+                setLaunchDate(parsed);
+              }
+            } catch { /* ignore */ }
+          }
+
           if (!steam && !meta && !allDeals.length) setLoadError("No se pudo obtener información para este juego.");
         }
       } catch {
@@ -347,17 +496,18 @@ export function GameDetail() {
     // Si el juego base es completamente gratis, el historial debe reflejar esto
     // y evitar picos de precios que corresponden a DLCs o Soundtracks.
     if (normalPrice === 0) {
+      const start = launchDate ?? new Date(Date.now() - 365 * 24 * 60 * 60 * 1000);
       return [
-        { date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), price: 0, label: "0" },
-        { date: new Date(), price: 0, label: "0" }
+        { date: start, price: 0, label: makeDateLabel(start) },
+        { date: new Date(), price: 0, label: makeDateLabel(new Date()) }
       ];
     }
-    
+
     if (itadHistory.length > 0) {
-      return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1, normalPrice || 1);
+      return buildHistoryFromPoints(itadHistory, atl, currentPrice || 1, normalPrice || 1, launchDate);
     }
-    return buildHistory(offers, atl, currentPrice || 1, normalPrice || 1);
-  }, [itadHistory, offers, atl, currentPrice, normalPrice]);
+    return buildHistory(offers, atl, currentPrice || 1, normalPrice || 1, launchDate);
+  }, [itadHistory, offers, atl, currentPrice, normalPrice, launchDate]);
 
   const discount    = normalPrice > 0 ? Math.round(((normalPrice - currentPrice) / normalPrice) * 100) : 0;
   const atlDiscount = normalPrice > 0 ? Math.round(((normalPrice - atl) / normalPrice) * 100) : 0;
@@ -626,17 +776,23 @@ export function GameDetail() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-1">
               <h2 className="text-lg font-bold text-white">Historial de Precios</h2>
-              <span className="text-[11px] text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
-                {historySource === "itad"
-                  ? "últimos 12 meses · IsThereAnyDeal"
-                  : "últimos 12 meses · CheapShark"}
-              </span>
+              <div className="flex items-center gap-2">
+                {launchDate && (
+                  <span className="text-[11px] text-slate-400 bg-slate-800/80 px-2 py-1 rounded-full">
+                    desde {launchDate.getFullYear()}
+                  </span>
+                )}
+                <span className="text-[11px] text-slate-500 bg-slate-800 px-2 py-1 rounded-full">
+                  {historySource === "itad" ? "IsThereAnyDeal" : "CheapShark"}
+                </span>
+              </div>
             </div>
             <p className="text-sm text-slate-500 mb-4">
-              Pasa el ratón sobre la gráfica para ver el precio en cada fecha.
+              Pasa el ratón sobre la gráfica para ver el precio en cada fecha. Las bajadas representan ofertas activas.
             </p>
             <PriceChart points={priceHistory} current={currentPrice} atl={atl} normal={normalPrice}/>
           </div>
+
 
           {/* stats row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
