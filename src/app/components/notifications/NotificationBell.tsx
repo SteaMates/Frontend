@@ -133,7 +133,7 @@ export function NotificationBell() {
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
             className={`absolute left-full ml-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden ${openUpward ? "bottom-0" : "top-0"}`}
-            style={{ maxHeight: "480px" }}
+            style={{ maxHeight: "560px" }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
@@ -168,7 +168,7 @@ export function NotificationBell() {
             </div>
 
             {/* List */}
-            <div className="overflow-y-auto" style={{ maxHeight: "400px" }}>
+            <div className="overflow-y-auto" style={{ maxHeight: "480px" }}>
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                   <Bell size={32} className="mb-3 opacity-30" />
