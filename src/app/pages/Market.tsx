@@ -10,6 +10,36 @@ import { useAuth } from "../context/AuthContext";
 import api from "../../lib/api";
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+function useDraggableScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  const events = {
+    onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => {
+      setIsDragging(true);
+      if (ref.current) {
+        setStartX(e.pageX - ref.current.offsetLeft);
+        setScrollLeft(ref.current.scrollLeft);
+      }
+    },
+    onMouseLeave: () => setIsDragging(false),
+    onMouseUp: () => setIsDragging(false),
+    onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      if (ref.current) {
+        const x = e.pageX - ref.current.offsetLeft;
+        const walk = (x - startX) * 2;
+        ref.current.scrollLeft = scrollLeft - walk;
+      }
+    },
+  };
+
+  return { ref, events, isDragging };
+}
+
 const SORT_OPTIONS = [
   { value: "Popular", label: "Más populares" },
   { value: "Savings", label: "Mayor descuento" },
@@ -43,6 +73,12 @@ export const GLOBAL_TAGS = [
   { id: "1625", name: "Plataformas" },
   { id: "1742", name: "Buena Trama" },
   { id: "1695", name: "Ciencia Ficción" },
+  { id: "7332", name: "Simulador de ciudades" },
+  { id: "1662", name: "Rogue-like" },
+  { id: "1756", name: "Gran banda sonora" },
+  { id: "1774", name: "Shooter" },
+  { id: "1654", name: "Supervivencia" },
+  { id: "4166", name: "Atmósferico" },
 ];
 
 // ── AI recommendations component ─────────────────────────────────────────────
@@ -56,6 +92,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   const [loading,  setLoading] = useState(false);
   const [error,    setError]   = useState("");
   const ranRef = useRef(false);
+  const { ref: scrollRef, events: scrollEvents, isDragging } = useDraggableScroll();
 
   const fetchRecs = useCallback(async () => {
     if (!steamId) return;
@@ -99,9 +136,13 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       </div>
 
       {loading && (
-        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x">
+        <div 
+          ref={scrollRef}
+          {...scrollEvents}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x cursor-grab ${isDragging ? "cursor-grabbing snap-none" : ""}`}
+        >
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse snap-start"/>
+            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse snap-start pointer-events-none"/>
           ))}
         </div>
       )}
@@ -111,9 +152,13 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       )}
 
       {!loading && deals.length > 0 && (
-        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x">
+        <div 
+          ref={scrollRef}
+          {...scrollEvents}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x cursor-grab ${isDragging ? "cursor-grabbing snap-none" : ""}`}
+        >
           {deals.map(deal => (
-            <div key={deal.dealID} className="flex-shrink-0 w-[240px] relative group snap-start">
+            <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group snap-start ${isDragging ? "pointer-events-none" : ""}`}>
               <DealCard deal={deal}/>
               {deal.reason && (
                 <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -266,6 +311,8 @@ export function Market() {
   // steam fallback (when CheapShark has 0 deals for a search term)
   const [steamGames,   setSteamGames]   = useState<SteamGame[]>([]);
   const [steamLoading, setSteamLoading] = useState(false);
+
+  const { ref: categoriesScrollRef, events: categoriesScrollEvents, isDragging: isCategoriesDragging } = useDraggableScroll();
 
   // steam fallback search via existing backend endpoint (returns only type=game)
   const fetchSteamFallback = useCallback(async (term: string) => {
@@ -521,14 +568,24 @@ export function Market() {
             )}
           </div>
           
-          <div className="flex overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none gap-2 snap-x">
+          <div 
+            ref={categoriesScrollRef}
+            {...categoriesScrollEvents}
+            className={`flex overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none gap-2 snap-x cursor-grab ${isCategoriesDragging ? "cursor-grabbing snap-none" : ""}`}
+          >
             {GLOBAL_TAGS.map(tag => {
               const isActive = selectedTags.includes(tag.id);
               return (
                 <button
                   key={tag.id}
-                  onClick={() => toggleTag(tag.id)}
-                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 snap-center ${
+                  onClick={(e) => {
+                    if (isCategoriesDragging) {
+                      e.preventDefault();
+                      return;
+                    }
+                    toggleTag(tag.id)
+                  }}
+                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 snap-center select-none ${
                     isActive
                       ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
                       : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
@@ -578,14 +635,14 @@ export function Market() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
           ))}
         </div>
       ) : deals.length > 0 ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
             {deals.map(d => <DealCard key={d.dealID} deal={d}/>)}
           </div>
           {hasMore && (
@@ -606,7 +663,7 @@ export function Market() {
             <Loader2 size={12} className="animate-spin"/>
             Cargando juegos de Steam...
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
             ))}
@@ -620,7 +677,7 @@ export function Market() {
               Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
             </p>
           )}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
             {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
           </div>
           {hasMore && (

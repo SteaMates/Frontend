@@ -658,14 +658,14 @@ export function GameDetail() {
           {/* insight cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Info size={15} className="text-blue-400"/>
-                <span className="text-sm text-slate-400">Recomendación IA</span>
+              <div className="flex items-center gap-2 mb-2">
+                <Info size={16} className="text-blue-400"/>
+                <span className="text-[15px] text-slate-300">Recomendación IA</span>
               </div>
-              <p className={`text-base font-bold ${recommendation.color}`}>
-                {recommendation.icon} {recommendation.label}
+              <p className={`text-lg font-bold mb-1 ${recommendation.color}`}>
+                {recommendation.label}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[13px] text-slate-500 leading-snug">
                 {currentPrice <= atl * 1.03
                   ? "El precio está en su punto más bajo. Ideal para comprar."
                   : discount >= 60
@@ -678,15 +678,14 @@ export function GameDetail() {
               </p>
             </div>
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock size={15} className="text-purple-400"/>
-                <span className="text-sm text-slate-400">Mejor momento de compra</span>
+              <div className="flex items-center gap-2 mb-2">
+                <Clock size={16} className="text-purple-400"/>
+                <span className="text-[15px] text-slate-300">Mejor momento de compra</span>
               </div>
-              <p className="text-base font-bold text-white">
-                {currentPrice <= atl * 1.05 ? "Ahora mismo" :
-                 "Próximas rebajas"}
+              <p className="text-lg font-bold text-white mb-1">
+                {currentPrice <= atl * 1.05 ? "Ahora mismo" : "Próximas rebajas"}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[13px] text-slate-500 leading-snug">
                 {atl < currentPrice
                   ? `El precio mínimo fue ${fmt(atl)}. Puedes ahorrar ${fmt(currentPrice - atl)} esperando.`
                   : "El precio actual está cerca del mínimo histórico."}
