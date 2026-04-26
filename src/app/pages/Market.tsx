@@ -231,19 +231,27 @@ interface SteamGame {
   id: string;
   title: string;
   price: string;
+  originalPrice?: string;
+  discountPct?: number;
   isFree: boolean;
   image: string;
   steamAppID: string;
 }
 
 function SteamGameCard({ game }: { game: SteamGame }) {
-  // Synthesize a Deal object for the GameDetail state so the loading experience is smooth
+  // Parse numeric prices from strings like "$7.99"
+  const saleP = game.price === "Gratis" ? "0.00" : game.price.replace("$", "");
+  const normP = game.originalPrice 
+    ? game.originalPrice.replace("$", "") 
+    : saleP;
+
   const synthesizedDeal = {
     title: game.title,
     steamAppID: game.steamAppID,
     thumb: game.image,
-    salePrice: game.isFree ? "0.00" : game.price.replace("$", ""),
-    normalPrice: game.isFree ? "0.00" : game.price.replace("$", ""),
+    salePrice: saleP,
+    normalPrice: normP,
+    savings: game.discountPct ? game.discountPct.toString() : "0",
     dealID: "",
     gameID: "",
     storeID: "1"
@@ -285,14 +293,24 @@ function SteamGameCard({ game }: { game: SteamGame }) {
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex flex-col">
+            {(game.discountPct || 0) > 0 && game.originalPrice && (
+              <span className="text-[10px] line-through text-slate-500 font-medium">
+                {game.originalPrice}
+              </span>
+            )}
             <span
               className={`text-base font-bold ${game.isFree ? "text-emerald-400" : "text-slate-200"}`}
             >
               {game.price}
             </span>
           </div>
-
-          <a
+          <div className="flex items-center gap-2">
+            {(game.discountPct || 0) > 0 && (
+              <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-1.5 py-0.5 rounded border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
+                -{game.discountPct}%
+              </span>
+            )}
+            <a
             href={`https://store.steampowered.com/app/${game.steamAppID}/`}
             target="_blank"
             rel="noopener noreferrer"
@@ -302,6 +320,7 @@ function SteamGameCard({ game }: { game: SteamGame }) {
           >
             <ExternalLink size={14} />
           </a>
+        </div>
         </div>
       </div>
     </div>
@@ -401,10 +420,13 @@ export function Market() {
         
         const mapped: SteamGame[] = raw.map((item: any) => {
           const priceVal = item.price === "Gratis" ? "Gratis" : (item.price === 0 || isFreeMode ? "Gratis" : `$${Number(item.price).toFixed(2)}`);
+          const origVal = item.originalPrice ? `$${Number(item.originalPrice).toFixed(2)}` : priceVal;
           return {
             id:        item.appId || item.name,
             title:     item.name,
             price:     priceVal,
+            originalPrice: origVal,
+            discountPct: item.discountPct || 0,
             isFree:    item.isFree || isFreeMode,
             image:     item.appId
               ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
