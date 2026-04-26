@@ -1,1 +1,4 @@
-﻿楀灭牯⁴琧楡睬湩捤獳‧潳牵散渨湯⥥഻䀊潳牵散✠⸮⨯⼪⸪橻ⱳ獴樬硳琬硳❽഻ഊ䀊浩潰瑲✠睴愭楮慭整挭獳㬧਍.scrollbar-none::-webkit-scrollbar { display: none; }
+@import 'tailwindcss';
+@source '../**/*.{js,ts,jsx,tsx}';
+
+@import 'tw-animate-css';

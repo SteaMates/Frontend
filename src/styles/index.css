@@ -1,1 +1,11 @@
-﻿楀灭牯⁴⸧是湯獴挮獳㬧਍楀灭牯⁴⸧琯楡睬湩⹤獣❳഻䀊浩潰瑲✠⼮桴浥⹥獣❳഻⸊猀挀爀漀氀氀戀愀爀ⴀ渀漀渀攀㨀㨀ⴀ眀攀戀欀椀琀ⴀ猀挀爀漀氀氀戀愀爀 笀 搀椀猀瀀氀愀礀㨀 渀漀渀攀㬀 紀ഀ਀
+@import './fonts.css';
+@import './tailwind.css';
+@import './theme.css';
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
