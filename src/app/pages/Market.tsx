@@ -114,8 +114,9 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
-    } catch (e) {
-      setError("No se pudieron cargar las recomendaciones.");
+    } catch (e: any) {
+      const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
+      setError(msg);
     } finally {
       setLoading(false);
     }
