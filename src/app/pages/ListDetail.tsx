@@ -15,6 +15,7 @@ import api from "../../lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReportButton } from "../components/ReportButton";
+import { UserProfileLink } from "../components/UserProfileLink";
 
 interface Game {
   appId: string | number;
@@ -29,6 +30,7 @@ interface CommentData {
   content: string;
   author: {
     _id: string;
+    steamId?: string;
     username: string;
     avatar: string;
   };
@@ -42,6 +44,7 @@ interface List {
   coverImage: string;
   author: {
     _id: string;
+    steamId?: string;
     username: string;
     avatar: string;
   };
@@ -162,14 +165,14 @@ export function ListDetail() {
                 {list.title}
               </h1>
               <div className="mt-2 flex items-center gap-4 text-[16px]">
-                <span className="inline-flex items-center gap-2 text-white">
-                  <img
-                    src={list.author?.avatar}
-                    alt={list.author?.username}
-                    className="w-8 h-8 rounded-full object-cover border border-[#45556c] bg-[#314158]"
-                  />
-                  {list.author?.username}
-                </span>
+                <UserProfileLink
+                  steamId={list.author?.steamId || list.author?._id}
+                  username={list.author?.username || 'Unknown'}
+                  avatar={list.author?.avatar}
+                  variant="both"
+                  avatarClassName="w-8 h-8 rounded-full border border-[#45556c] bg-[#314158]"
+                  nameClassName="text-white"
+                />
                 <span className="text-[#62748e]">•</span>
                 <span className="text-[#cad5e2]">
                   {formatDistanceToNow(new Date(list.createdAt), {
@@ -336,19 +339,24 @@ export function ListDetail() {
           <div className="mt-8 space-y-6">
             {comments.map((comment) => (
               <div key={comment._id} className="flex items-start gap-4">
-                <img
-                  src={comment.author?.avatar}
-                  alt={comment.author?.username}
-                  className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
+                <UserProfileLink
+                  steamId={comment.author?.steamId || comment.author?._id}
+                  username={comment.author?.username || 'Unknown'}
+                  avatar={comment.author?.avatar}
+                  variant="avatar"
+                  avatarClassName="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
                 />
 
                 <div className="min-w-0 flex-1">
                   <div className="rounded-tl-[2px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[14px] bg-[rgba(29,41,61,0.5)] px-4 py-3 border border-[#1d293d]">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-white text-[16px] leading-6 font-bold truncate">
-                          {comment.author?.username}
-                        </span>
+                        <UserProfileLink
+                          steamId={comment.author?.steamId || comment.author?._id}
+                          username={comment.author?.username || 'Unknown'}
+                          variant="name"
+                          nameClassName="text-white text-[16px] leading-6 font-bold truncate"
+                        />
                         {user && user.id !== String(comment.author?._id) && (
                           <ReportButton
                             targetId={comment._id}

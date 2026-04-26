@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { Navigate, Link } from "react-router";
+import { Navigate, Link, useParams } from "react-router";
 import api from "../../lib/api";
 import {
   Award,
@@ -208,25 +208,32 @@ function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
 
 export function Profile() {
   const { user, logout } = useAuth();
+  const { steamId: routeSteamId } = useParams();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [games, setGames] = useState<Game[]>([]);
   const [recentGames, setRecentGames] = useState<RecentGame[]>([]);
   const [genreData, setGenreData] = useState<any>(null);
   const [achievementsData, setAchievementsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
 
+  const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
+  const targetSteamId = routeSteamId || user?.steamid;
+
   useEffect(() => {
-    if (!user) return;
+    if (!user || !targetSteamId) return;
 
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setLoadError(null);
         const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
-          api.get(`/api/steam/profile/${user.steamid}`),
-          api.get(`/api/steam/games/${user.steamid}`),
-          api.get(`/api/steam/recent/${user.steamid}`),
+          api.get(`/api/steam/profile/${targetSteamId}`),
+          api.get(`/api/steam/games/${targetSteamId}`),
+          api.get(`/api/steam/recent/${targetSteamId}`),
           api
-            .get(`/api/steam/stats/genres/${user.steamid}`)
+            .get(`/api/steam/stats/genres/${targetSteamId}`)
             .catch(() => ({ data: null })),
         ]);
 
@@ -243,20 +250,28 @@ export function Profile() {
 
         // Fetch achievements lazily (takes longer)
         api
-          .get(`/api/steam/stats/achievements/${user.steamid}`)
+          .get(`/api/steam/stats/achievements/${targetSteamId}`)
           .then((res) => setAchievementsData(res.data || { empty: true }))
           .catch((err) => {
             console.error("Error loading achievements:", err);
             setAchievementsData({ error: true });
           });
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error loading profile:", error);
+        const status = error?.response?.status;
+        if (status === 403) {
+          setLoadError("Este perfil es privado en Steam.");
+        } else if (status === 404) {
+          setLoadError("No hemos encontrado este perfil.");
+        } else {
+          setLoadError("No se ha podido cargar el perfil.");
+        }
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [user]);
+  }, [user, targetSteamId]);
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -270,6 +285,30 @@ export function Profile() {
       </div>
     );
   }
+
+  if (loadError) {
+    return (
+      <div className="max-w-[1084px] mx-auto pb-20">
+        <section className="rounded-[16px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] p-8 text-center">
+          <h2 className="text-white text-[26px] font-bold">Perfil no disponible</h2>
+          <p className="mt-3 text-[#90a1b9] text-[15px]">{loadError}</p>
+          <div className="mt-6">
+            <Link
+              to="/friends"
+              className="inline-flex items-center gap-2 rounded-[10px] bg-[#1d293d] border border-[#314158] px-4 py-2 text-[#cad5e2] hover:bg-[#263550] transition-colors"
+            >
+              Volver
+            </Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  const displayName = profile?.username || (isOwnProfile ? user.personaname : "Usuario");
+  const displayAvatar = profile?.avatar || (isOwnProfile ? user.avatarfull : "");
+  const displayProfileUrl = profile?.profileUrl || (isOwnProfile ? user.profileurl : "");
+  const displaySteamId = targetSteamId || user.steamid;
 
   const sourceGames = games;
   const totalHours = sourceGames.reduce(
@@ -530,8 +569,8 @@ export function Profile() {
             <div className="relative -mt-20 shrink-0">
               <div className="w-[128px] h-[128px] rounded-[16px] border-4 border-[#0f172b] shadow-[0px_0px_0px_2px_rgba(43,127,255,0.5),0px_25px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden bg-[#0b1225]">
                 <img
-                  src={profile?.avatar || user.avatarfull}
-                  alt={profile?.username || user.personaname}
+                  src={displayAvatar}
+                  alt={displayName}
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -541,7 +580,7 @@ export function Profile() {
             <div className="flex-1 pt-3 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-[42px] leading-[1] font-bold text-white truncate">
-                  {profile?.username || user.personaname}
+                  {displayName}
                 </h1>
                 <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold text-white bg-gradient-to-r from-[#51a2ff] to-[#00b8db]">
                   Lv.{level}
@@ -565,7 +604,7 @@ export function Profile() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="bg-[#1d293d] rounded-[4px] px-2 py-1 text-[10px] text-[#90a1b9] font-mono">
-                  ID: {user.steamid.slice(0, 6)}...
+                  ID: {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
                 </span>
                 <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
                   Online
@@ -578,20 +617,22 @@ export function Profile() {
 
             <div className="flex items-start gap-2 pt-2">
               <a
-                href={profile?.profileUrl || user.profileurl}
+                href={displayProfileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="h-[34px] px-3 rounded-[10px] bg-[#1d293d] border border-[#314158] text-[#cad5e2] text-[12px] flex items-center gap-1.5 hover:bg-[#263550] transition-colors"
               >
                 <ExternalLink size={13} /> Steam
               </a>
-              <button
-                onClick={logout}
-                className="h-[34px] w-[34px] rounded-[10px] border border-[rgba(130,24,26,0.3)] text-[#ff637e] flex items-center justify-center hover:bg-[rgba(130,24,26,0.15)] transition-colors"
-                title="Cerrar sesión"
-              >
-                <LogOut size={16} />
-              </button>
+              {isOwnProfile && (
+                <button
+                  onClick={logout}
+                  className="h-[34px] w-[34px] rounded-[10px] border border-[rgba(130,24,26,0.3)] text-[#ff637e] flex items-center justify-center hover:bg-[rgba(130,24,26,0.15)] transition-colors"
+                  title="Cerrar sesión"
+                >
+                  <LogOut size={16} />
+                </button>
+              )}
             </div>
           </div>
         </div>

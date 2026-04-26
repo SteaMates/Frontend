@@ -37,6 +37,7 @@ import {
   type ScheduledSession,
   type SessionGame,
 } from "../components/SessionBooking";
+import { UserProfileLink } from "../components/UserProfileLink";
 
 interface Friend {
   steamId: string;
@@ -1758,9 +1759,14 @@ export function Friends() {
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-[#cad5e2] text-[14px] font-medium truncate">
-                      {friend.username}
-                    </p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <UserProfileLink
+                        steamId={friend.steamId}
+                        username={friend.username}
+                        variant="name"
+                        nameClassName="text-[#cad5e2] text-[14px] font-medium truncate"
+                      />
+                    </div>
                     <p
                       className={`text-[11px] truncate ${getStatusTextColor(friend)}`}
                     >

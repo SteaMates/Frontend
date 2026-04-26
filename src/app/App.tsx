@@ -31,6 +31,7 @@ const router = createBrowserRouter([
       { path: "lists/:id", Component: ListDetail },
       { path: "friends", Component: Friends },
       { path: "profile", Component: Profile },
+      { path: "profile/:steamId", Component: Profile },
       { path: "admin", Component: Admin },
       { path: "login", Component: Login },
       { path: "*", Component: NotFound },
