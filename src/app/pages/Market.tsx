@@ -139,10 +139,11 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         <div 
           ref={scrollRef}
           {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x cursor-grab ${isDragging ? "cursor-grabbing snap-none" : ""}`}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse snap-start pointer-events-none"/>
+            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse pointer-events-none"/>
           ))}
         </div>
       )}
@@ -155,10 +156,11 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         <div 
           ref={scrollRef}
           {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 scrollbar-none gap-4 snap-x cursor-grab ${isDragging ? "cursor-grabbing snap-none" : ""}`}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {deals.map(deal => (
-            <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group snap-start ${isDragging ? "pointer-events-none" : ""}`}>
+            <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group ${isDragging ? "pointer-events-none" : ""}`}>
               <DealCard deal={deal}/>
               {deal.reason && (
                 <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -571,7 +573,8 @@ export function Market() {
           <div 
             ref={categoriesScrollRef}
             {...categoriesScrollEvents}
-            className={`flex overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none gap-2 snap-x cursor-grab ${isCategoriesDragging ? "cursor-grabbing snap-none" : ""}`}
+            className={`flex overflow-x-auto pb-2 -mx-2 px-2 gap-2 cursor-grab scrollbar-none ${isCategoriesDragging ? "cursor-grabbing" : ""}`}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {GLOBAL_TAGS.map(tag => {
               const isActive = selectedTags.includes(tag.id);
@@ -585,7 +588,7 @@ export function Market() {
                     }
                     toggleTag(tag.id)
                   }}
-                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 snap-center select-none ${
+                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 select-none ${
                     isActive
                       ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
                       : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
