@@ -142,13 +142,16 @@ export function ReportButton({
           </div>
 
           <div>
-            <p className="mb-2 text-sm text-[#cad5e2]">Descripcion adicional (opcional)</p>
+            <div className="flex justify-between items-end mb-2">
+              <p className="text-sm text-[#cad5e2]">Descripcion adicional (opcional)</p>
+              <span className="text-xs text-[#62748e]">{description.length}/500</span>
+            </div>
             <Textarea
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Anade detalles para ayudar a moderacion..."
               maxLength={500}
-              className="min-h-24 border-[#314158] bg-[rgba(2,6,24,0.5)] text-white placeholder:text-[#62748e]"
+              className="min-h-24 border-[#314158] bg-[rgba(2,6,24,0.5)] text-white placeholder:text-[#62748e] resize-none"
             />
           </div>
 

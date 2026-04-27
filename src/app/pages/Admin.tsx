@@ -377,7 +377,7 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                     <h4 className="text-sm font-bold text-white mb-1">{report.type}</h4>
                     <p className="text-xs text-slate-400">Tipo: <span className="text-slate-300 font-medium">{report.type}</span> • Motivo: {report.reason}</p>
                     {report.description && (
-                      <p className="text-xs text-slate-500 mt-1">Descripción: {report.description}</p>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">Descripción: {report.description}</p>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -452,7 +452,7 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                 
                 {selectedReport.description && (
                   <div className="mt-3 bg-slate-800 rounded-lg p-3 border border-slate-700">
-                    <p className="text-sm text-slate-300 italic">"{selectedReport.description}"</p>
+                    <p className="text-sm text-slate-300 italic whitespace-pre-wrap break-words">"{selectedReport.description}"</p>
                   </div>
                 )}
               </div>
@@ -466,15 +466,15 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                   <div className="space-y-2 text-sm text-slate-300">
                     {selectedReport.targetType === 'GameList' && (
                       <>
-                        <p><strong className="text-slate-400">Título:</strong> {selectedReport.targetId.title}</p>
-                        <p><strong className="text-slate-400">Descripción:</strong> {selectedReport.targetId.description}</p>
+                        <p className="break-words"><strong className="text-slate-400">Título:</strong> {selectedReport.targetId.title}</p>
+                        <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Descripción:</strong> {selectedReport.targetId.description}</p>
                       </>
                     )}
                     {selectedReport.targetType === 'Comment' && (
-                      <p><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>
+                      <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>
                     )}
                     {selectedReport.targetType === 'User' && (
-                      <p><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>
+                      <p className="break-words"><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>
                     )}
                   </div>
                 )}
@@ -867,12 +867,16 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
               </div>
 
               <div>
-                <label className="text-sm text-slate-400 block mb-2">Motivo *</label>
+                <div className="flex justify-between items-end mb-2">
+                  <label className="text-sm text-slate-400 block">Motivo *</label>
+                  <span className="text-xs text-slate-500">{reason.length}/500</span>
+                </div>
                 <textarea
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   placeholder="Explica la razón de esta acción..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  maxLength={500}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-none"
                   rows={3}
                 />
               </div>
@@ -975,9 +979,9 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                     </span>
                   </div>
 
-                  <p className="text-sm text-slate-200 mb-1">
-                    Motivo: <span className="text-slate-300">{item.reason || "Sin motivo"}</span>
-                  </p>
+                  <div className="text-sm text-slate-200 mb-1">
+                    Motivo: <span className="text-slate-300 break-words whitespace-pre-wrap">{item.reason || "Sin motivo"}</span>
+                  </div>
 
                   {item.duration ? (
                     <p className="text-xs text-slate-400 mb-1">Duración: {item.duration} día{item.duration !== 1 ? "s" : ""}</p>
