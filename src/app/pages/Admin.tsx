@@ -220,6 +220,8 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
   const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "list" | "comment" | "user">("all");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const filteredReports = reports.filter(r => 
     (filter === "all" || r.status === filter) &&
@@ -234,6 +236,31 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
       onReload();
     } catch (error) {
       console.error('Error resolviendo reporte:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteContent = async (report: any) => {
+    if (report.targetType === 'User') {
+      alert('Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.');
+      return;
+    }
+
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar este ${getTargetTypeLabel(report.targetType).toLowerCase()}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`)) {
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      const typeStr = report.targetType === 'GameList' ? 'list' : 'comment';
+      const targetId = report.targetId?._id || report.targetId;
+      await api.delete(`/api/moderation/content/${typeStr}/${targetId}`);
+      if (showReportModal) setShowReportModal(false);
+      onReload();
+    } catch (error) {
+      console.error('Error eliminando contenido:', error);
+      alert('Error eliminando contenido');
     } finally {
       setSubmitting(false);
     }
@@ -354,6 +381,10 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                   </div>
                   <div className="flex gap-2">
                     <button 
+                      onClick={() => {
+                        setSelectedReport(report);
+                        setShowReportModal(true);
+                      }}
                       className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 
                       title="Ver detalles"
                     >
@@ -367,7 +398,12 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                     >
                       <CheckCircle2 size={16} />
                     </button>
-                    <button className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors" title="Eliminar">
+                    <button 
+                      onClick={() => handleDeleteContent(report)}
+                      disabled={submitting}
+                      className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50" 
+                      title="Eliminar Contenido"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -377,6 +413,95 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
           )}
         </div>
       </div>
+
+      {showReportModal && selectedReport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <Flag className="text-amber-400" />
+                Detalles del Reporte
+              </h3>
+              <button 
+                onClick={() => setShowReportModal(false)}
+                className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div className="space-y-6">
+              {/* Report Info */}
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex gap-2 mb-3">
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(selectedReport.targetType)}`}>
+                    {getTargetTypeLabel(selectedReport.targetType)}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${
+                    selectedReport.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
+                  }`}>
+                    {selectedReport.status === "pending" ? "Pendiente" : "Resuelto"}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-400 mb-1">Motivo: <span className="text-white font-medium">{selectedReport.reason}</span></p>
+                <p className="text-sm text-slate-400 mb-1">Reportado por: <span className="text-white font-medium">{selectedReport.reportedBy?.username || 'Desconocido'}</span></p>
+                <p className="text-sm text-slate-400">Fecha: <span className="text-white">{new Date(selectedReport.createdAt).toLocaleString()}</span></p>
+                
+                {selectedReport.description && (
+                  <div className="mt-3 bg-slate-800 rounded-lg p-3 border border-slate-700">
+                    <p className="text-sm text-slate-300 italic">"{selectedReport.description}"</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Target Content Preview */}
+              <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <h4 className="text-sm font-bold text-white mb-3">Contenido Reportado</h4>
+                {!selectedReport.targetId ? (
+                  <p className="text-sm text-slate-500 italic">El contenido ya no existe (probablemente fue eliminado).</p>
+                ) : (
+                  <div className="space-y-2 text-sm text-slate-300">
+                    {selectedReport.targetType === 'GameList' && (
+                      <>
+                        <p><strong className="text-slate-400">Título:</strong> {selectedReport.targetId.title}</p>
+                        <p><strong className="text-slate-400">Descripción:</strong> {selectedReport.targetId.description}</p>
+                      </>
+                    )}
+                    {selectedReport.targetType === 'Comment' && (
+                      <p><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>
+                    )}
+                    {selectedReport.targetType === 'User' && (
+                      <p><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6 pt-4 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  handleResolveReport(selectedReport._id);
+                  setShowReportModal(false);
+                }}
+                disabled={submitting || selectedReport.status === 'resolved'}
+                className="flex-1 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+              >
+                <CheckCircle2 size={18} />
+                Marcar Resuelto
+              </button>
+              <button
+                onClick={() => handleDeleteContent(selectedReport)}
+                disabled={submitting || !selectedReport.targetId || selectedReport.targetType === 'User'}
+                className="flex-1 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+              >
+                <Trash2 size={18} />
+                Eliminar Contenido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
