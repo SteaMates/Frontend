@@ -247,7 +247,8 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
       return;
     }
 
-    if (!window.confirm(`¿Estás seguro de que quieres eliminar este ${getTargetTypeLabel(report.targetType).toLowerCase()}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`)) {
+    const targetLabel = report.targetType === 'GameList' ? 'esta lista' : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`)) {
       return;
     }
 
@@ -398,14 +399,16 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                     >
                       <CheckCircle2 size={16} />
                     </button>
-                    <button 
-                      onClick={() => handleDeleteContent(report)}
-                      disabled={submitting}
-                      className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50" 
-                      title="Eliminar Contenido"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {report.targetType !== 'User' && (
+                      <button 
+                        onClick={() => handleDeleteContent(report)}
+                        disabled={submitting}
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50" 
+                        title="Eliminar Contenido"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -490,14 +493,16 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                 <CheckCircle2 size={18} />
                 Marcar Resuelto
               </button>
-              <button
-                onClick={() => handleDeleteContent(selectedReport)}
-                disabled={submitting || !selectedReport.targetId || selectedReport.targetType === 'User'}
-                className="flex-1 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
-              >
-                <Trash2 size={18} />
-                Eliminar Contenido
-              </button>
+              {selectedReport.targetType !== 'User' && (
+                <button
+                  onClick={() => handleDeleteContent(selectedReport)}
+                  disabled={submitting || !selectedReport.targetId}
+                  className="flex-1 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+                >
+                  <Trash2 size={18} />
+                  Eliminar Contenido
+                </button>
+              )}
             </div>
           </div>
         </div>
