@@ -180,14 +180,6 @@ export function ListDetail() {
                     locale: es,
                   })}
                 </span>
-                {user && user.id !== list.author?._id && list.author?._id && (
-                  <ReportButton
-                    targetId={String(list.author._id)}
-                    targetType="user"
-                    buttonLabel="Reportar perfil"
-                    buttonClassName="inline-flex items-center gap-2 text-[#90a1b9] hover:text-[#ff8a8c] transition-colors text-[14px]"
-                  />
-                )}
               </div>
             </div>
 

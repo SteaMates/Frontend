@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link, useParams } from "react-router";
 import api from "../../lib/api";
+import { ReportButton } from "../components/ReportButton";
 import {
   Award,
   Check,
@@ -27,6 +28,7 @@ interface Game {
 }
 
 interface ProfileData {
+  _id?: string;
   avatar?: string;
   username?: string;
   profileUrl?: string;
@@ -589,8 +591,8 @@ export function Profile() {
     // Show completely empty state
     displayAchievements = [
       {
-        title: "Sin logros",
-        subtitle: "Aún no hay logros conseguidos",
+        title: "Sin datos",
+        subtitle: "Sin datos de logros disponibles",
         unlocked: false,
         icon: Zap,
         cardClass: "bg-[#162032] border-[#1d293d] opacity-60",
@@ -774,6 +776,14 @@ export function Profile() {
                 <span className="bg-[rgba(28,57,142,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#51a2ff]">
                   Miembro desde {memberYear}
                 </span>
+                {!isOwnProfile && profile?._id && (
+                  <ReportButton
+                    targetId={profile._id}
+                    targetType="user"
+                    buttonLabel="Reportar perfil"
+                    buttonClassName="inline-flex items-center gap-1.5 ml-2 text-[#90a1b9] text-[12px] hover:text-[#ff8a8c] transition-colors"
+                  />
+                )}
               </div>
             </div>
 
@@ -1060,6 +1070,11 @@ export function Profile() {
           </div>
 
           <div className="flex-1 overflow-auto pr-2 space-y-1.5">
+            {libraryRows.length === 0 && (
+              <div className="h-full flex items-center justify-center text-[#62748e] text-[12px] min-h-[120px]">
+                Sin datos de biblioteca disponibles
+              </div>
+            )}
             {libraryRows.map((game, index) => (
               <Link
                 key={`${game.appId}-${index}`}
@@ -1100,6 +1115,11 @@ export function Profile() {
           </h3>
 
           <div className="space-y-1.5">
+            {recentActivity.length === 0 && (
+              <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
+                Sin datos de actividad reciente disponibles
+              </div>
+            )}
             {recentActivity.map((item, index) => {
               const playTone = item.tone === "play";
               return (
