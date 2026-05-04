@@ -19,7 +19,6 @@ import {
 import { Link } from "react-router";
 import {
   CATEGORY_CHIPS,
-  COMMUNITY_LISTS,
   FEED_TABS,
   FeedTab,
 } from "../data/communityLists";
@@ -33,105 +32,6 @@ type CreateGameOption = {
   score: string;
   image: string;
 };
-
-const CREATE_GAME_OPTIONS: CreateGameOption[] = [
-  {
-    id: "elden-ring",
-    title: "Elden Ring",
-    year: "2022",
-    price: "$49.99",
-    score: "96%",
-    image: "https://picsum.photos/seed/elden-ring-cover/80/80",
-  },
-  {
-    id: "baldurs-gate-3",
-    title: "Baldur's Gate 3",
-    year: "2023",
-    price: "$59.99",
-    score: "96%",
-    image: "https://picsum.photos/seed/bg3-cover/80/80",
-  },
-  {
-    id: "hades-2",
-    title: "Hades II",
-    year: "2024",
-    price: "$29.99",
-    score: "95%",
-    image: "https://picsum.photos/seed/hades-2-cover/80/80",
-  },
-  {
-    id: "cyberpunk-2077",
-    title: "Cyberpunk 2077",
-    year: "2020",
-    price: "$29.99",
-    score: "89%",
-    image: "https://picsum.photos/seed/cyberpunk-2077-cover/80/80",
-  },
-  {
-    id: "starfield",
-    title: "Starfield",
-    year: "2023",
-    price: "$69.99",
-    score: "85%",
-    image: "https://picsum.photos/seed/starfield-cover/80/80",
-  },
-  {
-    id: "silksong",
-    title: "Hollow Knight: Silksong",
-    year: "2025",
-    price: "$24.99",
-    score: "91%",
-    image: "https://picsum.photos/seed/silksong-cover/80/80",
-  },
-  {
-    id: "disco-elysium",
-    title: "Disco Elysium",
-    year: "2019",
-    price: "$19.99",
-    score: "97%",
-    image: "https://picsum.photos/seed/disco-elysium-cover/80/80",
-  },
-  {
-    id: "stardew-valley",
-    title: "Stardew Valley",
-    year: "2016",
-    price: "$14.99",
-    score: "93%",
-    image: "https://picsum.photos/seed/stardew-valley-cover/80/80",
-  },
-  {
-    id: "the-witcher-3",
-    title: "The Witcher 3",
-    year: "2015",
-    price: "$39.99",
-    score: "95%",
-    image: "https://picsum.photos/seed/the-witcher-3-cover/80/80",
-  },
-  {
-    id: "portal-2",
-    title: "Portal 2",
-    year: "2011",
-    price: "$9.99",
-    score: "98%",
-    image: "https://picsum.photos/seed/portal-2-cover/80/80",
-  },
-  {
-    id: "celeste",
-    title: "Celeste",
-    year: "2018",
-    price: "$19.99",
-    score: "97%",
-    image: "https://picsum.photos/seed/celeste-cover/80/80",
-  },
-  {
-    id: "factorio",
-    title: "Factorio",
-    year: "2020",
-    price: "$35.00",
-    score: "96%",
-    image: "https://picsum.photos/seed/factorio-cover/80/80",
-  },
-];
 
 export function Lists() {
   const [feedTab, setFeedTab] = useState<FeedTab>("trending");

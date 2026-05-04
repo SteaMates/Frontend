@@ -19,6 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
+import api from "../../lib/api";
 
 const heroImage =
   "https://www.figma.com/api/mcp/asset/dc41ab6e-19d1-44f5-9001-cf6d17001138";
@@ -73,11 +74,30 @@ export function Login() {
     },
   ];
 
-  const stats = [
-    { value: "12K+", label: "Jugadores" },
-    { value: "850K", label: "Horas rastreadas" },
-    { value: "3.2K", label: "Listas creadas" },
-  ];
+  const [stats, setStats] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchStats = async () => {
+      try {
+        const res = await api.get("/api/site/stats");
+        const data = res.data || {};
+        if (!mounted) return;
+        setStats([
+          { value: (data.usersCount || 0).toLocaleString(), label: "Jugadores" },
+          { value: (data.listsCount || 0).toLocaleString(), label: "Listas creadas" },
+          { value: (data.gamesCached || 0).toLocaleString(), label: "Juegos indexados" },
+        ]);
+      } catch (e) {
+        // silently ignore — keep stats empty
+      }
+    };
+
+    fetchStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row -m-4 sm:-m-6 lg:-m-8 min-h-screen bg-[#020618]">

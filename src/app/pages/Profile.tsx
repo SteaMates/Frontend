@@ -116,54 +116,6 @@ const GENRE_COLORS = [
   "#64748b",
 ];
 
-const FALLBACK_LIBRARY: Game[] = [
-  { appId: 730, name: "Counter-Strike 2", playtime: 2000 * 60, icon: "" },
-  { appId: 570, name: "Dota 2", playtime: 1583 * 60, icon: "" },
-  { appId: 105600, name: "Terraria", playtime: 750 * 60, icon: "" },
-  { appId: 271590, name: "Grand Theft Auto V", playtime: 533 * 60, icon: "" },
-  { appId: 440, name: "Team Fortress 2", playtime: 467 * 60, icon: "" },
-  { appId: 413150, name: "Stardew Valley", playtime: 250 * 60, icon: "" },
-  { appId: 108600, name: "Project Zomboid", playtime: 200 * 60, icon: "" },
-  { appId: 1245620, name: "Elden Ring", playtime: 200 * 60, icon: "" },
-  { appId: 292030, name: "The Witcher 3", playtime: 180 * 60, icon: "" },
-  {
-    appId: 1174180,
-    name: "Red Dead Redemption 2",
-    playtime: 140 * 60,
-    icon: "",
-  },
-  { appId: 1091500, name: "Cyberpunk 2077", playtime: 85 * 60, icon: "" },
-  { appId: 252490, name: "Rust", playtime: 45 * 60, icon: "" },
-];
-
-const FALLBACK_ACTIVITY = [
-  {
-    name: "Counter-Strike 2",
-    action: "Jugó 3.2h",
-    when: "Hace 2h",
-    tone: "play",
-  },
-  {
-    name: "Elden Ring",
-    action: "Desbloqueó 'Lord of Frenzied Flame'",
-    when: "Hace 5h",
-    tone: "achievement",
-  },
-  { name: "Stardew Valley", action: "Jugó 1.8h", when: "Ayer", tone: "play" },
-  {
-    name: "Terraria",
-    action: "Jugó 4.5h",
-    when: "Hace 3 días",
-    tone: "play",
-  },
-  {
-    name: "Cyberpunk 2077",
-    action: "Desbloqueó 'The Sun'",
-    when: "Hace 4 días",
-    tone: "achievement",
-  },
-];
-
 function hoursFromMinutes(minutes = 0) {
   return Math.max(0, Math.round(minutes / 60));
 }
