@@ -660,7 +660,7 @@ export function Profile() {
       r.playtime2Weeks && r.playtime2Weeks > 0
         ? `Jugó ${(r.playtime2Weeks / 60).toFixed(1)}h`
         : `Jugó ${Math.max(1, Math.round((r.playtimeForever || 0) / 60))}h`,
-    when: relativeLabel(r.lastPlayed, index === 0 ? "Hace 2h" : "Reciente"),
+    when: relativeLabel(r.lastPlayed, "Reciente"),
     tone: "play" as const,
   }));
 
