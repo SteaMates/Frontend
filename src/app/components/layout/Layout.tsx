@@ -39,18 +39,26 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loginNotices, setLoginNotices] = useState<{ action: 'warned' | 'silenced'; reason: string }[]>([]);
+  const [loginNotices, setLoginNotices] = useState<
+    { action: "warned" | "silenced"; reason: string }[]
+  >([]);
   const [activeNoticeIndex, setActiveNoticeIndex] = useState(0);
   const location = useLocation();
   const { user, logout } = useAuth();
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
   const warnedNotice = user?.notices?.find((item) => item.action === "warned");
-  const silencedNotice = user?.notices?.find((item) => item.action === "silenced");
-  const isWarnedUser = Boolean(warnedNotice) || user?.status === "warned" || Boolean(user?.warningReason?.trim());
+  const silencedNotice = user?.notices?.find(
+    (item) => item.action === "silenced",
+  );
+  const isWarnedUser =
+    Boolean(warnedNotice) ||
+    user?.status === "warned" ||
+    Boolean(user?.warningReason?.trim());
   const isSilencedUser = Boolean(silencedNotice) || user?.status === "silenced";
-  const warningTooltip = warnedNotice?.reason || user?.warningReason
-    ? `Has sido advertido por: \"${warnedNotice?.reason || user?.warningReason || ""}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
-    : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
+  const warningTooltip =
+    warnedNotice?.reason || user?.warningReason
+      ? `Has sido advertido por: \"${warnedNotice?.reason || user?.warningReason || ""}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
+      : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
   const silencedTooltip = silencedNotice?.reason
     ? `Has sido silenciado por: \"${silencedNotice.reason}\". No puedes publicar ni comentar hasta que un administrador levante la sanción.`
     : "Has sido silenciado por incumplir las normas de la comunidad. No puedes publicar ni comentar hasta que un administrador levante la sanción.";
@@ -70,9 +78,15 @@ export function Layout() {
     }
 
     try {
-      const parsed = JSON.parse(pendingNotice) as Array<{ action?: "warned" | "silenced"; reason?: string }>;
+      const parsed = JSON.parse(pendingNotice) as Array<{
+        action?: "warned" | "silenced";
+        reason?: string;
+      }>;
       const notices = parsed
-        .filter((item): item is { action: "warned" | "silenced"; reason: string } => item?.action === "warned" || item?.action === "silenced")
+        .filter(
+          (item): item is { action: "warned" | "silenced"; reason: string } =>
+            item?.action === "warned" || item?.action === "silenced",
+        )
         .map((item) => ({
           action: item.action,
           reason: typeof item.reason === "string" ? item.reason : "",
@@ -87,6 +101,10 @@ export function Layout() {
 
     sessionStorage.removeItem("steamates_login_notices");
   }, [user]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [location.pathname]);
 
   const closeActiveNotice = () => {
     if (activeNoticeIndex < loginNotices.length - 1) {
@@ -132,12 +150,20 @@ export function Layout() {
               <p className="font-bold text-sm truncate flex items-center gap-1.5">
                 <span className="truncate">{user.personaname}</span>
                 {isWarnedUser && (
-                  <span title={warningTooltip} aria-label={warningTooltip} className="inline-flex shrink-0">
+                  <span
+                    title={warningTooltip}
+                    aria-label={warningTooltip}
+                    className="inline-flex shrink-0"
+                  >
                     <AlertOctagon size={14} className="text-amber-400" />
                   </span>
                 )}
                 {isSilencedUser && (
-                  <span title={silencedTooltip} aria-label={silencedTooltip} className="inline-flex shrink-0">
+                  <span
+                    title={silencedTooltip}
+                    aria-label={silencedTooltip}
+                    className="inline-flex shrink-0"
+                  >
                     <MessageSquareOff size={14} className="text-orange-400" />
                   </span>
                 )}
@@ -348,45 +374,59 @@ export function Layout() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-amber-400">
               <AlertTriangle size={18} />
-              {activeNotice?.action === "silenced" ? "Cuenta silenciada" : "Cuenta advertida"}
+              {activeNotice?.action === "silenced"
+                ? "Cuenta silenciada"
+                : "Cuenta advertida"}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-slate-300 leading-6">
               {activeNotice?.action === "silenced" ? (
                 <>
                   {activeNotice.reason ? (
                     <>
-                      Has sido silenciado por: <span className="text-slate-100">"{activeNotice.reason}"</span>.
+                      Has sido silenciado por:{" "}
+                      <span className="text-slate-100">
+                        "{activeNotice.reason}"
+                      </span>
+                      .
                     </>
                   ) : (
                     <>
-                      Has sido silenciado por incumplir las normas de la comunidad.
+                      Has sido silenciado por incumplir las normas de la
+                      comunidad.
                     </>
                   )}
                   <br />
-                  No podrás publicar ni comentar hasta que un administrador levante la sanción.
+                  No podrás publicar ni comentar hasta que un administrador
+                  levante la sanción.
                 </>
               ) : (
                 <>
                   {activeNotice?.reason ? (
                     <>
-                      Has sido advertido por: <span className="text-slate-100">"{activeNotice.reason}"</span>.
+                      Has sido advertido por:{" "}
+                      <span className="text-slate-100">
+                        "{activeNotice.reason}"
+                      </span>
+                      .
                     </>
                   ) : (
                     <>
-                      Has sido advertido por incumplir las normas de la comunidad.
+                      Has sido advertido por incumplir las normas de la
+                      comunidad.
                     </>
                   )}
                   <br />
-                  Respeta las normas de la comunidad para no ser baneado por un administrador.
+                  Respeta las normas de la comunidad para no ser baneado por un
+                  administrador.
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction
-              className="bg-amber-500 text-slate-950 hover:bg-amber-400"
-            >
-              {activeNoticeIndex < loginNotices.length - 1 ? "Siguiente" : "Entendido"}
+            <AlertDialogAction className="bg-amber-500 text-slate-950 hover:bg-amber-400">
+              {activeNoticeIndex < loginNotices.length - 1
+                ? "Siguiente"
+                : "Entendido"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
