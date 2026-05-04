@@ -30,7 +30,11 @@ export function Login() {
   const { user, login } = useAuth();
   const location = useLocation();
   const [bannedReason, setBannedReason] = useState("");
-  const [stats, setStats] = useState<{ value: string; label: string }[]>([]);
+  const [stats, setStats] = useState<{ value: string; label: string }[]>([
+    { value: "—", label: "Jugadores" },
+    { value: "—", label: "Listas creadas" },
+    { value: "—", label: "Sesiones organizadas" },
+  ]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -60,7 +64,7 @@ export function Login() {
           },
         ]);
       } catch (e) {
-        // silently ignore — keep stats empty
+        console.error("Failed to load site stats", e);
       }
     };
 
