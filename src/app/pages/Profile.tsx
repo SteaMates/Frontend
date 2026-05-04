@@ -1021,121 +1021,51 @@ export function Profile() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[1.53fr_1fr] gap-6">
-        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-auto xl:h-[465px] flex flex-col">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
-              <Gamepad2 size={18} className="text-[#51a2ff]" /> Biblioteca
-            </h3>
-            <div className="bg-[#1d293d] rounded-[10px] p-[2px] flex items-center gap-1">
-              {(
-                [
-                  { id: "top", label: "Top" },
-                  { id: "recent", label: "Recientes" },
-                  { id: "unplayed", label: "Sin jugar" },
-                ] as { id: LibraryFilter; label: string }[]
-              ).map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setLibraryFilter(tab.id)}
-                  className={`h-[23px] px-[10px] rounded-[8px] text-[10px] font-medium transition-colors ${
-                    libraryFilter === tab.id
-                      ? "bg-[#155dfc] text-white"
-                      : "text-[#90a1b9] hover:text-white"
+      <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
+        <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-3">
+          <Zap size={18} className="text-[#00d3f3]" /> Actividad Reciente
+        </h3>
+
+        <div className="space-y-1.5">
+          {recentActivity.length === 0 && (
+            <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
+              Sin datos de actividad reciente disponibles
+            </div>
+          )}
+          {recentActivity.map((item, index) => {
+            const playTone = item.tone === "play";
+            return (
+              <div
+                key={`${item.name}-${index}`}
+                className="relative pl-10 pr-2 py-2 min-h-[69px]"
+              >
+                {index < recentActivity.length - 1 && (
+                  <span className="absolute left-[20px] top-[36px] bottom-[-6px] w-px bg-[#1d293d]" />
+                )}
+                <span
+                  className={`absolute left-2 top-2.5 w-7 h-7 rounded-[10px] flex items-center justify-center border ${
+                    playTone
+                      ? "bg-[rgba(43,127,255,0.1)] border-[rgba(43,127,255,0.25)]"
+                      : "bg-[rgba(254,154,0,0.1)] border-[rgba(254,154,0,0.25)]"
                   }`}
                 >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-auto pr-2 space-y-1.5">
-            {libraryRows.length === 0 && (
-              <div className="h-full flex items-center justify-center text-[#62748e] text-[12px] min-h-[120px]">
-                Sin datos de biblioteca disponibles
-              </div>
-            )}
-            {libraryRows.map((game, index) => (
-              <Link
-                key={`${game.appId}-${index}`}
-                to={`/game/${game.appId}`}
-                className="h-[56px] rounded-[14px] px-2 flex items-center gap-3 hover:bg-[rgba(29,41,61,0.35)] transition-colors"
-              >
-                <span className="w-5 text-right text-[10px] text-[#45556c] font-mono">
-                  {index + 1}
-                </span>
-                <div className="w-10 h-10 rounded-[10px] bg-[#1d293d] border border-[#314158] overflow-hidden shrink-0">
-                  <img
-                    src={gameImage(game.appId, game.icon)}
-                    alt={game.name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      if (game.icon) target.src = game.icon;
-                    }}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[12px] text-[#e2e8f0] truncate">
-                    {game.name}
-                  </p>
-                  <p className="text-[10px] text-[#62748e]">
-                    {hoursFromMinutes(game.playtime)} horas
-                  </p>
-                </div>
-                <ChevronRight size={14} className="text-[#314158]" />
-              </Link>
-            ))}
-          </div>
-        </article>
-
-        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-auto xl:h-[465px]">
-          <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-3">
-            <Zap size={18} className="text-[#00d3f3]" /> Actividad Reciente
-          </h3>
-
-          <div className="space-y-1.5">
-            {recentActivity.length === 0 && (
-              <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
-                Sin datos de actividad reciente disponibles
-              </div>
-            )}
-            {recentActivity.map((item, index) => {
-              const playTone = item.tone === "play";
-              return (
-                <div
-                  key={`${item.name}-${index}`}
-                  className="relative pl-10 pr-2 py-2 min-h-[69px]"
-                >
-                  {index < recentActivity.length - 1 && (
-                    <span className="absolute left-[20px] top-[36px] bottom-[-6px] w-px bg-[#1d293d]" />
+                  {playTone ? (
+                    <Gamepad2 size={14} className="text-[#51a2ff]" />
+                  ) : (
+                    <Trophy size={14} className="text-[#ffb900]" />
                   )}
-                  <span
-                    className={`absolute left-2 top-2.5 w-7 h-7 rounded-[10px] flex items-center justify-center border ${
-                      playTone
-                        ? "bg-[rgba(43,127,255,0.1)] border-[rgba(43,127,255,0.25)]"
-                        : "bg-[rgba(254,154,0,0.1)] border-[rgba(254,154,0,0.25)]"
-                    }`}
-                  >
-                    {playTone ? (
-                      <Gamepad2 size={14} className="text-[#51a2ff]" />
-                    ) : (
-                      <Trophy size={14} className="text-[#ffb900]" />
-                    )}
-                  </span>
-                  <p className="text-[12px] text-[#51a2ff] font-semibold truncate">
-                    {item.name}
-                  </p>
-                  <p className="text-[11px] text-[#90a1b9] truncate">
-                    {item.action}
-                  </p>
-                  <p className="text-[10px] text-[#62748e] mt-1">{item.when}</p>
-                </div>
-              );
-            })}
-          </div>
-        </article>
+                </span>
+                <p className="text-[12px] text-[#51a2ff] font-semibold truncate">
+                  {item.name}
+                </p>
+                <p className="text-[11px] text-[#90a1b9] truncate">
+                  {item.action}
+                </p>
+                <p className="text-[10px] text-[#62748e] mt-1">{item.when}</p>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
@@ -1144,18 +1074,36 @@ export function Profile() {
             <Gamepad2 size={18} className="text-[#8b5cf6]" /> Biblioteca
             Completa
           </h3>
-          <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
-            {sourceGames.length} Juegos
-          </span>
+          <div className="bg-[#1d293d] rounded-[10px] p-[2px] flex items-center gap-1">
+            {(
+              [
+                { id: "top", label: "Top" },
+                { id: "recent", label: "Recientes" },
+                { id: "unplayed", label: "Sin jugar" },
+              ] as { id: LibraryFilter; label: string }[]
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setLibraryFilter(tab.id)}
+                className={`h-[23px] px-[10px] rounded-[8px] text-[10px] font-medium transition-colors ${
+                  libraryFilter === tab.id
+                    ? "bg-[#155dfc] text-white"
+                    : "text-[#90a1b9] hover:text-white"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {sourceGames.length === 0 ? (
+        {libraryRows.length === 0 ? (
           <div className="h-[200px] flex items-center justify-center text-[#62748e] text-[12px]">
             Sin juegos disponibles en la biblioteca
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-            {sourceGames.map((game) => {
+            {libraryRows.map((game) => {
               const gameHours = hoursFromMinutes(game.playtime);
               const gamePercentage =
                 totalHours > 0 ? Math.round((gameHours / totalHours) * 100) : 0;
