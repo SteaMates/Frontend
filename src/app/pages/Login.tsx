@@ -30,6 +30,7 @@ export function Login() {
   const { user, login } = useAuth();
   const location = useLocation();
   const [bannedReason, setBannedReason] = useState("");
+  const [stats, setStats] = useState<{ value: string; label: string }[]>([]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -42,6 +43,32 @@ export function Login() {
     localStorage.removeItem("steamates_token");
     window.history.replaceState({}, "", window.location.pathname);
   }, [location.search, location.pathname]);
+
+  useEffect(() => {
+    let mounted = true;
+    const fetchStats = async () => {
+      try {
+        const res = await api.get("/api/site/stats");
+        const data = res.data || {};
+        if (!mounted) return;
+        setStats([
+          { value: (data.usersCount || 0).toLocaleString(), label: "Jugadores" },
+          { value: (data.listsCount || 0).toLocaleString(), label: "Listas creadas" },
+          {
+            value: (data.sessionsOrganized || 0).toLocaleString(),
+            label: "Sesiones organizadas",
+          },
+        ]);
+      } catch (e) {
+        // silently ignore — keep stats empty
+      }
+    };
+
+    fetchStats();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   if (user) {
     return <Navigate to="/profile" replace />;
@@ -73,34 +100,6 @@ export function Login() {
       iconColor: "text-[#00bc7d]",
     },
   ];
-
-  const [stats, setStats] = useState<{ value: string; label: string }[]>([]);
-
-  useEffect(() => {
-    let mounted = true;
-    const fetchStats = async () => {
-      try {
-        const res = await api.get("/api/site/stats");
-        const data = res.data || {};
-        if (!mounted) return;
-        setStats([
-          { value: (data.usersCount || 0).toLocaleString(), label: "Jugadores" },
-          { value: (data.listsCount || 0).toLocaleString(), label: "Listas creadas" },
-          {
-            value: (data.sessionsOrganized || 0).toLocaleString(),
-            label: "Sesiones organizadas",
-          },
-        ]);
-      } catch (e) {
-        // silently ignore — keep stats empty
-      }
-    };
-
-    fetchStats();
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   return (
     <div className="flex flex-col lg:flex-row -m-4 sm:-m-6 lg:-m-8 min-h-screen bg-[#020618]">
