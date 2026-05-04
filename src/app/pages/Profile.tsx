@@ -212,7 +212,9 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [resolvedSteamId, setResolvedSteamId] = useState<string | null>(null);
-  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(null);
+  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(
+    null,
+  );
   const [usingSnapshot, setUsingSnapshot] = useState(false);
   const [snapshotCachedAt, setSnapshotCachedAt] = useState<number | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
@@ -291,7 +293,10 @@ export function Profile() {
         if (isOwnProfile && steamIdToLoad && liveGames.length === 0) {
           const snapshot = readProfileSnapshot(steamIdToLoad);
           if (snapshot && snapshot.games.length > 0) {
-            setProfile(snapshot.profile || (Object.keys(profileData).length > 0 ? profileData : null));
+            setProfile(
+              snapshot.profile ||
+                (Object.keys(profileData).length > 0 ? profileData : null),
+            );
             setGames(snapshot.games || []);
             setRecentGames(snapshot.recentGames || []);
             setGenreData(snapshot.genreData || null);
@@ -299,7 +304,9 @@ export function Profile() {
             setUsingSnapshot(true);
             setSnapshotCachedAt(snapshot.cachedAt || null);
           } else {
-            setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+            setProfile(
+              Object.keys(profileData).length > 0 ? profileData : null,
+            );
             setGames(liveGames);
             setRecentGames(liveRecent);
             setGenreData(liveGenreData);
@@ -383,7 +390,9 @@ export function Profile() {
     return (
       <div className="max-w-[1084px] mx-auto pb-20">
         <section className="rounded-[16px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] p-8 text-center">
-          <h2 className="text-white text-[26px] font-bold">Perfil no disponible</h2>
+          <h2 className="text-white text-[26px] font-bold">
+            Perfil no disponible
+          </h2>
           <p className="mt-3 text-[#90a1b9] text-[15px]">{loadError}</p>
           <div className="mt-6">
             <Link
@@ -398,9 +407,12 @@ export function Profile() {
     );
   }
 
-  const displayName = profile?.username || (isOwnProfile ? user.personaname : "Usuario");
-  const displayAvatar = profile?.avatar || (isOwnProfile ? user.avatarfull : "");
-  const displayProfileUrl = profile?.profileUrl || (isOwnProfile ? user.profileurl : "");
+  const displayName =
+    profile?.username || (isOwnProfile ? user.personaname : "Usuario");
+  const displayAvatar =
+    profile?.avatar || (isOwnProfile ? user.avatarfull : "");
+  const displayProfileUrl =
+    profile?.profileUrl || (isOwnProfile ? user.profileurl : "");
   const displaySteamId = targetSteamId || user.steamid;
 
   const sourceGames = games;
@@ -729,7 +741,8 @@ export function Profile() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="bg-[#1d293d] rounded-[4px] px-2 py-1 text-[10px] text-[#90a1b9] font-mono">
-                  ID: {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
+                  ID:{" "}
+                  {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
                 </span>
                 <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
                   Online
@@ -793,16 +806,21 @@ export function Profile() {
       {usingSnapshot && (
         <section className="rounded-[14px] border border-[#2b5cb4] bg-[rgba(21,93,252,0.14)] px-4 py-3">
           <p className="text-[#dbeafe] text-[13px] font-medium">
-            Mostrando tu último snapshot guardado porque Steam no devolvió datos en esta carga.
+            Mostrando tu último snapshot guardado porque Steam no devolvió datos
+            en esta carga.
           </p>
           {snapshotDateLabel && (
-            <p className="mt-1 text-[#bfdbfe] text-[12px]">Snapshot: {snapshotDateLabel}</p>
+            <p className="mt-1 text-[#bfdbfe] text-[12px]">
+              Snapshot: {snapshotDateLabel}
+            </p>
           )}
         </section>
       )}
 
       {feedbackTitle && feedbackText && (
-        <section className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}>
+        <section
+          className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}
+        >
           <div className="flex items-start gap-3">
             <div className="mt-0.5 h-9 w-9 shrink-0 rounded-[12px] bg-[#0f172b]/70 border border-white/10 flex items-center justify-center">
               <Sparkles size={16} className="text-[#f8fafc]" />
@@ -924,7 +942,9 @@ export function Profile() {
                 </div>
               </div>
             ) : (
-              <p className="text-[#62748e] text-[12px]">Sin datos de géneros disponibles</p>
+              <p className="text-[#62748e] text-[12px]">
+                Sin datos de géneros disponibles
+              </p>
             )}
           </div>
 
@@ -1116,6 +1136,87 @@ export function Profile() {
             })}
           </div>
         </article>
+      </section>
+
+      <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
+            <Gamepad2 size={18} className="text-[#8b5cf6]" /> Biblioteca
+            Completa
+          </h3>
+          <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
+            {sourceGames.length} Juegos
+          </span>
+        </div>
+
+        {sourceGames.length === 0 ? (
+          <div className="h-[200px] flex items-center justify-center text-[#62748e] text-[12px]">
+            Sin juegos disponibles en la biblioteca
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {sourceGames.map((game) => {
+              const gameHours = hoursFromMinutes(game.playtime);
+              const gamePercentage =
+                totalHours > 0 ? Math.round((gameHours / totalHours) * 100) : 0;
+              const lastPlayedLabel = relativeLabel(game.lastPlayed, "Nunca");
+
+              return (
+                <Link
+                  key={game.appId}
+                  to={`/game/${game.appId}`}
+                  className="group relative rounded-[14px] overflow-hidden border border-[#1d293d] hover:border-[#2b5cb4] transition-all duration-300 hover:shadow-[0px_0px_20px_rgba(43,127,255,0.3)]"
+                >
+                  <div className="aspect-square relative overflow-hidden bg-[#162032]">
+                    <img
+                      src={gameImage(game.appId, game.icon)}
+                      alt={game.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (game.icon) target.src = game.icon;
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020618] via-[rgba(2,6,24,0.4)] to-transparent" />
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+                    <p className="text-white text-[12px] sm:text-[13px] font-bold leading-tight truncate mb-2">
+                      {game.name}
+                    </p>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-[#90a1b9] flex items-center gap-1">
+                          <Clock size={12} className="text-[#51a2ff]" />
+                          {gameHours}h jugadas
+                        </span>
+                      </div>
+
+                      {gameHours > 0 && (
+                        <div className="w-full h-1.5 bg-[rgba(29,41,61,0.6)] rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-[#51a2ff] to-[#00b8db] rounded-full"
+                            style={{ width: `${gamePercentage}%` }}
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] text-[#62748e]">
+                          {gamePercentage}% del total
+                        </span>
+                        <span className="text-[9px] text-[#45556c]">
+                          {lastPlayedLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
     </div>
   );
