@@ -86,7 +86,10 @@ export function Login() {
         setStats([
           { value: (data.usersCount || 0).toLocaleString(), label: "Jugadores" },
           { value: (data.listsCount || 0).toLocaleString(), label: "Listas creadas" },
-          { value: (data.gamesCached || 0).toLocaleString(), label: "Juegos indexados" },
+          {
+            value: (data.sessionsOrganized || 0).toLocaleString(),
+            label: "Sesiones organizadas",
+          },
         ]);
       } catch (e) {
         // silently ignore — keep stats empty
