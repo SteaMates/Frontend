@@ -3,29 +3,16 @@ import { useAuth } from "../context/AuthContext";
 import { Navigate, Link } from "react-router";
 import api from "../../lib/api";
 import {
-  Shield,
-  AlertTriangle,
-  Users,
-  Flag,
-  Eye,
-  Trash2,
-  MessageSquareOff,
-  Ban,
-  FileText,
-  CheckCircle2,
-  Search,
-  Home,
-  AlertOctagon,
-  AlertCircle,
-  X,
+  Shield, AlertTriangle, Users, Flag, Eye,
+  Trash2, MessageSquareOff, Ban, FileText,
+  CheckCircle2, Search, Home, AlertOctagon, AlertCircle, X
 } from "lucide-react";
 
 type TabType = "moderation" | "users";
 
 type ModerationActionType = "warned" | "silenced" | "banned";
 
-const normalizeStatus = (status?: string) =>
-  (status || "").toLowerCase().trim();
+const normalizeStatus = (status?: string) => (status || "").toLowerCase().trim();
 
 const isModerationActionCurrentlyActive = (item: any) => {
   if (!item?.isActive) return false;
@@ -35,9 +22,7 @@ const isModerationActionCurrentlyActive = (item: any) => {
 
 const getActiveActionSet = (user: any) => {
   const actionSet = new Set<string>();
-  const history = Array.isArray(user?.moderationHistory)
-    ? user.moderationHistory
-    : [];
+  const history = Array.isArray(user?.moderationHistory) ? user.moderationHistory : [];
 
   for (const item of history) {
     if (!isModerationActionCurrentlyActive(item)) continue;
@@ -51,8 +36,7 @@ const getActiveActionSet = (user: any) => {
   if (actionSet.size === 0) {
     if (fallbackStatus === "warned") actionSet.add("warned");
     if (fallbackStatus === "silenced") actionSet.add("silenced");
-    if (fallbackStatus === "banned" || fallbackStatus === "suspended")
-      actionSet.add("banned");
+    if (fallbackStatus === "banned" || fallbackStatus === "suspended") actionSet.add("banned");
   }
 
   return actionSet;
@@ -72,21 +56,13 @@ export function Admin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [reports, setReports] = useState([]);
   const [users, setUsers] = useState([]);
-  const [stats, setStats] = useState({
-    pending: 0,
-    resolved: 0,
-    deleted: 0,
-    warned: 0,
-    active: 0,
-    silenced: 0,
-    banned: 0,
-  });
+  const [stats, setStats] = useState({ pending: 0, resolved: 0, deleted: 0, warned: 0, active: 0, silenced: 0, banned: 0 });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user?.isAdmin && user?.role !== "admin") return;
+    if (!user?.isAdmin && user?.role !== 'admin') return;
     loadData();
   }, [authLoading, user?.isAdmin, user?.role]);
 
@@ -96,64 +72,40 @@ export function Admin() {
       setLoadError("");
 
       const [reportsResult, usersResult] = await Promise.allSettled([
-        api.get("/api/moderation/reports?limit=50"),
-        api.get("/api/moderation/users?limit=50"),
+        api.get('/api/moderation/reports?limit=50'),
+        api.get('/api/moderation/users?limit=50'),
       ]);
 
-      const reportsData =
-        reportsResult.status === "fulfilled"
-          ? reportsResult.value.data.reports || []
-          : [];
-      const usersData =
-        usersResult.status === "fulfilled"
-          ? usersResult.value.data.users || []
-          : [];
+      const reportsData = reportsResult.status === 'fulfilled' ? reportsResult.value.data.reports || [] : [];
+      const usersData = usersResult.status === 'fulfilled' ? usersResult.value.data.users || [] : [];
 
       setReports(reportsData);
       setUsers(usersData);
 
-      if (
-        reportsResult.status === "rejected" ||
-        usersResult.status === "rejected"
-      ) {
-        if (reportsResult.status === "rejected") {
-          console.error("Error cargando reportes:", reportsResult.reason);
+      if (reportsResult.status === 'rejected' || usersResult.status === 'rejected') {
+        if (reportsResult.status === 'rejected') {
+          console.error('Error cargando reportes:', reportsResult.reason);
         }
-        if (usersResult.status === "rejected") {
-          console.error("Error cargando usuarios:", usersResult.reason);
+        if (usersResult.status === 'rejected') {
+          console.error('Error cargando usuarios:', usersResult.reason);
         }
 
-        const reportsError =
-          reportsResult.status === "rejected" ? "reportes" : "";
-        const usersError = usersResult.status === "rejected" ? "usuarios" : "";
-        const separator = reportsError && usersError ? " y " : "";
-        setLoadError(
-          `No se pudieron cargar ${reportsError}${separator}${usersError}. Intenta de nuevo en unos segundos.`,
-        );
+        const reportsError = reportsResult.status === 'rejected' ? 'reportes' : '';
+        const usersError = usersResult.status === 'rejected' ? 'usuarios' : '';
+        const separator = reportsError && usersError ? ' y ' : '';
+        setLoadError(`No se pudieron cargar ${reportsError}${separator}${usersError}. Intenta de nuevo en unos segundos.`);
       }
 
       // Calcular stats
-      const pendingCount =
-        reportsData.filter((r) => r.status === "pending").length || 0;
-      const resolvedCount =
-        reportsData.filter((r) => r.status === "resolved").length || 0;
-      const warnedCount =
-        usersData.filter((u) => isActionActiveForUser(u, "warned")).length || 0;
-      const silencedCount =
-        usersData.filter((u) => isActionActiveForUser(u, "silenced")).length ||
-        0;
-      const bannedCount =
-        usersData.filter((u) => isActionActiveForUser(u, "banned")).length || 0;
-      const activeCount =
-        usersData.filter((u) => {
-          const actions = getActiveActionSet(u);
-          return (
-            !actions.has("warned") &&
-            !actions.has("silenced") &&
-            !actions.has("banned") &&
-            !actions.has("suspended")
-          );
-        }).length || 0;
+      const pendingCount = reportsData.filter(r => r.status === 'pending').length || 0;
+      const resolvedCount = reportsData.filter(r => r.status === 'resolved').length || 0;
+      const warnedCount = usersData.filter(u => isActionActiveForUser(u, "warned")).length || 0;
+      const silencedCount = usersData.filter(u => isActionActiveForUser(u, "silenced")).length || 0;
+      const bannedCount = usersData.filter(u => isActionActiveForUser(u, "banned")).length || 0;
+      const activeCount = usersData.filter(u => {
+        const actions = getActiveActionSet(u);
+        return !actions.has("warned") && !actions.has("silenced") && !actions.has("banned") && !actions.has("suspended");
+      }).length || 0;
 
       setStats({
         pending: pendingCount,
@@ -170,20 +122,8 @@ export function Admin() {
   };
 
   const tabs = [
-    {
-      id: "moderation" as TabType,
-      name: "Moderación",
-      icon: Shield,
-      color: "text-blue-400",
-      bg: "bg-blue-500/10",
-    },
-    {
-      id: "users" as TabType,
-      name: "Usuarios",
-      icon: Users,
-      color: "text-purple-400",
-      bg: "bg-purple-500/10",
-    },
+    { id: "moderation" as TabType, name: "Moderación", icon: Shield, color: "text-blue-400", bg: "bg-blue-500/10" },
+    { id: "users" as TabType, name: "Usuarios", icon: Users, color: "text-purple-400", bg: "bg-purple-500/10" },
   ];
 
   if (authLoading) {
@@ -196,7 +136,7 @@ export function Admin() {
     );
   }
 
-  if (!user?.isAdmin && user?.role !== "admin") {
+  if (!user?.isAdmin && user?.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
@@ -210,18 +150,11 @@ export function Admin() {
               <Shield size={24} className="text-red-400" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">
-                Panel de Administración
-              </h1>
-              <p className="text-sm text-slate-500">
-                Gestión y monitoreo de SteaMates
-              </p>
+              <h1 className="text-2xl font-bold text-white">Panel de Administración</h1>
+              <p className="text-sm text-slate-500">Gestión y monitoreo de SteaMates</p>
             </div>
           </div>
-          <Link
-            to="/"
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700 w-full sm:w-auto"
-          >
+          <Link to="/" className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700 w-full sm:w-auto">
             <Home size={16} />
             <span className="text-sm">Volver al inicio</span>
           </Link>
@@ -229,7 +162,7 @@ export function Admin() {
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-2">
-          {tabs.map((tab) => {
+          {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
@@ -237,8 +170,8 @@ export function Admin() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
                   activeTab === tab.id
-                    ? `${tab.bg} border-${tab.color.replace("text-", "")}/30 ${tab.color}`
-                    : "bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
+                    ? `${tab.bg} border-${tab.color.replace('text-', '')}/30 ${tab.color}`
+                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800'
                 }`}
               >
                 <Icon size={18} />
@@ -268,24 +201,8 @@ export function Admin() {
       )}
       {!loading && (
         <>
-          {activeTab === "moderation" && (
-            <ModerationPanel
-              reports={reports}
-              stats={stats}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onReload={loadData}
-            />
-          )}
-          {activeTab === "users" && (
-            <UsersPanel
-              users={users}
-              stats={stats}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              onReload={loadData}
-            />
-          )}
+          {activeTab === "moderation" && <ModerationPanel reports={reports} stats={stats} searchTerm={searchTerm} setSearchTerm={setSearchTerm} onReload={loadData} />}
+          {activeTab === "users" && <UsersPanel users={users} stats={stats} searchTerm={searchTerm} setSearchTerm={setSearchTerm} onReload={loadData} />}
         </>
       )}
     </div>
@@ -293,95 +210,74 @@ export function Admin() {
 }
 
 // ========== RF-16: Moderación Panel ==========
-function ModerationPanel({
-  reports,
-  stats,
-  searchTerm,
-  setSearchTerm,
-  onReload,
-}: {
-  reports: any[];
+function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }: { 
+  reports: any[]; 
   stats: any;
-  searchTerm: string;
+  searchTerm: string; 
   setSearchTerm: (val: string) => void;
   onReload: () => void;
 }) {
   const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
-  const [typeFilter, setTypeFilter] = useState<
-    "all" | "list" | "comment" | "user"
-  >("all");
+  const [typeFilter, setTypeFilter] = useState<"all" | "list" | "comment" | "user">("all");
   const [submitting, setSubmitting] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const filteredReports = reports.filter(
-    (r) =>
-      (filter === "all" || r.status === filter) &&
-      (typeFilter === "all" || r.targetType === typeFilter) &&
-      (r.reason?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.description?.toLowerCase().includes(searchTerm.toLowerCase())),
+  const filteredReports = reports.filter(r => 
+    (filter === "all" || r.status === filter) &&
+    (typeFilter === "all" || r.targetType === typeFilter) &&
+    (r.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || r.description?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleResolveReport = async (reportId: string) => {
     try {
       setSubmitting(true);
-      await api.put(`/api/moderation/reports/${reportId}`, {
-        status: "resolved",
-      });
+      await api.put(`/api/moderation/reports/${reportId}`, { status: 'resolved' });
       onReload();
     } catch (error) {
-      console.error("Error resolviendo reporte:", error);
+      console.error('Error resolviendo reporte:', error);
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteContent = async (report: any) => {
-    if (report.targetType === "User") {
-      alert(
-        'Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.',
-      );
+    if (report.targetType === 'User') {
+      alert('Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.');
       return;
     }
 
-    const targetLabel =
-      report.targetType === "GameList"
-        ? "esta lista"
-        : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`,
-      )
-    ) {
+    const targetLabel = report.targetType === 'GameList' ? 'esta lista' : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`)) {
       return;
     }
 
     try {
       setSubmitting(true);
-      const typeStr = report.targetType === "GameList" ? "list" : "comment";
+      const typeStr = report.targetType === 'GameList' ? 'list' : 'comment';
       const targetId = report.targetId?._id || report.targetId;
       await api.delete(`/api/moderation/content/${typeStr}/${targetId}`);
       if (showReportModal) setShowReportModal(false);
       onReload();
     } catch (error) {
-      console.error("Error eliminando contenido:", error);
-      alert("Error eliminando contenido");
+      console.error('Error eliminando contenido:', error);
+      alert('Error eliminando contenido');
     } finally {
       setSubmitting(false);
     }
   };
 
   const getTargetTypeLabel = (type: string) => {
-    if (type === "GameList") return "Lista";
-    if (type === "Comment") return "Comentario";
-    if (type === "User") return "Usuario";
-    return "Contenido";
+    if (type === 'GameList') return 'Lista';
+    if (type === 'Comment') return 'Comentario';
+    if (type === 'User') return 'Usuario';
+    return 'Contenido';
   };
 
   const getTargetTypeBg = (type: string) => {
-    if (type === "GameList") return "bg-blue-500/10 text-blue-400";
-    if (type === "Comment") return "bg-purple-500/10 text-purple-400";
-    if (type === "User") return "bg-amber-500/10 text-amber-400";
+    if (type === 'GameList') return "bg-blue-500/10 text-blue-400";
+    if (type === 'Comment') return "bg-purple-500/10 text-purple-400";
+    if (type === 'User') return "bg-amber-500/10 text-amber-400";
     return "bg-slate-500/10 text-slate-400";
   };
 
@@ -390,44 +286,15 @@ function ModerationPanel({
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          {
-            label: "Reportes Pendientes",
-            value: stats.pending,
-            icon: Flag,
-            color: "text-amber-400",
-            bg: "bg-amber-500/10",
-          },
-          {
-            label: "Resueltos",
-            value: stats.resolved,
-            icon: CheckCircle2,
-            color: "text-emerald-400",
-            bg: "bg-emerald-500/10",
-          },
-          {
-            label: "Contenido Eliminado",
-            value: stats.deleted,
-            icon: Trash2,
-            color: "text-red-400",
-            bg: "bg-red-500/10",
-          },
-          {
-            label: "Usuarios Advertidos",
-            value: stats.warned,
-            icon: AlertCircle,
-            color: "text-orange-400",
-            bg: "bg-orange-500/10",
-          },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`${stat.bg} border border-slate-800 rounded-xl p-4`}
-          >
+          { label: "Reportes Pendientes", value: stats.pending, icon: Flag, color: "text-amber-400", bg: "bg-amber-500/10" },
+          { label: "Resueltos", value: stats.resolved, icon: CheckCircle2, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Contenido Eliminado", value: stats.deleted, icon: Trash2, color: "text-red-400", bg: "bg-red-500/10" },
+          { label: "Usuarios Advertidos", value: stats.warned, icon: AlertCircle, color: "text-orange-400", bg: "bg-orange-500/10" },
+        ].map(stat => (
+          <div key={stat.label} className={`${stat.bg} border border-slate-800 rounded-xl p-4`}>
             <div className="flex items-center gap-2 mb-2">
               <stat.icon size={16} className={stat.color} />
-              <span className="text-xs text-slate-500 uppercase tracking-wider">
-                {stat.label}
-              </span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</span>
             </div>
             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
           </div>
@@ -440,10 +307,7 @@ function ModerationPanel({
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-            />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Buscar reportes..."
@@ -455,9 +319,7 @@ function ModerationPanel({
 
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400 whitespace-nowrap">
-              Estado:
-            </span>
+            <span className="text-sm text-slate-400 whitespace-nowrap">Estado:</span>
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as typeof filter)}
@@ -471,14 +333,10 @@ function ModerationPanel({
 
           {/* Type Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400 whitespace-nowrap">
-              Tipo:
-            </span>
+            <span className="text-sm text-slate-400 whitespace-nowrap">Tipo:</span>
             <select
               value={typeFilter}
-              onChange={(e) =>
-                setTypeFilter(e.target.value as typeof typeFilter)
-              }
+              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos</option>
@@ -491,88 +349,61 @@ function ModerationPanel({
 
         {/* Results count */}
         <div className="mb-3 text-sm text-slate-500">
-          Mostrando{" "}
-          <span className="text-white font-medium">
-            {filteredReports.length}
-          </span>{" "}
-          reporte{filteredReports.length !== 1 ? "s" : ""}
+          Mostrando <span className="text-white font-medium">{filteredReports.length}</span> reporte{filteredReports.length !== 1 ? 's' : ''}
         </div>
 
         {/* Reports List */}
         <div className="space-y-2">
           {filteredReports.length === 0 ? (
             <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-8 text-center">
-              <p className="text-slate-500">
-                No se encontraron reportes con los filtros aplicados
-              </p>
+              <p className="text-slate-500">No se encontraron reportes con los filtros aplicados</p>
             </div>
           ) : (
-            filteredReports.map((report) => (
-              <div
-                key={report._id}
-                className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors"
-              >
+            filteredReports.map(report => (
+              <div key={report._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(report.targetType)}`}
-                      >
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(report.targetType)}`}>
                         {getTargetTypeLabel(report.targetType)}
                       </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded font-medium ${
-                          report.status === "pending"
-                            ? "bg-amber-500/10 text-amber-400"
-                            : "bg-emerald-500/10 text-emerald-400"
-                        }`}
-                      >
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${
+                        report.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
+                      }`}>
                         {report.status === "pending" ? "Pendiente" : "Resuelto"}
                       </span>
-                      <span className="text-xs text-slate-600">
-                        {new Date(report.createdAt).toLocaleDateString()}
-                      </span>
+                      <span className="text-xs text-slate-600">{new Date(report.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <h4 className="text-sm font-bold text-white mb-1">
-                      {report.type}
-                    </h4>
-                    <p className="text-xs text-slate-400">
-                      Tipo:{" "}
-                      <span className="text-slate-300 font-medium">
-                        {report.type}
-                      </span>{" "}
-                      • Motivo: {report.reason}
-                    </p>
+                    <h4 className="text-sm font-bold text-white mb-1">{report.type}</h4>
+                    <p className="text-xs text-slate-400">Tipo: <span className="text-slate-300 font-medium">{report.type}</span> • Motivo: {report.reason}</p>
                     {report.description && (
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">
-                        Descripción: {report.description}
-                      </p>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">Descripción: {report.description}</p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
+                    <button 
                       onClick={() => {
                         setSelectedReport(report);
                         setShowReportModal(true);
                       }}
-                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors"
+                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 
                       title="Ver detalles"
                     >
                       <Eye size={16} />
                     </button>
-                    <button
+                    <button 
                       onClick={() => handleResolveReport(report._id)}
-                      disabled={submitting || report.status === "resolved"}
-                      className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg transition-colors disabled:opacity-50"
+                      disabled={submitting || report.status === 'resolved'}
+                      className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg transition-colors disabled:opacity-50" 
                       title="Resolver"
                     >
                       <CheckCircle2 size={16} />
                     </button>
-                    {report.targetType !== "User" && (
-                      <button
+                    {report.targetType !== 'User' && (
+                      <button 
                         onClick={() => handleDeleteContent(report)}
                         disabled={submitting}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50" 
                         title="Eliminar Contenido"
                       >
                         <Trash2 size={16} />
@@ -594,99 +425,56 @@ function ModerationPanel({
                 <Flag className="text-amber-400" />
                 Detalles del Reporte
               </h3>
-              <button
+              <button 
                 onClick={() => setShowReportModal(false)}
                 className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
-
+            
             <div className="space-y-6">
               {/* Report Info */}
               <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                 <div className="flex gap-2 mb-3">
-                  <span
-                    className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(selectedReport.targetType)}`}
-                  >
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(selectedReport.targetType)}`}>
                     {getTargetTypeLabel(selectedReport.targetType)}
                   </span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded font-medium ${
-                      selectedReport.status === "pending"
-                        ? "bg-amber-500/10 text-amber-400"
-                        : "bg-emerald-500/10 text-emerald-400"
-                    }`}
-                  >
-                    {selectedReport.status === "pending"
-                      ? "Pendiente"
-                      : "Resuelto"}
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${
+                    selectedReport.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
+                  }`}>
+                    {selectedReport.status === "pending" ? "Pendiente" : "Resuelto"}
                   </span>
                 </div>
-                <p className="text-sm text-slate-400 mb-1">
-                  Motivo:{" "}
-                  <span className="text-white font-medium">
-                    {selectedReport.reason}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-400 mb-1">
-                  Reportado por:{" "}
-                  <span className="text-white font-medium">
-                    {selectedReport.reportedBy?.username || "Desconocido"}
-                  </span>
-                </p>
-                <p className="text-sm text-slate-400">
-                  Fecha:{" "}
-                  <span className="text-white">
-                    {new Date(selectedReport.createdAt).toLocaleString()}
-                  </span>
-                </p>
-
+                <p className="text-sm text-slate-400 mb-1">Motivo: <span className="text-white font-medium">{selectedReport.reason}</span></p>
+                <p className="text-sm text-slate-400 mb-1">Reportado por: <span className="text-white font-medium">{selectedReport.reportedBy?.username || 'Desconocido'}</span></p>
+                <p className="text-sm text-slate-400">Fecha: <span className="text-white">{new Date(selectedReport.createdAt).toLocaleString()}</span></p>
+                
                 {selectedReport.description && (
                   <div className="mt-3 bg-slate-800 rounded-lg p-3 border border-slate-700">
-                    <p className="text-sm text-slate-300 italic whitespace-pre-wrap break-words">
-                      "{selectedReport.description}"
-                    </p>
+                    <p className="text-sm text-slate-300 italic whitespace-pre-wrap break-words">"{selectedReport.description}"</p>
                   </div>
                 )}
               </div>
 
               {/* Target Content Preview */}
               <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
-                <h4 className="text-sm font-bold text-white mb-3">
-                  Contenido Reportado
-                </h4>
+                <h4 className="text-sm font-bold text-white mb-3">Contenido Reportado</h4>
                 {!selectedReport.targetId ? (
-                  <p className="text-sm text-slate-500 italic">
-                    El contenido ya no existe (probablemente fue eliminado).
-                  </p>
+                  <p className="text-sm text-slate-500 italic">El contenido ya no existe (probablemente fue eliminado).</p>
                 ) : (
                   <div className="space-y-2 text-sm text-slate-300">
-                    {selectedReport.targetType === "GameList" && (
+                    {selectedReport.targetType === 'GameList' && (
                       <>
-                        <p className="break-words">
-                          <strong className="text-slate-400">Título:</strong>{" "}
-                          {selectedReport.targetId.title}
-                        </p>
-                        <p className="break-words whitespace-pre-wrap">
-                          <strong className="text-slate-400">
-                            Descripción:
-                          </strong>{" "}
-                          {selectedReport.targetId.description}
-                        </p>
+                        <p className="break-words"><strong className="text-slate-400">Título:</strong> {selectedReport.targetId.title}</p>
+                        <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Descripción:</strong> {selectedReport.targetId.description}</p>
                       </>
                     )}
-                    {selectedReport.targetType === "Comment" && (
-                      <p className="break-words whitespace-pre-wrap">
-                        <strong className="text-slate-400">Comentario:</strong>{" "}
-                        {selectedReport.targetId.content}
-                      </p>
+                    {selectedReport.targetType === 'Comment' && (
+                      <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>
                     )}
-                    {selectedReport.targetType === "User" && (
-                      <p className="break-words">
-                        <strong className="text-slate-400">Usuario:</strong>{" "}
-                        {selectedReport.targetId.username}
-                      </p>
+                    {selectedReport.targetType === 'User' && (
+                      <p className="break-words"><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>
                     )}
                   </div>
                 )}
@@ -699,13 +487,13 @@ function ModerationPanel({
                   handleResolveReport(selectedReport._id);
                   setShowReportModal(false);
                 }}
-                disabled={submitting || selectedReport.status === "resolved"}
+                disabled={submitting || selectedReport.status === 'resolved'}
                 className="flex-1 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
               >
                 <CheckCircle2 size={18} />
                 Marcar Resuelto
               </button>
-              {selectedReport.targetType !== "User" && (
+              {selectedReport.targetType !== 'User' && (
                 <button
                   onClick={() => handleDeleteContent(selectedReport)}
                   disabled={submitting || !selectedReport.targetId}
@@ -724,22 +512,14 @@ function ModerationPanel({
 }
 
 // ========== RF-17: Gestión de Usuarios ==========
-function UsersPanel({
-  users,
-  stats,
-  searchTerm,
-  setSearchTerm,
-  onReload,
-}: {
-  users: any[];
+function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: { 
+  users: any[]; 
   stats: any;
-  searchTerm: string;
+  searchTerm: string; 
   setSearchTerm: (val: string) => void;
   onReload: () => void;
 }) {
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "active" | "warned" | "silenced" | "banned"
-  >("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "warned" | "silenced" | "banned">("all");
   const [showActionModal, setShowActionModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -754,26 +534,19 @@ function UsersPanel({
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      (statusFilter === "all" ||
-        (statusFilter === "active" &&
-          !isActionActiveForUser(u, "warned") &&
-          !isActionActiveForUser(u, "silenced") &&
-          !isActionActiveForUser(u, "banned")) ||
-        (statusFilter === "warned" && isActionActiveForUser(u, "warned")) ||
-        (statusFilter === "silenced" && isActionActiveForUser(u, "silenced")) ||
-        (statusFilter === "banned" && isActionActiveForUser(u, "banned"))) &&
-      (u.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        u.steamId?.toLowerCase().includes(searchTerm.toLowerCase())),
+  const filteredUsers = users.filter(u =>
+    (
+      statusFilter === "all" ||
+      (statusFilter === "active" && !isActionActiveForUser(u, "warned") && !isActionActiveForUser(u, "silenced") && !isActionActiveForUser(u, "banned")) ||
+      (statusFilter === "warned" && isActionActiveForUser(u, "warned")) ||
+      (statusFilter === "silenced" && isActionActiveForUser(u, "silenced")) ||
+      (statusFilter === "banned" && isActionActiveForUser(u, "banned"))
+    ) &&
+    (u.username?.toLowerCase().includes(searchTerm.toLowerCase()) || u.steamId?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Abre el modal para aplicar o revertir una sanción según el modo.
-  const handleOpenActionModal = (
-    user: any,
-    action: ModerationActionType,
-    mode: "apply" | "undo" = "apply",
-  ) => {
+  const handleOpenActionModal = (user: any, action: ModerationActionType, mode: "apply" | "undo" = "apply") => {
     setSelectedUser(user);
     setActionType(action);
     setActionMode(mode);
@@ -785,22 +558,13 @@ function UsersPanel({
 
   // Cambia el tooltip según el modo actual del botón (aplicar vs deshacer).
   const getActionTitle = (user: any, action: ModerationActionType) => {
-    if (action === "warned")
-      return isActionActiveForUser(user, "warned")
-        ? "Quitar advertencia"
-        : "Advertir";
-    if (action === "silenced")
-      return isActionActiveForUser(user, "silenced")
-        ? "Quitar silencio"
-        : "Silenciar";
+    if (action === "warned") return isActionActiveForUser(user, "warned") ? "Quitar advertencia" : "Advertir";
+    if (action === "silenced") return isActionActiveForUser(user, "silenced") ? "Quitar silencio" : "Silenciar";
     return isActionActiveForUser(user, "banned") ? "Desbanear" : "Banear";
   };
 
   // Toggle de sanción: si ya está aplicada, la revierte; si no, abre modal para aplicarla.
-  const handleToggleAction = async (
-    user: any,
-    action: ModerationActionType,
-  ) => {
+  const handleToggleAction = async (user: any, action: ModerationActionType) => {
     try {
       setSubmitting(true);
 
@@ -813,7 +577,7 @@ function UsersPanel({
 
       handleOpenActionModal(user, action, "apply");
     } catch (error) {
-      console.error("Error alternando acción de moderación:", error);
+      console.error('Error alternando acción de moderación:', error);
     } finally {
       setSubmitting(false);
     }
@@ -830,13 +594,12 @@ function UsersPanel({
       const actions = response.data?.actions || [];
 
       const sortedActions = [...actions].sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
       setHistoryActions(sortedActions);
     } catch (error) {
-      console.error("Error obteniendo historial de moderación:", error);
+      console.error('Error obteniendo historial de moderación:', error);
       setHistoryActions([]);
       setHistoryError("No se pudo cargar el historial de moderación.");
     } finally {
@@ -852,12 +615,9 @@ function UsersPanel({
   };
 
   const getActionBadge = (action: string) => {
-    if (action === "warned")
-      return "bg-amber-500/10 text-amber-300 border-amber-500/30";
-    if (action === "silenced")
-      return "bg-orange-500/10 text-orange-300 border-orange-500/30";
-    if (action === "banned" || action === "suspended")
-      return "bg-red-500/10 text-red-300 border-red-500/30";
+    if (action === "warned") return "bg-amber-500/10 text-amber-300 border-amber-500/30";
+    if (action === "silenced") return "bg-orange-500/10 text-orange-300 border-orange-500/30";
+    if (action === "banned" || action === "suspended") return "bg-red-500/10 text-red-300 border-red-500/30";
     return "bg-slate-500/10 text-slate-300 border-slate-500/30";
   };
 
@@ -887,9 +647,7 @@ function UsersPanel({
         reason: reason,
       };
 
-      const needsDuration =
-        actionMode === "apply" &&
-        (actionType === "silenced" || actionType === "banned");
+      const needsDuration = actionMode === "apply" && (actionType === "silenced" || actionType === "banned");
       if (duration && needsDuration) {
         const parsedDuration = Number(duration);
         if (!Number.isInteger(parsedDuration) || parsedDuration <= 0) {
@@ -899,11 +657,11 @@ function UsersPanel({
         payload.duration = parsedDuration;
       }
 
-      await api.post("/api/moderation/actions", payload);
+      await api.post('/api/moderation/actions', payload);
       setShowActionModal(false);
       onReload();
     } catch (error) {
-      console.error("Error aplicando acción de moderación:", error);
+      console.error('Error aplicando acción de moderación:', error);
     } finally {
       setSubmitting(false);
     }
@@ -930,44 +688,15 @@ function UsersPanel({
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          {
-            label: "Usuarios Activos",
-            value: stats.active,
-            icon: Users,
-            color: "text-emerald-400",
-            bg: "bg-emerald-500/10",
-          },
-          {
-            label: "Advertidos",
-            value: stats.warned,
-            icon: AlertTriangle,
-            color: "text-amber-400",
-            bg: "bg-amber-500/10",
-          },
-          {
-            label: "Silenciados",
-            value: stats.silenced,
-            icon: MessageSquareOff,
-            color: "text-orange-400",
-            bg: "bg-orange-500/10",
-          },
-          {
-            label: "Baneados",
-            value: stats.banned,
-            icon: Ban,
-            color: "text-red-400",
-            bg: "bg-red-500/10",
-          },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            className={`${stat.bg} border border-slate-800 rounded-xl p-4`}
-          >
+          { label: "Usuarios Activos", value: stats.active, icon: Users, color: "text-emerald-400", bg: "bg-emerald-500/10" },
+          { label: "Advertidos", value: stats.warned, icon: AlertTriangle, color: "text-amber-400", bg: "bg-amber-500/10" },
+          { label: "Silenciados", value: stats.silenced, icon: MessageSquareOff, color: "text-orange-400", bg: "bg-orange-500/10" },
+          { label: "Baneados", value: stats.banned, icon: Ban, color: "text-red-400", bg: "bg-red-500/10" },
+        ].map(stat => (
+          <div key={stat.label} className={`${stat.bg} border border-slate-800 rounded-xl p-4`}>
             <div className="flex items-center gap-2 mb-2">
               <stat.icon size={16} className={stat.color} />
-              <span className="text-xs text-slate-500 uppercase tracking-wider">
-                {stat.label}
-              </span>
+              <span className="text-xs text-slate-500 uppercase tracking-wider">{stat.label}</span>
             </div>
             <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
           </div>
@@ -978,10 +707,7 @@ function UsersPanel({
       <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl">
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           <div className="flex-1 relative">
-            <Search
-              size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-            />
+            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Buscar usuarios..."
@@ -990,17 +716,13 @@ function UsersPanel({
               className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
-
+          
           {/* Status Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400 whitespace-nowrap">
-              Estado:
-            </span>
+            <span className="text-sm text-slate-400 whitespace-nowrap">Estado:</span>
             <select
               value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value as typeof statusFilter)
-              }
+              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos</option>
@@ -1016,24 +738,16 @@ function UsersPanel({
         <div className="space-y-2">
           {filteredUsers.length === 0 ? (
             <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-8 text-center">
-              <p className="text-slate-500">
-                No se encontraron usuarios con los filtros aplicados
-              </p>
+              <p className="text-slate-500">No se encontraron usuarios con los filtros aplicados</p>
             </div>
           ) : (
-            filteredUsers.map((user) => (
-              <div
-                key={user._id}
-                className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors"
-              >
+            filteredUsers.map(user => (
+              <div key={user._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
                     {(() => {
                       const hasWarned = isActionActiveForUser(user, "warned");
-                      const hasSilenced = isActionActiveForUser(
-                        user,
-                        "silenced",
-                      );
+                      const hasSilenced = isActionActiveForUser(user, "silenced");
                       const hasBanned = isActionActiveForUser(user, "banned");
                       const effectiveStatus = hasBanned
                         ? "banned"
@@ -1050,79 +764,72 @@ function UsersPanel({
                       const showActiveLabel = statusLabels.length === 0;
 
                       return (
-                        <div className="flex items-center gap-2 mb-2">
-                          <h4 className="text-sm font-bold text-white">
-                            {user.username}
-                          </h4>
-                          {statusLabels.map((label) => (
-                            <span
-                              key={label}
-                              className={
-                                label === "Advertido"
-                                  ? "text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400"
-                                  : label === "Silenciado"
-                                    ? "text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400"
-                                    : "text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400"
-                              }
-                            >
-                              {label}
-                            </span>
-                          ))}
-                          {showActiveLabel && (
-                            <span className="text-xs px-2 py-1 rounded font-medium bg-emerald-500/10 text-emerald-400">
-                              Activo
-                            </span>
-                          )}
-                          {user.moderationHistory &&
-                            user.moderationHistory.length > 0 && (
-                              <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
-                                {user.moderationHistory.length} acción
-                                {user.moderationHistory.length !== 1
-                                  ? "es"
-                                  : ""}
-                              </span>
-                            )}
-                        </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-sm font-bold text-white">{user.username}</h4>
+                      {statusLabels.map((label) => (
+                        <span
+                          key={label}
+                          className={
+                            label === "Advertido"
+                              ? "text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400"
+                              : label === "Silenciado"
+                                ? "text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400"
+                                : "text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400"
+                          }
+                        >
+                          {label}
+                        </span>
+                      ))}
+                      {showActiveLabel && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-emerald-500/10 text-emerald-400">
+                          Activo
+                        </span>
+                      )}
+                      {user.moderationHistory && user.moderationHistory.length > 0 && (
+                        <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
+                          {user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? 'es' : ''}
+                        </span>
+                      )}
+                    </div>
                       );
                     })()}
                     <p className="text-xs text-slate-400">
-                      SteamID: {user.steamId} • Miembro desde{" "}
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      SteamID: {user.steamId} • Miembro desde {new Date(user.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
+                    <button 
                       onClick={() => handleOpenHistoryModal(user)}
-                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors"
+                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 
                       title="Ver historial"
                     >
                       <FileText size={16} />
                     </button>
-                    <button
+                    <button 
                       onClick={() => handleToggleAction(user, "warned")}
                       disabled={isActionActiveForUser(user, "banned")}
                       className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${
                         isActionActiveForUser(user, "warned")
                           ? "bg-yellow-500/25 border-yellow-400/40 text-yellow-300"
                           : "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400"
-                      }`}
+                      }`} 
                       title={getActionTitle(user, "warned")}
                     >
                       <AlertOctagon size={16} />
                     </button>
-                    <button
+                    <button 
                       onClick={() => handleToggleAction(user, "silenced")}
                       disabled={isActionActiveForUser(user, "banned")}
                       className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${
                         isActionActiveForUser(user, "silenced")
                           ? "bg-amber-500/25 border-amber-400/40 text-amber-300"
                           : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 text-amber-400"
-                      }`}
+                      }`} 
                       title={getActionTitle(user, "silenced")}
                     >
                       <MessageSquareOff size={16} />
                     </button>
-                    <button
+                    <button 
                       onClick={() => handleToggleAction(user, "banned")}
                       title={getActionTitle(user, "banned")}
                       className={`p-2 border rounded-lg transition-colors ${
@@ -1146,41 +853,23 @@ function UsersPanel({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6">
             <h3 className="text-lg font-bold text-white mb-4">
-              {actionMode === "undo" &&
-                actionType === "warned" &&
-                "Quitar advertencia"}
-              {actionMode === "undo" &&
-                actionType === "silenced" &&
-                "Quitar silencio"}
-              {actionMode === "undo" &&
-                actionType === "banned" &&
-                "Desbanear usuario"}
-              {actionMode === "apply" &&
-                actionType === "warned" &&
-                "Advertir usuario"}
-              {actionMode === "apply" &&
-                actionType === "silenced" &&
-                "Silenciar usuario"}
-              {actionMode === "apply" &&
-                actionType === "banned" &&
-                "Banear usuario"}
+              {actionMode === "undo" && actionType === "warned" && "Quitar advertencia"}
+              {actionMode === "undo" && actionType === "silenced" && "Quitar silencio"}
+              {actionMode === "undo" && actionType === "banned" && "Desbanear usuario"}
+              {actionMode === "apply" && actionType === "warned" && "Advertir usuario"}
+              {actionMode === "apply" && actionType === "silenced" && "Silenciar usuario"}
+              {actionMode === "apply" && actionType === "banned" && "Banear usuario"}
             </h3>
-
+            
             <div className="space-y-4 mb-6">
               <div>
-                <label className="text-sm text-slate-400 block mb-2">
-                  Usuario: {selectedUser.username}
-                </label>
+                <label className="text-sm text-slate-400 block mb-2">Usuario: {selectedUser.username}</label>
               </div>
 
               <div>
                 <div className="flex justify-between items-end mb-2">
-                  <label className="text-sm text-slate-400 block">
-                    Motivo *
-                  </label>
-                  <span className="text-xs text-slate-500">
-                    {reason.length}/500
-                  </span>
+                  <label className="text-sm text-slate-400 block">Motivo *</label>
+                  <span className="text-xs text-slate-500">{reason.length}/500</span>
                 </div>
                 <textarea
                   value={reason}
@@ -1192,39 +881,35 @@ function UsersPanel({
                 />
               </div>
 
-              {actionMode === "apply" &&
-                (actionType === "silenced" || actionType === "banned") && (
-                  <div>
-                    <label className="text-sm text-slate-400 block mb-2">
-                      Duración en días{" "}
-                      {actionType === "banned"
-                        ? "(dejar vacío para permanente)"
-                        : ""}
-                    </label>
-                    <input
-                      type="number"
-                      value={duration}
-                      min={1}
-                      step={1}
-                      onChange={(e) => {
-                        const nextValue = e.target.value;
-                        if (nextValue === "") {
-                          setDuration("");
-                          setActionError("");
-                          return;
-                        }
+              {actionMode === "apply" && (actionType === "silenced" || actionType === "banned") && (
+                <div>
+                  <label className="text-sm text-slate-400 block mb-2">
+                    Duración en días {actionType === "banned" ? "(dejar vacío para permanente)" : ""}
+                  </label>
+                  <input
+                    type="number"
+                    value={duration}
+                    min={1}
+                    step={1}
+                    onChange={(e) => {
+                      const nextValue = e.target.value;
+                      if (nextValue === "") {
+                        setDuration("");
+                        setActionError("");
+                        return;
+                      }
 
-                        const parsed = Number(nextValue);
-                        if (Number.isInteger(parsed) && parsed > 0) {
-                          setDuration(nextValue);
-                          setActionError("");
-                        }
-                      }}
-                      placeholder="Ej: 7, 30, etc"
-                      className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
-                    />
-                  </div>
-                )}
+                      const parsed = Number(nextValue);
+                      if (Number.isInteger(parsed) && parsed > 0) {
+                        setDuration(nextValue);
+                        setActionError("");
+                      }
+                    }}
+                    placeholder="Ej: 7, 30, etc"
+                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+              )}
 
               {actionError && (
                 <p className="text-xs text-red-400">{actionError}</p>
@@ -1244,15 +929,7 @@ function UsersPanel({
                 disabled={submitting || !reason.trim()}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
               >
-                {submitting
-                  ? "Procesando..."
-                  : actionMode === "undo" && actionType === "warned"
-                    ? "Quitar advertencia"
-                    : actionMode === "undo" && actionType === "silenced"
-                      ? "Quitar silencio"
-                      : actionMode === "undo" && actionType === "banned"
-                        ? "Desbanear"
-                        : "Confirmar"}
+                {submitting ? "Procesando..." : actionMode === "undo" && actionType === "warned" ? "Quitar advertencia" : actionMode === "undo" && actionType === "silenced" ? "Quitar silencio" : actionMode === "undo" && actionType === "banned" ? "Desbanear" : "Confirmar"}
               </button>
             </div>
           </div>
@@ -1265,12 +942,8 @@ function UsersPanel({
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-bold text-white">
-                  Historial de moderación
-                </h3>
-                <p className="text-sm text-slate-400">
-                  Usuario: {historyUser.username}
-                </p>
+                <h3 className="text-lg font-bold text-white">Historial de moderación</h3>
+                <p className="text-sm text-slate-400">Usuario: {historyUser.username}</p>
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
@@ -1282,71 +955,46 @@ function UsersPanel({
             </div>
 
             <div className="overflow-y-auto pr-1 space-y-3">
-              {historyLoading && (
-                <p className="text-sm text-slate-400">Cargando historial...</p>
-              )}
+              {historyLoading && <p className="text-sm text-slate-400">Cargando historial...</p>}
 
               {!historyLoading && historyError && (
                 <p className="text-sm text-red-400">{historyError}</p>
               )}
 
-              {!historyLoading &&
-                !historyError &&
-                historyActions.length === 0 && (
-                  <p className="text-sm text-slate-400">
-                    Este usuario no tiene acciones de moderación registradas.
-                  </p>
-                )}
+              {!historyLoading && !historyError && historyActions.length === 0 && (
+                <p className="text-sm text-slate-400">Este usuario no tiene acciones de moderación registradas.</p>
+              )}
 
-              {!historyLoading &&
-                !historyError &&
-                historyActions.map((item) => (
-                  <div
-                    key={item._id}
-                    className="bg-slate-800/60 border border-slate-700 rounded-xl p-4"
-                  >
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded border ${getActionBadge(item.action)}`}
-                      >
-                        {getActionLabel(item.action)}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${getHistoryStateBadge(item)}`}
-                      >
-                        {getHistoryStateLabel(item)}
-                      </span>
-                      <span className="text-xs text-slate-500">
-                        {new Date(item.createdAt).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <div className="text-sm text-slate-200 mb-1">
-                      Motivo:{" "}
-                      <span className="text-slate-300 break-words whitespace-pre-wrap">
-                        {item.reason || "Sin motivo"}
-                      </span>
-                    </div>
-
-                    {item.duration ? (
-                      <p className="text-xs text-slate-400 mb-1">
-                        Duración: {item.duration} día
-                        {item.duration !== 1 ? "s" : ""}
-                      </p>
-                    ) : (
-                      <p className="text-xs text-slate-500 mb-1">
-                        Duración: permanente
-                      </p>
-                    )}
-
-                    <p className="text-xs text-slate-500">
-                      Aplicada por: {item.appliedBy?.username || "-"}
-                      {item.revokedBy?.username
-                        ? ` • Revertida por: ${item.revokedBy.username}`
-                        : ""}
-                    </p>
+              {!historyLoading && !historyError && historyActions.map((item) => (
+                <div key={item._id} className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className={`text-xs px-2 py-1 rounded border ${getActionBadge(item.action)}`}>
+                      {getActionLabel(item.action)}
+                    </span>
+                    <span className={`text-xs px-2 py-1 rounded ${getHistoryStateBadge(item)}`}>
+                      {getHistoryStateLabel(item)}
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      {new Date(item.createdAt).toLocaleString()}
+                    </span>
                   </div>
-                ))}
+
+                  <div className="text-sm text-slate-200 mb-1">
+                    Motivo: <span className="text-slate-300 break-words whitespace-pre-wrap">{item.reason || "Sin motivo"}</span>
+                  </div>
+
+                  {item.duration ? (
+                    <p className="text-xs text-slate-400 mb-1">Duración: {item.duration} día{item.duration !== 1 ? "s" : ""}</p>
+                  ) : (
+                    <p className="text-xs text-slate-500 mb-1">Duración: permanente</p>
+                  )}
+
+                  <p className="text-xs text-slate-500">
+                    Aplicada por: {item.appliedBy?.username || "-"}
+                    {item.revokedBy?.username ? ` • Revertida por: ${item.revokedBy.username}` : ""}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </div>

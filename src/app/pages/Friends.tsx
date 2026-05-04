@@ -712,20 +712,16 @@ function AnalyticsPanel({
                 className="absolute left-0 top-0 flex flex-col justify-between"
                 style={{ height: "calc(100% - 28px)" }}
               >
-                {[
-                  maxHours,
-                  maxHours * 0.75,
-                  maxHours * 0.5,
-                  maxHours * 0.25,
-                  0,
-                ].map((v) => (
-                  <span
-                    key={v}
-                    className="text-[#64748b] text-[10px] text-right w-9 leading-none"
-                  >
-                    {(v / 1000).toFixed(1)}k
-                  </span>
-                ))}
+                {[maxHours, maxHours * 0.75, maxHours * 0.5, maxHours * 0.25, 0].map(
+                  (v) => (
+                    <span
+                      key={v}
+                      className="text-[#64748b] text-[10px] text-right w-9 leading-none"
+                    >
+                      {(v / 1000).toFixed(1)}k
+                    </span>
+                  ),
+                )}
               </div>
 
               <div
@@ -794,9 +790,7 @@ function AnalyticsPanel({
               {peopleWithTime.map((p) => {
                 const pct =
                   p.time.totalHours > 0
-                    ? Math.round(
-                        (p.time.topGameHours / p.time.totalHours) * 100,
-                      )
+                    ? Math.round((p.time.topGameHours / p.time.totalHours) * 100)
                     : 0;
 
                 return (
@@ -1471,9 +1465,9 @@ export function Friends() {
   const [commonGames, setCommonGames] = useState<CommonGame[]>([]);
   const [loadingCommonGames, setLoadingCommonGames] = useState(false);
   const [bookingGame, setBookingGame] = useState<CommonGame | null>(null);
-  const [scheduledSessions, setScheduledSessions] = useState<
-    ScheduledSession[]
-  >([]);
+  const [scheduledSessions, setScheduledSessions] = useState<ScheduledSession[]>(
+    [],
+  );
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -1528,11 +1522,7 @@ export function Friends() {
         username: p.user?.username || "Usuario",
         avatar: p.user?.avatar || "https://via.placeholder.com/64?text=U",
         status: p.status === "accepted" ? 1 : 0,
-        participantStatus: p.status as
-          | "invited"
-          | "accepted"
-          | "declined"
-          | undefined,
+        participantStatus: p.status as 'invited' | 'accepted' | 'declined' | undefined,
       })) || [];
 
     // Determine if current user is the host using the host field from the API
@@ -1542,11 +1532,7 @@ export function Friends() {
     const myEntry = !isHost
       ? session.participants?.find((p) => p.user?.steamId === user?.steamid)
       : undefined;
-    const myParticipantStatus = myEntry?.status as
-      | "invited"
-      | "accepted"
-      | "declined"
-      | undefined;
+    const myParticipantStatus = myEntry?.status as 'invited' | 'accepted' | 'declined' | undefined;
 
     return {
       id: session._id,
@@ -1574,7 +1560,7 @@ export function Friends() {
         .map(normalizeSession)
         // Hide sessions the user has declined/abandoned — they're still in the
         // DB but shouldn't appear in the participant's list anymore.
-        .filter((s) => s.myParticipantStatus !== "declined");
+        .filter((s) => s.myParticipantStatus !== 'declined');
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
@@ -1889,9 +1875,7 @@ export function Friends() {
 
           {activeTab === "analitica" && (
             <AnalyticsPanel
-              selectedFriends={friends.filter((f) =>
-                selectedIds.has(f.steamId),
-              )}
+              selectedFriends={friends.filter((f) => selectedIds.has(f.steamId))}
               user={user}
             />
           )}
@@ -1925,10 +1909,7 @@ export function Friends() {
 
                   {loadingNotifications ? (
                     <div className="flex justify-center py-10">
-                      <Loader2
-                        className="animate-spin text-blue-500"
-                        size={24}
-                      />
+                      <Loader2 className="animate-spin text-blue-500" size={24} />
                     </div>
                   ) : notifications.length === 0 ? (
                     <p className="text-[#62748e] text-sm">
@@ -1960,10 +1941,7 @@ export function Friends() {
 
                   {loadingSessions ? (
                     <div className="flex justify-center py-10">
-                      <Loader2
-                        className="animate-spin text-blue-500"
-                        size={24}
-                      />
+                      <Loader2 className="animate-spin text-blue-500" size={24} />
                     </div>
                   ) : scheduledSessions.length === 0 ? (
                     <p className="text-[#62748e] text-sm">
@@ -1985,9 +1963,7 @@ export function Friends() {
                       onLeave={async (id: string) => {
                         try {
                           // Remove immediately from UI for instant feedback
-                          setScheduledSessions((prev) =>
-                            prev.filter((s) => s.id !== id),
-                          );
+                          setScheduledSessions((prev) => prev.filter((s) => s.id !== id));
                           await leaveGamingSession(id);
                           // Then sync with backend
                           await loadSessions();
