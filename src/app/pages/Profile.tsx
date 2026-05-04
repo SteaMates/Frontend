@@ -718,7 +718,7 @@ export function Profile() {
   return (
     <div className="max-w-[1084px] mx-auto space-y-6 pb-20">
       <section className="relative rounded-[16px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
-        <div className="relative h-[224px]">
+        <div className="relative h-[180px] sm:h-[224px]">
           <img
             src={PROFILE_BANNER}
             alt="Fondo de perfil"
@@ -728,22 +728,22 @@ export function Profile() {
           <div className="absolute inset-0 bg-gradient-to-r from-[rgba(21,93,252,0.1)] to-[rgba(152,16,250,0.1)]" />
         </div>
 
-        <div className="relative bg-[#0f172b] border border-[#1d293d] pt-5 pb-3 px-5">
-          <div className="flex items-start gap-5">
-            <div className="relative -mt-20 shrink-0">
-              <div className="w-[128px] h-[128px] rounded-[16px] border-4 border-[#0f172b] shadow-[0px_0px_0px_2px_rgba(43,127,255,0.5),0px_25px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden bg-[#0b1225]">
+        <div className="relative bg-[#0f172b] border border-[#1d293d] pt-5 pb-4 px-4 sm:px-5">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-5">
+            <div className="relative -mt-16 sm:-mt-20 shrink-0">
+              <div className="w-[96px] h-[96px] sm:w-[128px] sm:h-[128px] rounded-[16px] border-4 border-[#0f172b] shadow-[0px_0px_0px_2px_rgba(43,127,255,0.5),0px_25px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden bg-[#0b1225]">
                 <img
                   src={displayAvatar}
                   alt={displayName}
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-[3px] border-[#0f172b] bg-[#00c950] opacity-70" />
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[3px] border-[#0f172b] bg-[#00c950] opacity-70" />
             </div>
 
-            <div className="flex-1 pt-3 min-w-0">
+            <div className="flex-1 pt-2 sm:pt-3 min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-[42px] leading-[1] font-bold text-white truncate">
+                <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] leading-[1.1] font-bold text-white truncate">
                   {displayName}
                 </h1>
                 <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold text-white bg-gradient-to-r from-[#51a2ff] to-[#00b8db]">
@@ -754,8 +754,8 @@ export function Profile() {
                 </span>
               </div>
 
-              <div className="mt-3 flex items-center gap-3 max-w-[520px]">
-                <div className="flex-1 h-2 bg-[#1d293d] rounded-full overflow-hidden">
+              <div className="mt-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 max-w-[520px]">
+                <div className="w-full sm:flex-1 h-2 bg-[#1d293d] rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-[#51a2ff] to-[#00b8db]"
                     style={{ width: `${xpProgress}%` }}
@@ -787,7 +787,7 @@ export function Profile() {
               </div>
             </div>
 
-            <div className="flex items-start gap-2 pt-2">
+            <div className="flex flex-wrap items-start gap-2 pt-2">
               <a
                 href={displayProfileUrl}
                 target="_blank"
@@ -870,7 +870,7 @@ export function Profile() {
           </h3>
 
           <div className="relative mt-2 pt-1 pb-8">
-            <div className="absolute left-[132px] right-[16px] top-0 bottom-10 grid grid-cols-4">
+            <div className="absolute left-[96px] sm:left-[132px] right-[12px] sm:right-[16px] top-0 bottom-10 grid grid-cols-4">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
@@ -897,7 +897,7 @@ export function Profile() {
                 ];
                 return (
                   <div key={game.appId} className="flex items-center gap-3">
-                    <div className="w-[120px] text-right">
+                    <div className="w-[84px] sm:w-[120px] text-right">
                       <p
                         className="text-[12px] text-[#94a3b8] leading-[1.15]"
                         title={game.name}
@@ -922,7 +922,7 @@ export function Profile() {
               })}
             </div>
 
-            <div className="mt-4 ml-[132px] mr-[16px] flex justify-between text-[10px] text-[#64748b]">
+            <div className="mt-4 ml-[96px] sm:ml-[132px] mr-[12px] sm:mr-[16px] flex justify-between text-[10px] text-[#64748b]">
               {axisTicks.map((tick) => (
                 <span key={tick}>{tick}</span>
               ))}
@@ -943,14 +943,14 @@ export function Profile() {
 
           <div className="h-[250px] flex items-center justify-center">
             {genreFocus ? (
-              <div className="relative w-[198px] h-[198px]">
+              <div className="relative w-[168px] h-[168px] sm:w-[198px] sm:h-[198px]">
                 <div
                   className="absolute inset-0 rounded-full"
                   style={{
                     background: `conic-gradient(${gradientStops || "#ef4444 0deg 360deg"})`,
                   }}
                 />
-                <div className="absolute inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
+                <div className="absolute inset-[30px] sm:inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
                   <p className="text-white text-[24px] font-bold leading-none">
                     {genreFocus.name}
                   </p>
@@ -1041,7 +1041,7 @@ export function Profile() {
       </section>
 
       <section className="grid grid-cols-1 xl:grid-cols-[1.53fr_1fr] gap-6">
-        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-[465px] flex flex-col">
+        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-auto xl:h-[465px] flex flex-col">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
               <Gamepad2 size={18} className="text-[#51a2ff]" /> Biblioteca
@@ -1109,7 +1109,7 @@ export function Profile() {
           </div>
         </article>
 
-        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-[465px]">
+        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] h-auto xl:h-[465px]">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-3">
             <Zap size={18} className="text-[#00d3f3]" /> Actividad Reciente
           </h3>

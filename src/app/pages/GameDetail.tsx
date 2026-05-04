@@ -231,7 +231,7 @@ function PriceChart({ points, current, atl, normal }: {
   const minTickGap = totalSpanDays > 365 ? 60 : totalSpanDays > 90 ? 40 : 20;
 
   return (
-    <div className="w-full h-80 select-none -ml-4 mt-4">
+    <div className="w-full h-64 sm:h-80 select-none -ml-0 sm:-ml-4 mt-4">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 24, right: 20, left: 0, bottom: 0 }}>
           <defs>
@@ -759,7 +759,7 @@ export function GameDetail() {
       </Link>
 
       {/* hero banner */}
-      <div className="relative rounded-2xl overflow-hidden mb-8 h-52 md:h-64">
+      <div className="relative rounded-2xl overflow-hidden mb-8 h-48 sm:h-52 md:h-64">
         {gameThumb ? (
           <img src={gameThumb} alt={gameTitle} className="w-full h-full object-cover"/>
         ) : (
@@ -769,7 +769,7 @@ export function GameDetail() {
         )}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/70 to-transparent"/>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 to-transparent"/>
-        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end">
+        <div className="absolute bottom-5 left-5 right-5 sm:bottom-6 sm:left-6 sm:right-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{gameTitle}</h1>
             <div className="flex flex-wrap items-center gap-3">
@@ -804,7 +804,7 @@ export function GameDetail() {
 
           {/* price history card */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
               <h2 className="text-lg font-bold text-white">Historial de Precios</h2>
               <div className="flex items-center gap-2">
                 {launchDate && (

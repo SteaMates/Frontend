@@ -399,7 +399,7 @@ export function Lists() {
     <div className="pb-20 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-[42px] leading-[1] font-bold text-white mb-2">
+          <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] leading-[1.1] font-bold text-white mb-2">
             Listas de la Comunidad
           </h1>
           <p className="text-[#90a1b9] text-[14px]">
@@ -408,7 +408,7 @@ export function Lists() {
         </div>
 
         <button
-          className="h-9 px-4 rounded-[10px] bg-[#009966] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#00ad74] transition-colors self-start"
+          className="h-10 w-full sm:w-auto justify-center px-4 rounded-[10px] bg-[#009966] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#00ad74] transition-colors self-start"
           type="button"
           onClick={() => {
             setCreateStep(1);
@@ -421,7 +421,7 @@ export function Lists() {
 
       <div className="space-y-4">
         <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
-          <div className="h-[42px] p-[5px] rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] flex items-start gap-1 w-fit">
+          <div className="h-auto sm:h-[42px] p-[5px] rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] flex flex-wrap items-start gap-1 w-fit">
             {FEED_TABS.map((tab) => {
               const active = feedTab === tab.id;
               return (
@@ -812,11 +812,11 @@ export function Lists() {
                   </div>
                 </div>
 
-                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <button
                     type="button"
                     onClick={closeCreateModal}
-                    className="h-10 px-3 rounded-[10px] text-[#a3b3cb] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
+                    className="h-10 w-full sm:w-auto justify-center px-3 rounded-[10px] text-[#a3b3cb] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
                   >
                     <ChevronLeft size={14} /> Cancelar
                   </button>
@@ -825,7 +825,7 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(2)}
                     disabled={!canContinueInfo}
-                    className={`h-10 px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
                       canContinueInfo
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
@@ -953,11 +953,11 @@ export function Lists() {
                   </div>
                 </div>
 
-                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => setCreateStep(1)}
-                    className="h-9 px-3 rounded-[10px] text-[#90a1b9] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
+                    className="h-9 w-full sm:w-auto justify-center px-3 rounded-[10px] text-[#90a1b9] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
                   >
                     <ChevronLeft size={14} /> Atras
                   </button>
@@ -966,7 +966,7 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(3)}
                     disabled={!canContinueGames}
-                    className={`h-10 px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
                       canContinueGames
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
@@ -1047,11 +1047,11 @@ export function Lists() {
                   </div>
                 </div>
 
-                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-[#1e2c46] bg-[rgba(2,6,24,0.8)] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => setCreateStep(2)}
-                    className="h-9 px-3 rounded-[10px] text-[#90a1b9] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
+                    className="h-9 w-full sm:w-auto justify-center px-3 rounded-[10px] text-[#90a1b9] text-[14px] flex items-center gap-2 hover:text-white transition-colors"
                   >
                     <ChevronLeft size={14} /> Atras
                   </button>
@@ -1060,7 +1060,7 @@ export function Lists() {
                     type="button"
                     onClick={submitList}
                     disabled={isSubmitting}
-                    className="h-10 px-6 rounded-[14px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#2b7fff] transition-colors disabled:opacity-50"
+                    className="h-10 w-full sm:w-auto justify-center px-6 rounded-[14px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#2b7fff] transition-colors disabled:opacity-50"
                   >
                     <Sparkles size={16} /> {isSubmitting ? 'Publicando...' : 'Publicar Lista'}
                   </button>

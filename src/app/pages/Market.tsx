@@ -506,7 +506,7 @@ export function Market() {
     <div className="space-y-10 pb-20">
 
       <div>
-        <h1 className="text-3xl font-bold text-white">Mercado</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Mercado</h1>
         <p className="text-slate-400 text-sm mt-1">
           Mejores ofertas de Steam · actualizadas en tiempo real
         </p>
@@ -546,8 +546,8 @@ export function Market() {
           <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
             {/* Price filter: always visible except in free mode */}
             {!isFreeMode && (
-              <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-1.5 border border-slate-700/50 hidden md:flex">
-                <div className="flex items-center gap-2 px-3 text-sm text-slate-400">
+              <div className="flex flex-wrap items-center gap-2 bg-slate-800/50 rounded-xl p-2 border border-slate-700/50 w-full md:w-auto">
+                <div className="flex items-center gap-2 px-3 text-xs sm:text-sm text-slate-400">
                   <SlidersHorizontal className="w-4 h-4" />
                   <span>Precio:</span>
                 </div>

@@ -233,7 +233,7 @@ export function MarketTracking() {
     <div className="space-y-8 pb-20">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white">Seguimiento de mercado</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Seguimiento de mercado</h1>
           <p className="text-sm text-slate-400 mt-1">
             Gestiona tu wishlist y alertas de precio en tiempo real con datos de CheapShark.
           </p>
@@ -242,7 +242,7 @@ export function MarketTracking() {
         <button
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-medium transition-colors disabled:opacity-50"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-medium transition-colors disabled:opacity-50"
         >
           {refreshing ? (
             <>
@@ -281,7 +281,7 @@ export function MarketTracking() {
             Aún no tienes juegos en wishlist. Desde el detalle de cualquier juego puedes guardarlo.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             {wishlist.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
@@ -367,7 +367,7 @@ export function MarketTracking() {
             No has configurado alertas de precio. Añade alertas desde el detalle de los juegos.
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             {alerts.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);

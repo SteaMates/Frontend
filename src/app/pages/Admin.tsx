@@ -144,7 +144,7 @@ export function Admin() {
     <div className="max-w-7xl mx-auto space-y-6 pb-8">
       {/* Header */}
       <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-6 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-xl">
               <Shield size={24} className="text-red-400" />
@@ -154,7 +154,7 @@ export function Admin() {
               <p className="text-sm text-slate-500">Gestión y monitoreo de SteaMates</p>
             </div>
           </div>
-          <Link to="/" className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700">
+          <Link to="/" className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700 w-full sm:w-auto">
             <Home size={16} />
             <span className="text-sm">Volver al inicio</span>
           </Link>
@@ -361,7 +361,7 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
           ) : (
             filteredReports.map(report => (
               <div key={report._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(report.targetType)}`}>
@@ -380,7 +380,7 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                       <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">Descripción: {report.description}</p>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button 
                       onClick={() => {
                         setSelectedReport(report);
@@ -743,7 +743,7 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
           ) : (
             filteredUsers.map(user => (
               <div key={user._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
-                <div className="flex items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
                     {(() => {
                       const hasWarned = isActionActiveForUser(user, "warned");
@@ -797,7 +797,7 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                       SteamID: {user.steamId} • Miembro desde {new Date(user.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button 
                       onClick={() => handleOpenHistoryModal(user)}
                       className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 

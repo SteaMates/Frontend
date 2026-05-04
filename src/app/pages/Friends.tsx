@@ -1654,15 +1654,15 @@ export function Friends() {
     <div className="flex flex-col gap-10 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
             Centro Social
           </h1>
-          <p className="text-[#90a1b9] text-lg mt-2">
+          <p className="text-[#90a1b9] text-sm sm:text-lg mt-2">
             Gestiona tus amigos, compara estadísticas y organiza partidas.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="relative">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(15,23,43,0.8)] border border-[#1d293d]">
               <Bell size={18} className="text-[#90a1b9]" />
@@ -1674,12 +1674,12 @@ export function Friends() {
             )}
           </div>
 
-          <div className="flex items-center p-[7px] gap-1 bg-[#0f172b] border border-[#1d293d] rounded-[14px] shadow-sm self-start sm:self-auto">
+          <div className="flex flex-wrap items-center p-[7px] gap-1 bg-[#0f172b] border border-[#1d293d] rounded-[14px] shadow-sm self-start sm:self-auto w-full sm:w-auto">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-5 py-2 rounded-[10px] text-sm font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-[10px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
                   activeTab === tab.id
                     ? "bg-[#155dfc] text-white shadow-[0px_10px_15px_0px_rgba(28,57,142,0.2),0px_4px_6px_0px_rgba(28,57,142,0.2)]"
                     : "text-[#90a1b9] hover:text-white"
@@ -1693,8 +1693,8 @@ export function Friends() {
         </div>
       </div>
 
-      <div className="flex gap-6 items-start">
-        <div className="w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
+      <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Check size={18} className="text-[#51a2ff]" />
@@ -1792,7 +1792,7 @@ export function Friends() {
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           {activeTab === "amigos" && selectedIds.size === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="relative mb-8">
@@ -1802,10 +1802,10 @@ export function Friends() {
                 </div>
               </div>
 
-              <h2 className="text-[30px] font-bold text-white mb-4">
+              <h2 className="text-[24px] sm:text-[30px] font-bold text-white mb-4">
                 Gestiona tu red de amigos
               </h2>
-              <p className="text-[#90a1b9] text-lg max-w-[476px] leading-relaxed mb-12">
+              <p className="text-[#90a1b9] text-sm sm:text-lg max-w-[476px] leading-relaxed mb-12">
                 Utiliza las pestañas superiores para analizar estadísticas
                 comparativas o encontrar juegos en común para tu próxima sesión.
               </p>
@@ -1856,7 +1856,7 @@ export function Friends() {
               <p className="text-[#90a1b9] mb-6">
                 Elige una acción para continuar
               </p>
-              <div className="flex gap-3">
+              <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => setActiveTab("analitica")}
                   className="flex items-center gap-2 px-5 py-2.5 bg-[#155dfc] text-white rounded-[12px] text-sm font-semibold hover:bg-[#1a6aff] transition-colors"
@@ -1882,7 +1882,7 @@ export function Friends() {
 
           {activeTab === "sesiones" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-purple-900/40 border border-slate-700/50 rounded-3xl p-10 text-center relative overflow-hidden mb-8 shadow-2xl">
+              <div className="bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-purple-900/40 border border-slate-700/50 rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden mb-8 shadow-2xl">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
 
@@ -1890,10 +1890,10 @@ export function Friends() {
                   <div className="bg-white/10 p-3 rounded-2xl mb-4 backdrop-blur-md">
                     <Gamepad2 className="text-white w-8 h-8" />
                   </div>
-                  <h2 className="text-4xl font-bold text-white mb-4 tracking-tight">
+                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
                     ¿A qué jugamos hoy?
                   </h2>
-                  <p className="text-slate-200 text-lg max-w-xl">
+                  <p className="text-slate-200 text-sm sm:text-lg max-w-xl">
                     {selectedIds.size > 0
                       ? `Hemos encontrado ${commonGames.length} juegos en común entre tú y ${selectedIds.size} amigos.`
                       : "Selecciona amigos de la barra lateral para encontrar juegos en común para vuestra sesión."}

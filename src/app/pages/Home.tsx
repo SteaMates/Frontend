@@ -177,7 +177,7 @@ export function Home() {
 
   return (
     <div className="h-full flex flex-col gap-8 pb-8">
-      <section className="relative h-[560px] rounded-[16px] overflow-hidden border border-[#1d293d] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
+      <section className="relative min-h-[520px] sm:min-h-[560px] rounded-[16px] overflow-hidden border border-[#1d293d] shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
         <img
           src={HERO_BG}
           alt=""
@@ -188,14 +188,14 @@ export function Home() {
         <div className="absolute top-0 left-1/2 w-72 h-72 rounded-full bg-[rgba(43,127,255,0.1)] blur-[100px]" />
         <div className="absolute bottom-0 left-1/4 w-56 h-56 rounded-full bg-[rgba(173,70,255,0.08)] blur-[80px]" />
 
-        <div className="relative h-full px-8 pt-20 pb-6 flex flex-col justify-between">
+        <div className="relative h-full px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 pb-6 flex flex-col justify-between">
           <div className="max-w-[680px]">
-            <p className="text-[#51a2ff] text-[14px] font-medium flex items-center gap-1.5">
+            <p className="text-[#51a2ff] text-[12px] sm:text-[14px] font-medium flex items-center gap-1.5">
               <Sparkles size={14} /> Hola de nuevo,{" "}
               {user?.personaname ?? "Gamer"}
             </p>
 
-            <h1 className="mt-3 text-[48px] leading-[60px] font-bold text-white">
+            <h1 className="mt-3 text-[32px] leading-[40px] sm:text-[40px] sm:leading-[50px] lg:text-[48px] lg:leading-[60px] font-bold text-white">
               Todo tu universo
               <br />
               <span className="bg-gradient-to-r from-[#51a2ff] to-[#c27aff] bg-clip-text text-transparent">
@@ -203,28 +203,28 @@ export function Home() {
               </span>
             </h1>
 
-            <p className="mt-4 text-[#90a1b9] text-[18px] leading-[29px] max-w-[520px]">
+            <p className="mt-4 text-[#90a1b9] text-[14px] leading-[22px] sm:text-[16px] sm:leading-[26px] lg:text-[18px] lg:leading-[29px] max-w-[520px]">
               Ofertas, amigos, estadisticas y listas comunitarias. Organiza tu
               vida gaming sin complicaciones.
             </p>
 
-            <div className="mt-8 flex items-center gap-3">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <Link
                 to="/friends"
-                className="h-[42px] rounded-[14px] bg-[#155dfc] px-5 text-[14px] font-medium text-white inline-flex items-center gap-2"
+                className="h-[42px] w-full sm:w-auto justify-center rounded-[14px] bg-[#155dfc] px-5 text-[14px] font-medium text-white inline-flex items-center gap-2"
               >
                 <Users size={16} /> Centro Social
               </Link>
               <Link
                 to="/market"
-                className="h-[42px] rounded-[14px] border border-[#314158] bg-[#1d293d] px-5 text-[14px] font-medium text-white inline-flex items-center gap-2"
+                className="h-[42px] w-full sm:w-auto justify-center rounded-[14px] border border-[#314158] bg-[#1d293d] px-5 text-[14px] font-medium text-white inline-flex items-center gap-2"
               >
                 <Zap size={16} /> Ver Ofertas
               </Link>
             </div>
           </div>
 
-          <div className="border-t border-[rgba(29,41,61,0.6)] pt-6 flex flex-wrap items-center gap-7">
+          <div className="border-t border-[rgba(29,41,61,0.6)] pt-6 flex flex-wrap items-center gap-4 sm:gap-7">
             <div className="flex items-center gap-2.5">
               <Clock3 size={16} className="text-[#51a2ff]" />
               <div>
@@ -458,7 +458,7 @@ export function Home() {
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Link
           to="/market"
-          className="h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(43,127,255,0.05)] p-[21px] flex flex-col justify-between"
+          className="h-auto sm:h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(43,127,255,0.05)] p-[21px] flex flex-col justify-between"
         >
           <div className="inline-flex items-center gap-3">
             <span className="w-[34px] h-[34px] rounded-[10px] bg-[rgba(29,41,61,0.5)] inline-flex items-center justify-center">
@@ -475,7 +475,7 @@ export function Home() {
 
         <Link
           to="/friends"
-          className="h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(173,70,255,0.05)] p-[21px] flex flex-col justify-between"
+          className="h-auto sm:h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(173,70,255,0.05)] p-[21px] flex flex-col justify-between"
         >
           <div className="inline-flex items-center gap-3">
             <span className="w-[34px] h-[34px] rounded-[10px] bg-[rgba(29,41,61,0.5)] inline-flex items-center justify-center">
@@ -492,7 +492,7 @@ export function Home() {
 
         <Link
           to="/profile"
-          className="h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(0,188,125,0.05)] p-[21px] flex flex-col justify-between"
+          className="h-auto sm:h-[103px] rounded-[14px] border border-[#1d293d] bg-[rgba(0,188,125,0.05)] p-[21px] flex flex-col justify-between"
         >
           <div className="inline-flex items-center gap-3">
             <span className="w-[34px] h-[34px] rounded-[10px] bg-[rgba(29,41,61,0.5)] inline-flex items-center justify-center">

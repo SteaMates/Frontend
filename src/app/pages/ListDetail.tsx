@@ -151,7 +151,7 @@ export function ListDetail() {
       </Link>
 
       <article className="mt-6 rounded-2xl border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
-        <header className="relative h-[256px] bg-[#1d293d]">
+        <header className="relative h-[220px] sm:h-[256px] bg-[#1d293d]">
           <img
             src={list.coverImage || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"}
             alt={list.title}
@@ -159,12 +159,12 @@ export function ListDetail() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] to-transparent" />
 
-          <div className="absolute inset-x-10 bottom-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div className="absolute inset-x-4 bottom-4 sm:inset-x-10 sm:bottom-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
             <div>
-              <h1 className="text-white text-[36px] leading-[40px] font-bold">
+              <h1 className="text-white text-[26px] sm:text-[36px] leading-[32px] sm:leading-[40px] font-bold">
                 {list.title}
               </h1>
-              <div className="mt-2 flex items-center gap-4 text-[16px]">
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px] sm:text-[16px]">
                 <UserProfileLink
                   steamId={list.author?.steamId || list.author?._id}
                   username={list.author?.username || 'Unknown'}
@@ -183,7 +183,7 @@ export function ListDetail() {
               </div>
             </div>
 
-            <div className="h-[54px] rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.5)] px-3 flex items-center gap-3 w-fit">
+            <div className="h-auto sm:h-[54px] rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.5)] px-3 py-2 sm:py-0 flex flex-wrap items-center gap-3 w-full sm:w-fit">
               <button 
                 onClick={handleLike}
                 className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#62748e]'}`}
@@ -201,13 +201,13 @@ export function ListDetail() {
           </div>
         </header>
 
-        <section className="border-b border-[#1d293d] px-10 py-10">
+        <section className="border-b border-[#1d293d] px-4 sm:px-6 md:px-10 py-8 sm:py-10">
           <p className="text-[#cad5e2] text-[18px] leading-[29px] whitespace-pre-wrap">
             {list.description}
           </p>
 
-          <div className="mt-6 flex items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <button
                 type="button"
                 className="inline-flex items-center gap-2 text-[#90a1b9] text-[16px]"
@@ -216,7 +216,7 @@ export function ListDetail() {
               </button>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-4">
               {user && user.id !== String(list.author?._id) && (
                 <ReportButton
                   targetId={list._id}
@@ -248,7 +248,7 @@ export function ListDetail() {
           </div>
         </section>
 
-        <section className="bg-[rgba(2,6,24,0.3)] px-6 md:px-10 py-10">
+        <section className="bg-[rgba(2,6,24,0.3)] px-4 sm:px-6 md:px-10 py-8 sm:py-10">
           <div className="flex items-center gap-2 mb-6">
             <span className="w-8 h-8 rounded-[10px] bg-[#4f39f6] inline-flex items-center justify-center text-white text-[14px] font-bold">
               {list.games.length}
@@ -284,7 +284,7 @@ export function ListDetail() {
           </div>
         </section>
 
-        <section className="border-t border-[#1d293d] px-6 md:px-10 py-10">
+        <section className="border-t border-[#1d293d] px-4 sm:px-6 md:px-10 py-8 sm:py-10">
           <h2 className="text-white text-[20px] leading-7 font-bold mb-6">
             Comentarios ({comments.length})
           </h2>
@@ -304,7 +304,7 @@ export function ListDetail() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handlePostComment} className="flex gap-4 mb-8">
+            <form onSubmit={handlePostComment} className="flex flex-col sm:flex-row gap-4 mb-8">
               <img
                 src={user.avatarfull}
                 alt={user.personaname}
