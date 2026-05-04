@@ -77,8 +77,6 @@ type GenreItem = {
   pct: number;
 };
 
-const PROFILE_BANNER =
-  "https://www.figma.com/api/mcp/asset/b2b60ae7-56b6-4f7c-a29c-84dd359f42ac";
 const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
 
 function snapshotKey(steamId: string) {
@@ -218,6 +216,7 @@ export function Profile() {
   const [usingSnapshot, setUsingSnapshot] = useState(false);
   const [snapshotCachedAt, setSnapshotCachedAt] = useState<number | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
+  const [profileBanner, setProfileBanner] = useState<string | null>(null);
 
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
   const targetSteamId = routeSteamId || resolvedSteamId || user?.steamid;
@@ -244,6 +243,12 @@ export function Profile() {
         }
 
         setResolvedSteamId(steamIdToLoad);
+        setProfileBanner(null);
+        api
+          .get(`/api/steam/profile-background/${steamIdToLoad}`)
+          .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
+          .catch(() => setProfileBanner(null));
+
         const useMeEndpoint = isOwnProfile;
 
         const profileEndpoint = useMeEndpoint
@@ -671,11 +676,15 @@ export function Profile() {
     <div className="max-w-[1084px] mx-auto space-y-6 pb-20">
       <section className="relative rounded-[16px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
         <div className="relative h-[180px] sm:h-[224px]">
-          <img
-            src={PROFILE_BANNER}
-            alt="Fondo de perfil"
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          {profileBanner ? (
+            <img
+              src={profileBanner}
+              alt="Fondo de perfil"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0d1f3c] via-[#0f172b] to-[#1a0a2e]" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#020618] via-[rgba(2,6,24,0.6)] to-[rgba(2,6,24,0.2)]" />
           <div className="absolute inset-0 bg-gradient-to-r from-[rgba(21,93,252,0.1)] to-[rgba(152,16,250,0.1)]" />
         </div>
