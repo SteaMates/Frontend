@@ -262,7 +262,9 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [resolvedSteamId, setResolvedSteamId] = useState<string | null>(null);
-  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(null);
+  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(
+    null,
+  );
   const [usingSnapshot, setUsingSnapshot] = useState(false);
   const [snapshotCachedAt, setSnapshotCachedAt] = useState<number | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
@@ -334,7 +336,10 @@ export function Profile() {
         if (isOwnProfile && steamIdToLoad && liveGames.length === 0) {
           const snapshot = readProfileSnapshot(steamIdToLoad);
           if (snapshot && snapshot.games.length > 0) {
-            setProfile(snapshot.profile || (Object.keys(profileData).length > 0 ? profileData : null));
+            setProfile(
+              snapshot.profile ||
+                (Object.keys(profileData).length > 0 ? profileData : null),
+            );
             setGames(snapshot.games || []);
             setRecentGames(snapshot.recentGames || []);
             setGenreData(snapshot.genreData || null);
@@ -342,7 +347,9 @@ export function Profile() {
             setUsingSnapshot(true);
             setSnapshotCachedAt(snapshot.cachedAt || null);
           } else {
-            setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+            setProfile(
+              Object.keys(profileData).length > 0 ? profileData : null,
+            );
             setGames(liveGames);
             setRecentGames(liveRecent);
             setGenreData(liveGenreData);
@@ -426,7 +433,9 @@ export function Profile() {
     return (
       <div className="max-w-[1084px] mx-auto pb-20">
         <section className="rounded-[16px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] p-8 text-center">
-          <h2 className="text-white text-[26px] font-bold">Perfil no disponible</h2>
+          <h2 className="text-white text-[26px] font-bold">
+            Perfil no disponible
+          </h2>
           <p className="mt-3 text-[#90a1b9] text-[15px]">{loadError}</p>
           <div className="mt-6">
             <Link
@@ -441,9 +450,12 @@ export function Profile() {
     );
   }
 
-  const displayName = profile?.username || (isOwnProfile ? user.personaname : "Usuario");
-  const displayAvatar = profile?.avatar || (isOwnProfile ? user.avatarfull : "");
-  const displayProfileUrl = profile?.profileUrl || (isOwnProfile ? user.profileurl : "");
+  const displayName =
+    profile?.username || (isOwnProfile ? user.personaname : "Usuario");
+  const displayAvatar =
+    profile?.avatar || (isOwnProfile ? user.avatarfull : "");
+  const displayProfileUrl =
+    profile?.profileUrl || (isOwnProfile ? user.profileurl : "");
   const displaySteamId = targetSteamId || user.steamid;
 
   const sourceGames = games;
@@ -768,7 +780,8 @@ export function Profile() {
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <span className="bg-[#1d293d] rounded-[4px] px-2 py-1 text-[10px] text-[#90a1b9] font-mono">
-                  ID: {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
+                  ID:{" "}
+                  {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
                 </span>
                 <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
                   Online
@@ -832,16 +845,21 @@ export function Profile() {
       {usingSnapshot && (
         <section className="rounded-[14px] border border-[#2b5cb4] bg-[rgba(21,93,252,0.14)] px-4 py-3">
           <p className="text-[#dbeafe] text-[13px] font-medium">
-            Mostrando tu último snapshot guardado porque Steam no devolvió datos en esta carga.
+            Mostrando tu último snapshot guardado porque Steam no devolvió datos
+            en esta carga.
           </p>
           {snapshotDateLabel && (
-            <p className="mt-1 text-[#bfdbfe] text-[12px]">Snapshot: {snapshotDateLabel}</p>
+            <p className="mt-1 text-[#bfdbfe] text-[12px]">
+              Snapshot: {snapshotDateLabel}
+            </p>
           )}
         </section>
       )}
 
       {feedbackTitle && feedbackText && (
-        <section className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}>
+        <section
+          className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}
+        >
           <div className="flex items-start gap-3">
             <div className="mt-0.5 h-9 w-9 shrink-0 rounded-[12px] bg-[#0f172b]/70 border border-white/10 flex items-center justify-center">
               <Sparkles size={16} className="text-[#f8fafc]" />
@@ -963,7 +981,9 @@ export function Profile() {
                 </div>
               </div>
             ) : (
-              <p className="text-[#62748e] text-[12px]">Sin datos de géneros disponibles</p>
+              <p className="text-[#62748e] text-[12px]">
+                Sin datos de géneros disponibles
+              </p>
             )}
           </div>
 

@@ -50,7 +50,11 @@ type PriceAlertItem = WishlistItem & {
   triggered?: boolean;
 };
 
-function getActionId(item: { id?: string; steamAppId?: string; gameId?: string }) {
+function getActionId(item: {
+  id?: string;
+  steamAppId?: string;
+  gameId?: string;
+}) {
   return String(item.id || item.steamAppId || item.gameId || "").trim();
 }
 
@@ -90,8 +94,14 @@ export function MarketTracking() {
         getPriceAlerts({ live: true }),
       ]);
 
-      setWishlist(Array.isArray(wishlistRes.data?.wishlist) ? wishlistRes.data.wishlist : []);
-      setAlerts(Array.isArray(alertsRes.data?.alerts) ? alertsRes.data.alerts : []);
+      setWishlist(
+        Array.isArray(wishlistRes.data?.wishlist)
+          ? wishlistRes.data.wishlist
+          : [],
+      );
+      setAlerts(
+        Array.isArray(alertsRes.data?.alerts) ? alertsRes.data.alerts : [],
+      );
     } catch {
       toast.error("No se pudo cargar tu seguimiento de mercado");
     } finally {
@@ -118,7 +128,9 @@ export function MarketTracking() {
 
     try {
       await removeWishlistItem(identity);
-      setWishlist((prev) => prev.filter((entry) => getActionId(entry) !== identity));
+      setWishlist((prev) =>
+        prev.filter((entry) => getActionId(entry) !== identity),
+      );
       toast.success("Juego eliminado de tu wishlist");
     } catch {
       toast.error("No se pudo eliminar de wishlist");
@@ -134,7 +146,9 @@ export function MarketTracking() {
 
     try {
       await deletePriceAlert(identity);
-      setAlerts((prev) => prev.filter((entry) => getActionId(entry) !== identity));
+      setAlerts((prev) =>
+        prev.filter((entry) => getActionId(entry) !== identity),
+      );
       toast.success("Alerta eliminada");
     } catch {
       toast.error("No se pudo eliminar la alerta");
@@ -222,8 +236,13 @@ export function MarketTracking() {
     return (
       <div className="h-[55vh] flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="animate-spin text-blue-500 mx-auto mb-3" size={32} />
-          <p className="text-slate-400 text-sm">Cargando seguimiento de mercado...</p>
+          <Loader2
+            className="animate-spin text-blue-500 mx-auto mb-3"
+            size={32}
+          />
+          <p className="text-slate-400 text-sm">
+            Cargando seguimiento de mercado...
+          </p>
         </div>
       </div>
     );
@@ -233,9 +252,12 @@ export function MarketTracking() {
     <div className="space-y-8 pb-20">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">Seguimiento de mercado</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            Seguimiento de mercado
+          </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Gestiona tu wishlist y alertas de precio en tiempo real con datos de CheapShark.
+            Gestiona tu wishlist y alertas de precio en tiempo real con datos de
+            CheapShark.
           </p>
         </div>
 
@@ -267,7 +289,9 @@ export function MarketTracking() {
         </div>
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
           <p className="text-xs text-slate-500 mb-1">Objetivos cumplidos</p>
-          <p className="text-2xl font-bold text-emerald-400">{triggeredAlerts}</p>
+          <p className="text-2xl font-bold text-emerald-400">
+            {triggeredAlerts}
+          </p>
         </div>
       </section>
 
@@ -278,36 +302,44 @@ export function MarketTracking() {
 
         {wishlist.length === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-            Aún no tienes juegos en wishlist. Desde el detalle de cualquier juego puedes guardarlo.
+            Aún no tienes juegos en wishlist. Desde el detalle de cualquier
+            juego puedes guardarlo.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             {wishlist.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
-              const savings = typeof item.savings === "number" ? Math.round(item.savings) : 0;
+              const savings =
+                typeof item.savings === "number" ? Math.round(item.savings) : 0;
 
               return (
                 <div
                   key={identity || `${item.title}-${item.addedAt}`}
                   className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
                 >
-                  <Link 
+                  <Link
                     to={`/game/${detailId}`}
-                    state={{ deal: {
-                      title: item.title,
-                      steamAppID: item.steamAppId,
-                      thumb: item.thumb,
-                      salePrice: item.currentPrice,
-                      normalPrice: item.normalPrice,
-                      dealID: "",
-                      gameID: item.gameId,
-                      storeID: "1"
-                    }}}
+                    state={{
+                      deal: {
+                        title: item.title,
+                        steamAppID: item.steamAppId,
+                        thumb: item.thumb,
+                        salePrice: item.currentPrice,
+                        normalPrice: item.normalPrice,
+                        dealID: "",
+                        gameID: item.gameId,
+                        storeID: "1",
+                      },
+                    }}
                     className="block relative aspect-video bg-slate-800 group"
                   >
                     {item.thumb ? (
-                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img
+                        src={item.thumb}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
                         Sin imagen
@@ -359,19 +391,22 @@ export function MarketTracking() {
 
       <section className="space-y-4">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingDown size={18} className="text-indigo-400" /> Alertas de Precio
+          <TrendingDown size={18} className="text-indigo-400" /> Alertas de
+          Precio
         </h2>
 
         {alerts.length === 0 ? (
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-            No has configurado alertas de precio. Añade alertas desde el detalle de los juegos.
+            No has configurado alertas de precio. Añade alertas desde el detalle
+            de los juegos.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             {alerts.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
-              const savings = typeof item.savings === "number" ? Math.round(item.savings) : 0;
+              const savings =
+                typeof item.savings === "number" ? Math.round(item.savings) : 0;
 
               return (
                 <div
@@ -384,20 +419,26 @@ export function MarketTracking() {
                 >
                   <Link
                     to={`/game/${detailId}`}
-                    state={{ deal: {
-                      title: item.title,
-                      steamAppID: item.steamAppId,
-                      thumb: item.thumb,
-                      salePrice: item.currentPrice,
-                      normalPrice: item.normalPrice,
-                      dealID: "",
-                      gameID: item.gameId,
-                      storeID: "1"
-                    }}}
+                    state={{
+                      deal: {
+                        title: item.title,
+                        steamAppID: item.steamAppId,
+                        thumb: item.thumb,
+                        salePrice: item.currentPrice,
+                        normalPrice: item.normalPrice,
+                        dealID: "",
+                        gameID: item.gameId,
+                        storeID: "1",
+                      },
+                    }}
                     className="block relative aspect-video bg-slate-800 group"
                   >
                     {item.thumb ? (
-                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <img
+                        src={item.thumb}
+                        alt={item.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
                         Sin imagen
@@ -428,16 +469,24 @@ export function MarketTracking() {
 
                     <div className="flex items-center justify-between py-2 border-t border-slate-800/50 mb-2">
                       <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">Actual</span>
-                        <span className={`text-sm font-bold ${item.triggered ? "text-emerald-400" : "text-slate-200"}`}>
+                        <span className="text-[10px] text-slate-500 uppercase font-semibold">
+                          Actual
+                        </span>
+                        <span
+                          className={`text-sm font-bold ${item.triggered ? "text-emerald-400" : "text-slate-200"}`}
+                        >
                           {formatPrice(item.currentPrice)}
                         </span>
                       </div>
                       <div className="h-6 w-px bg-slate-800/50" />
                       <div className="flex flex-col items-end">
                         <span className="text-[10px] text-slate-500 uppercase font-semibold flex items-center gap-1">
-                          Objetivo 
-                          <button onClick={() => onEditTarget(item)} className="hover:text-blue-400" title="Editar objetivo">
+                          Objetivo
+                          <button
+                            onClick={() => onEditTarget(item)}
+                            className="hover:text-blue-400"
+                            title="Editar objetivo"
+                          >
                             <Pencil size={10} />
                           </button>
                         </span>
@@ -455,9 +504,15 @@ export function MarketTracking() {
                             ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
                             : "bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300"
                         }`}
-                        title={item.enabled ? "Desactivar alerta" : "Activar alerta"}
+                        title={
+                          item.enabled ? "Desactivar alerta" : "Activar alerta"
+                        }
                       >
-                        {item.enabled ? <Bell size={14} /> : <BellOff size={14} />}
+                        {item.enabled ? (
+                          <Bell size={14} />
+                        ) : (
+                          <BellOff size={14} />
+                        )}
                       </button>
                       <button
                         onClick={() => onDeleteAlert(item)}

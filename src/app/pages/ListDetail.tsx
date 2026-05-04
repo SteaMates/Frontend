@@ -65,7 +65,8 @@ export function ListDetail() {
   const [error, setError] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres borrar esta lista?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres borrar esta lista?"))
+      return;
     try {
       await api.delete(`/api/lists/${id}`);
       navigate("/lists");
@@ -80,7 +81,7 @@ export function ListDetail() {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
-          api.get(`/api/lists/${id}/comments`)
+          api.get(`/api/lists/${id}/comments`),
         ]);
         setList(listRes.data);
         setComments(commentsRes.data);
@@ -100,7 +101,11 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/like`);
-      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
+      setList((prev) =>
+        prev
+          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
+          : prev,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -110,7 +115,11 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/dislike`);
-      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
+      setList((prev) =>
+        prev
+          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
+          : prev,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -122,13 +131,16 @@ export function ListDetail() {
     if (!newComment.trim()) return;
 
     try {
-      const res = await api.post(`/api/lists/${id}/comments`, { content: newComment });
+      const res = await api.post(`/api/lists/${id}/comments`, {
+        content: newComment,
+      });
       setComments([res.data, ...comments]);
       setNewComment("");
     } catch (err) {
       console.error(err);
       const error = err as any;
-      const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
+      const errorMessage =
+        error?.response?.data?.error || error?.message || "Unknown error";
       alert(`Error creating comment: ${errorMessage}`);
     }
   };
@@ -153,7 +165,10 @@ export function ListDetail() {
       <article className="mt-6 rounded-2xl border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
         <header className="relative h-[220px] sm:h-[256px] bg-[#1d293d]">
           <img
-            src={list.coverImage || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"}
+            src={
+              list.coverImage ||
+              "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"
+            }
             alt={list.title}
             className="absolute inset-0 w-full h-full object-cover opacity-50"
           />
@@ -167,7 +182,7 @@ export function ListDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-3 text-[13px] sm:text-[16px]">
                 <UserProfileLink
                   steamId={list.author?.steamId || list.author?._id}
-                  username={list.author?.username || 'Unknown'}
+                  username={list.author?.username || "Unknown"}
                   avatar={list.author?.avatar}
                   variant="both"
                   avatarClassName="w-8 h-8 rounded-full border border-[#45556c] bg-[#314158]"
@@ -184,16 +199,16 @@ export function ListDetail() {
             </div>
 
             <div className="h-auto sm:h-[54px] rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.5)] px-3 py-2 sm:py-0 flex flex-wrap items-center gap-3 w-full sm:w-fit">
-              <button 
+              <button
                 onClick={handleLike}
-                className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#62748e]'}`}
+                className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.likes?.includes(user?.id || "") ? "text-[#00d492]" : "text-[#62748e]"}`}
               >
                 <ThumbsUp size={18} /> {list.likes?.length || 0}
               </button>
               <div className="w-px h-6 bg-[#314158]" />
-              <button 
+              <button
                 onClick={handleDislike}
-                className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467]' : 'text-[#62748e]'}`}
+                className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.dislikes?.includes(user?.id || "") ? "text-[#ff6467]" : "text-[#62748e]"}`}
               >
                 <ThumbsDown size={18} /> {list.dislikes?.length || 0}
               </button>
@@ -269,7 +284,11 @@ export function ListDetail() {
                 </div>
                 <div className="relative w-full sm:w-[192px] h-[118px] rounded-[10px] overflow-hidden bg-[#1d293d] shrink-0">
                   <img
-                    src={game.imageUrl || game.image || `https://picsum.photos/seed/${game.name}/200/100`}
+                    src={
+                      game.imageUrl ||
+                      game.image ||
+                      `https://picsum.photos/seed/${game.name}/200/100`
+                    }
                     alt={game.name}
                     className="absolute inset-0 w-full h-full object-cover"
                   />
@@ -304,7 +323,10 @@ export function ListDetail() {
               </button>
             </div>
           ) : (
-            <form onSubmit={handlePostComment} className="flex flex-col sm:flex-row gap-4 mb-8">
+            <form
+              onSubmit={handlePostComment}
+              className="flex flex-col sm:flex-row gap-4 mb-8"
+            >
               <img
                 src={user.avatarfull}
                 alt={user.personaname}
@@ -333,7 +355,7 @@ export function ListDetail() {
               <div key={comment._id} className="flex items-start gap-4">
                 <UserProfileLink
                   steamId={comment.author?.steamId || comment.author?._id}
-                  username={comment.author?.username || 'Unknown'}
+                  username={comment.author?.username || "Unknown"}
                   avatar={comment.author?.avatar}
                   variant="avatar"
                   avatarClassName="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
@@ -344,8 +366,10 @@ export function ListDetail() {
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <UserProfileLink
-                          steamId={comment.author?.steamId || comment.author?._id}
-                          username={comment.author?.username || 'Unknown'}
+                          steamId={
+                            comment.author?.steamId || comment.author?._id
+                          }
+                          username={comment.author?.username || "Unknown"}
                           variant="name"
                           nameClassName="text-white text-[16px] leading-6 font-bold truncate"
                         />
