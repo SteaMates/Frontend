@@ -80,9 +80,9 @@ export function Login() {
   ];
 
   return (
-    <div className="flex flex-col md:flex-row -m-4 md:-m-8 min-h-screen bg-[#020618]">
+    <div className="flex flex-col lg:flex-row -m-4 sm:-m-6 lg:-m-8 min-h-screen bg-[#020618]">
       {/* Left: Hero section */}
-      <div className="flex-1 relative overflow-hidden min-h-[50vh] md:min-h-screen">
+      <div className="flex-1 relative overflow-hidden min-h-[50vh] lg:min-h-screen">
         {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-center opacity-25"
@@ -96,7 +96,7 @@ export function Login() {
         <div className="absolute bottom-40 right-10 w-60 h-60 bg-[rgba(173,70,255,0.06)] rounded-full blur-[100px]" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center h-full py-12 px-10 lg:px-16">
+        <div className="relative z-10 flex flex-col justify-center h-full py-12 px-6 sm:px-10 lg:px-16">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-12">
             <div
@@ -114,11 +114,11 @@ export function Login() {
 
           {/* Heading */}
           <div className="mb-6">
-            <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
               Tu vida gaming,
             </h1>
             <h1
-              className="text-4xl lg:text-5xl font-bold leading-tight bg-clip-text text-transparent"
+              className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight bg-clip-text text-transparent"
               style={{
                 backgroundImage:
                   "linear-gradient(90deg, #51a2ff 0%, #c27aff 100%)",
@@ -159,7 +159,7 @@ export function Login() {
           </div>
 
           {/* Stats */}
-          <div className="flex gap-8 pt-4 border-t border-[rgba(29,41,61,0.5)]">
+          <div className="flex flex-wrap gap-4 sm:gap-8 pt-4 border-t border-[rgba(29,41,61,0.5)]">
             {stats.map((stat) => (
               <div key={stat.label}>
                 <p className="text-lg font-bold text-white">{stat.value}</p>
@@ -173,7 +173,7 @@ export function Login() {
       </div>
 
       {/* Right: Login card */}
-      <div className="flex items-center justify-center md:w-[480px] shrink-0 px-6 py-12 md:py-0">
+      <div className="flex items-center justify-center lg:w-[480px] shrink-0 px-6 py-12 lg:py-0">
         <div
           className="w-full max-w-[350px] rounded-[16px] border border-[#1d293d] shadow-[0px_25px_50px_0px_rgba(0,0,0,0.25)] p-10 flex flex-col gap-5"
           style={{ background: "rgba(15,23,43,0.5)" }}
