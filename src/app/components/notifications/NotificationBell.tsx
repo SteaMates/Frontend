@@ -1,7 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { BellDot, Bell, Check, CheckCheck, Gamepad2, X, Loader2 } from "lucide-react";
+import {
+  BellDot,
+  Bell,
+  Check,
+  CheckCheck,
+  Gamepad2,
+  X,
+  Loader2,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useNotifications, AppNotification } from "../../context/NotificationsContext";
+import {
+  useNotifications,
+  AppNotification,
+} from "../../context/NotificationsContext";
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -77,11 +88,24 @@ function NotificationItem({
   );
 }
 
-export function NotificationBell() {
-  const { notifications, unreadCount, markRead, markAllRead, loading, refresh } =
-    useNotifications();
+export function NotificationBell({
+  variant = "sidebar",
+  buttonClassName,
+}: {
+  variant?: "sidebar" | "mobile";
+  buttonClassName?: string;
+}) {
+  const {
+    notifications,
+    unreadCount,
+    markRead,
+    markAllRead,
+    loading,
+    refresh,
+  } = useNotifications();
   const [open, setOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -96,15 +120,56 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
+  const positionPanel = () => {
+    if (!buttonRef.current) return;
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const isMobile = variant === "mobile" || window.innerWidth < 768;
+    const panelWidth = isMobile
+      ? Math.max(260, Math.min(window.innerWidth - 32, 420))
+      : 320;
+
+    setOpenUpward(spaceBelow < 500 && !isMobile);
+
+    let left = isMobile
+      ? Math.max(16, Math.round((window.innerWidth - panelWidth) / 2))
+      : Math.round(rect.right + 8);
+
+    if (!isMobile && left + panelWidth > window.innerWidth - 12) {
+      left = Math.max(12, Math.round(rect.left - panelWidth - 8));
+    }
+
+    const top = openUpward
+      ? Math.round(rect.top - 8)
+      : Math.round(rect.bottom + 8);
+
+    setPanelStyle({
+      left,
+      top,
+      width: panelWidth,
+    });
+  };
+
   const handleOpen = () => {
-    if (!open && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setOpenUpward(spaceBelow < 500);
+    if (!open) {
+      positionPanel();
+      refresh();
     }
     setOpen((v) => !v);
-    if (!open) refresh();
   };
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleResize = () => positionPanel();
+    window.addEventListener("resize", handleResize);
+    window.addEventListener("scroll", handleResize, true);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleResize, true);
+    };
+  }, [open, variant, openUpward]);
 
   return (
     <div ref={panelRef} className="relative">
@@ -112,7 +177,9 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={handleOpen}
-        className="relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 w-full"
+        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 w-full ${
+          buttonClassName ?? ""
+        }`}
         aria-label="Notificaciones"
       >
         <BellDot size={20} />
@@ -132,8 +199,12 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className={`absolute left-full ml-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden ${openUpward ? "bottom-0" : "top-0"}`}
-            style={{ maxHeight: "480px" }}
+            className="fixed bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            style={{
+              ...panelStyle,
+              maxHeight: "480px",
+              transform: openUpward ? "translateY(-100%)" : "translateY(0)",
+            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">

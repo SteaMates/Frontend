@@ -176,28 +176,26 @@ export function Layout() {
           </div>
         )}
 
-        <nav className="flex-1 min-h-0 p-4 flex flex-col gap-2">
-          <div className="flex-1 min-h-0 space-y-2 overflow-y-auto scrollbar-none overscroll-contain pr-1">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
-                    isActive
-                      ? "bg-blue-600/20 text-blue-400 font-medium border border-blue-600/30"
-                      : "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
-                  )}
-                >
-                  <Icon size={20} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
+        <nav className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto scrollbar-none overscroll-contain">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
+                  isActive
+                    ? "bg-blue-600/20 text-blue-400 font-medium border border-blue-600/30"
+                    : "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
+                )}
+              >
+                <Icon size={20} />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
 
           {/* Notifications bell - only for logged in users */}
           {user && <NotificationBell />}
@@ -207,7 +205,7 @@ export function Layout() {
             <Link
               to="/admin"
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-2 border-t border-slate-800 pt-4",
+                "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mt-4 border-t border-slate-800 pt-4",
                 location.pathname === "/admin"
                   ? "bg-red-600/20 text-red-400 font-medium border border-red-600/30"
                   : "text-slate-400 hover:bg-slate-800 hover:text-slate-200",
@@ -272,7 +270,7 @@ export function Layout() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 z-20 bg-slate-950 pt-20 px-4 md:hidden"
+            className="fixed inset-0 z-20 bg-slate-950 pt-20 px-4 md:hidden overflow-y-auto"
           >
             <nav className="flex flex-col space-y-2">
               {navItems.map((item) => {
@@ -295,6 +293,13 @@ export function Layout() {
                   </Link>
                 );
               })}
+
+              {user && (
+                <NotificationBell
+                  variant="mobile"
+                  buttonClassName="py-4 text-lg"
+                />
+              )}
 
               {/* Admin Panel Link - Mobile */}
               {isAdmin && (
