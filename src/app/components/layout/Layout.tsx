@@ -176,7 +176,7 @@ export function Layout() {
           </div>
         )}
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 min-h-0 p-4 space-y-2 overflow-y-auto scrollbar-none overscroll-contain">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;

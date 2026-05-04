@@ -254,7 +254,10 @@ export function Login() {
         </div>
       </div>
 
-      <AlertDialog open={Boolean(bannedReason)} onOpenChange={(open) => !open && setBannedReason("")}>
+      <AlertDialog
+        open={Boolean(bannedReason)}
+        onOpenChange={(open) => !open && setBannedReason("")}
+      >
         <AlertDialogContent className="border-red-500/30 bg-slate-950 text-slate-100 max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-400">
@@ -263,13 +266,16 @@ export function Login() {
             <AlertDialogDescription className="text-slate-300 leading-6">
               {bannedReason ? (
                 <>
-                  Has sido baneado por: <span className="text-slate-100">"{bannedReason}"</span>.
-                  No puedes iniciar sesión hasta que un administrador revise tu caso.
+                  Has sido baneado por:{" "}
+                  <span className="text-slate-100">"{bannedReason}"</span>. No
+                  puedes iniciar sesión hasta que un administrador revise tu
+                  caso.
                 </>
               ) : (
                 <>
-                  Has sido baneado por incumplir las normas de la comunidad.
-                  No puedes iniciar sesión hasta que un administrador revise tu caso.
+                  Has sido baneado por incumplir las normas de la comunidad. No
+                  puedes iniciar sesión hasta que un administrador revise tu
+                  caso.
                 </>
               )}
             </AlertDialogDescription>
