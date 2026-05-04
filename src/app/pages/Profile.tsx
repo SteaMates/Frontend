@@ -78,9 +78,14 @@ type GenreItem = {
 };
 
 const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
+const PROFILE_SESSION_CACHE_PREFIX = "steamates_profile_session_cache_v1";
 
 function snapshotKey(steamId: string) {
   return `${PROFILE_SNAPSHOT_PREFIX}:${steamId}`;
+}
+
+function sessionCacheKey(steamId: string) {
+  return `${PROFILE_SESSION_CACHE_PREFIX}:${steamId}`;
 }
 
 function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
@@ -98,6 +103,26 @@ function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
 function writeProfileSnapshot(steamId: string, snapshot: ProfileSnapshot) {
   try {
     localStorage.setItem(snapshotKey(steamId), JSON.stringify(snapshot));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function readSessionCache(steamId: string): ProfileSnapshot | null {
+  try {
+    const raw = sessionStorage.getItem(sessionCacheKey(steamId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ProfileSnapshot;
+    if (!parsed || !Array.isArray(parsed.games)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeSessionCache(steamId: string, snapshot: ProfileSnapshot) {
+  try {
+    sessionStorage.setItem(sessionCacheKey(steamId), JSON.stringify(snapshot));
   } catch {
     // Ignore storage quota errors
   }
@@ -269,6 +294,20 @@ export function Profile() {
           ? "/api/steam/stats/me/achievements"
           : `/api/steam/stats/achievements/${steamIdToLoad}`;
 
+        // Verificar si hay datos en caché de sesión
+        const sessionCache = readSessionCache(steamIdToLoad);
+        if (sessionCache && sessionCache.games.length > 0) {
+          setProfile(sessionCache.profile);
+          setGames(sessionCache.games || []);
+          setRecentGames(sessionCache.recentGames || []);
+          setGenreData(sessionCache.genreData || null);
+          setAchievementsData(sessionCache.achievementsData || null);
+          setUsingSnapshot(false);
+          setSnapshotCachedAt(null);
+          setLoading(false);
+          return; // Salir temprano si tenemos datos en caché
+        }
+
         const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
           api.get(profileEndpoint),
           api.get(gamesEndpoint),
@@ -323,15 +362,21 @@ export function Profile() {
         }
         setLoading(false);
 
-        if (isOwnProfile && steamIdToLoad && liveGames.length > 0) {
-          writeProfileSnapshot(steamIdToLoad, {
+        if (steamIdToLoad && liveGames.length > 0) {
+          const cacheData = {
             profile: Object.keys(profileData).length > 0 ? profileData : null,
             games: liveGames,
             recentGames: liveRecent,
             genreData: liveGenreData,
             achievementsData: null,
             cachedAt: Date.now(),
-          });
+          };
+          // Guardar en caché de sesión
+          writeSessionCache(steamIdToLoad, cacheData);
+          // Guardar en localStorage si es el perfil propio
+          if (isOwnProfile) {
+            writeProfileSnapshot(steamIdToLoad, cacheData);
+          }
         }
 
         // Fetch achievements lazily (takes longer)
@@ -341,14 +386,18 @@ export function Profile() {
             const nextAchievements = res.data || { empty: true };
             setAchievementsData(nextAchievements);
 
-            if (isOwnProfile && steamIdToLoad && liveGames.length > 0) {
-              const prev = readProfileSnapshot(steamIdToLoad);
-              if (prev) {
-                writeProfileSnapshot(steamIdToLoad, {
-                  ...prev,
+            if (steamIdToLoad && liveGames.length > 0) {
+              const prevCache = readSessionCache(steamIdToLoad);
+              if (prevCache) {
+                const updatedCache = {
+                  ...prevCache,
                   achievementsData: nextAchievements,
                   cachedAt: Date.now(),
-                });
+                };
+                writeSessionCache(steamIdToLoad, updatedCache);
+                if (isOwnProfile) {
+                  writeProfileSnapshot(steamIdToLoad, updatedCache);
+                }
               }
             }
           })
@@ -715,14 +764,14 @@ export function Profile() {
             </div>
 
             <div className="flex-1 pt-2 sm:pt-3 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] leading-[1.1] font-bold text-white truncate">
+              <div className="flex flex-wrap items-center gap-2 -mt-1">
+                <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] xl:text-[48px] leading-[1.2] font-bold text-white break-words max-w-full">
                   {displayName}
                 </h1>
-                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold text-white bg-gradient-to-r from-[#51a2ff] to-[#00b8db]">
+                <span className="rounded-full px-2.5 py-0.5 text-[12px] font-bold text-white bg-gradient-to-r from-[#51a2ff] to-[#00b8db] shrink-0">
                   Lv.{level}
                 </span>
-                <span className="text-[12px] text-[#62748e]">
+                <span className="text-[12px] text-[#62748e] shrink-0">
                   {profile?.title}
                 </span>
               </div>
