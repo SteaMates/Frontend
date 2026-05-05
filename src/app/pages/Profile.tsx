@@ -1039,9 +1039,8 @@ export function Profile() {
           );
         })
       : [];
-  const identityGames = (identityMatches.length > 0
-    ? identityMatches
-    : topGames
+  const identityGames = (
+    identityMatches.length > 0 ? identityMatches : topGames
   ).slice(0, 4);
   const identityNote =
     identityMatches.length > 0
@@ -1058,9 +1057,7 @@ export function Profile() {
     };
   });
 
-  const signatureCover = signatureGame
-    ? resolveGameCover(signatureGame)
-    : "";
+  const signatureCover = signatureGame ? resolveGameCover(signatureGame) : "";
 
   const stats = [
     {
@@ -1501,7 +1498,6 @@ export function Profile() {
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
             <Gamepad2 size={18} className="text-[#8b5cf6]" /> Biblioteca
-            Completa
           </h3>
           <div className="bg-[#1d293d] rounded-[10px] p-[2px] flex items-center gap-1">
             {(
@@ -1648,9 +1644,11 @@ export function Profile() {
                           {game.name}
                         </p>
                         <p className="text-[9px] text-[#64748b]">
-                          {hours}h · {totalHours > 0
+                          {hours}h ·{" "}
+                          {totalHours > 0
                             ? Math.round((hours / totalHours) * 100)
-                            : 0}%
+                            : 0}
+                          %
                         </p>
                       </div>
                     </div>
