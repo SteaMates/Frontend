@@ -1551,12 +1551,15 @@ export function Friends() {
   };
 
   // Devuelve true si la sesión es futura (fecha y hora no han pasado)
+  // Devuelve true si la sesión es futura (fecha y hora no han pasado)
   const isFutureSession = (session: ScheduledSession) => {
     if (!session.date || !session.time) return false;
     const [year, month, day] = session.date.split("-").map(Number);
     const [hour, minute] = session.time.split(":").map(Number);
-    const sessionDate = new Date(year, month - 1, day, hour, minute);
-    return sessionDate >= new Date();
+    const sessionDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+    const now = new Date();
+    // Solo mostrar sesiones cuya fecha y hora sean posteriores a ahora
+    return sessionDate.getTime() > now.getTime();
   };
 
   const loadSessions = async () => {
