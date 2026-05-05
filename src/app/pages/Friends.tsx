@@ -1550,6 +1550,15 @@ export function Friends() {
     };
   };
 
+  // Devuelve true si la sesión es futura (fecha y hora no han pasado)
+  const isFutureSession = (session: ScheduledSession) => {
+    if (!session.date || !session.time) return false;
+    const [year, month, day] = session.date.split("-").map(Number);
+    const [hour, minute] = session.time.split(":").map(Number);
+    const sessionDate = new Date(year, month - 1, day, hour, minute);
+    return sessionDate >= new Date();
+  };
+
   const loadSessions = async () => {
     if (!user?.steamid) return;
 
@@ -1558,9 +1567,8 @@ export function Friends() {
       const res = await getMyGamingSessions();
       const sessions = (res.data?.sessions || [])
         .map(normalizeSession)
-        // Hide sessions the user has declined/abandoned — they're still in the
-        // DB but shouldn't appear in the participant's list anymore.
-        .filter((s) => s.myParticipantStatus !== 'declined');
+        // Oculta sesiones rechazadas y pasadas
+        .filter((s) => s.myParticipantStatus !== 'declined' && isFutureSession(s));
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
