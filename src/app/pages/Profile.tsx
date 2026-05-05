@@ -77,6 +77,26 @@ type GenreItem = {
   pct: number;
 };
 
+type IdentityRule = {
+  key: string;
+  label: string;
+  emoji: string;
+  match: string[];
+  minHours: number;
+  minPct: number;
+  detailLabel: string;
+  hint: string;
+};
+
+type GamerIdentity = {
+  label: string;
+  emoji: string;
+  pct: number;
+  hours: number;
+  detail: string;
+  hint: string;
+};
+
 const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
 const PROFILE_SESSION_CACHE_PREFIX = "steamates_profile_session_cache_v1";
 
@@ -224,6 +244,145 @@ function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
     color: GENRE_COLORS[index % GENRE_COLORS.length],
     pct: Math.round((row.hours / sum) * 100),
   }));
+}
+
+const IDENTITY_RULES: IdentityRule[] = [
+  {
+    key: "racing",
+    label: "Piloto competitivo",
+    emoji: "🏎️",
+    match: ["racing", "carreras"],
+    minHours: 40,
+    minPct: 0.3,
+    detailLabel: "juegos de carreras",
+    hint: "Velocidad, trazadas y precisión milimétrica.",
+  },
+  {
+    key: "sim",
+    label: "Simracer",
+    emoji: "🛠️",
+    match: ["simulation", "simuladores", "simulación"],
+    minHours: 35,
+    minPct: 0.25,
+    detailLabel: "simuladores",
+    hint: "Te gustan los detalles y el realismo.",
+  },
+  {
+    key: "fps",
+    label: "Tirador táctico",
+    emoji: "🎯",
+    match: ["fps", "shooter", "disparos"],
+    minHours: 30,
+    minPct: 0.25,
+    detailLabel: "shooters",
+    hint: "Reflejos, precisión y sangre fría.",
+  },
+  {
+    key: "strategy",
+    label: "Estratega",
+    emoji: "🧠",
+    match: ["strategy", "estrategia"],
+    minHours: 25,
+    minPct: 0.2,
+    detailLabel: "estrategia",
+    hint: "Planificas cada movimiento antes de jugarlo.",
+  },
+  {
+    key: "rpg",
+    label: "Aventurero épico",
+    emoji: "🗺️",
+    match: ["rpg"],
+    minHours: 30,
+    minPct: 0.22,
+    detailLabel: "RPG",
+    hint: "Historias largas y progresión a fuego lento.",
+  },
+  {
+    key: "indie",
+    label: "Curador indie",
+    emoji: "✨",
+    match: ["indie"],
+    minHours: 20,
+    minPct: 0.2,
+    detailLabel: "indies",
+    hint: "Te atrae lo creativo y lo distinto.",
+  },
+  {
+    key: "horror",
+    label: "Cazapesadillas",
+    emoji: "👻",
+    match: ["horror", "terror"],
+    minHours: 15,
+    minPct: 0.18,
+    detailLabel: "terror",
+    hint: "El susto es tu zona de confort.",
+  },
+  {
+    key: "sports",
+    label: "Atleta digital",
+    emoji: "⚽",
+    match: ["sports", "deportes"],
+    minHours: 20,
+    minPct: 0.2,
+    detailLabel: "deportes",
+    hint: "Competición directa y ritmo constante.",
+  },
+];
+
+function computeGamerIdentity(
+  genreItems: GenreItem[],
+  totalHours: number,
+): GamerIdentity {
+  if (!genreItems.length || totalHours <= 0) {
+    return {
+      label: "Identidad en pausa",
+      emoji: "🧭",
+      pct: 0,
+      hours: 0,
+      detail: "Aún no hay suficientes datos para definirla.",
+      hint: "Juega un poco más para revelar tu estilo.",
+    };
+  }
+
+  const scored = IDENTITY_RULES.map((rule) => {
+    const hours = genreItems.reduce((sum, item) => {
+      const name = item.name.toLowerCase();
+      const matches = rule.match.some((keyword) => name.includes(keyword));
+      return matches ? sum + item.hours : sum;
+    }, 0);
+    const ratio = totalHours > 0 ? hours / totalHours : 0;
+    return {
+      rule,
+      hours,
+      ratio,
+      pct: Math.round(ratio * 100),
+    };
+  }).filter((item) => item.hours > 0);
+
+  if (scored.length > 0) {
+    const best = scored.sort((a, b) => b.ratio - a.ratio)[0];
+    if (best.hours >= best.rule.minHours && best.ratio >= best.rule.minPct) {
+      return {
+        label: best.rule.label,
+        emoji: best.rule.emoji,
+        pct: best.pct,
+        hours: best.hours,
+        detail: `${best.pct}% de tus horas estan en ${best.rule.detailLabel}`,
+        hint: best.rule.hint,
+      };
+    }
+  }
+
+  const focus = genreItems[0];
+  const focusPct = Math.round((focus.hours / Math.max(1, totalHours)) * 100);
+  return {
+    label: "Perfil versatil",
+    emoji: "🧭",
+    pct: focusPct,
+    hours: focus.hours,
+    detail: `${focusPct}% de tus horas estan en ${focus.name}`,
+    hint: "Tu tiempo esta bastante repartido.",
+  };
 }
 
 export function Profile() {
@@ -620,6 +779,7 @@ export function Profile() {
   }
 
   const genreItems = normalizeGenres(genreData, totalHours);
+  const gamerIdentity = computeGamerIdentity(genreItems, totalHours);
 
   const genreTotalHours = genreItems.reduce((sum, item) => sum + item.hours, 0);
   const genreFocus = genreItems[0] || null;
@@ -681,6 +841,140 @@ export function Profile() {
     when: relativeLabel(r.lastPlayed, "Reciente"),
     tone: "play" as const,
   }));
+
+  const sortedByHours = [...sourceGames].sort(
+    (a, b) => (b.playtime || 0) - (a.playtime || 0),
+  );
+  const top3Games = sortedByHours
+    .filter((g) => (g.playtime || 0) > 0)
+    .slice(0, 3);
+  const top3Hours = top3Games.reduce(
+    (sum, game) => sum + hoursFromMinutes(game.playtime),
+    0,
+  );
+  const concentrationPct =
+    totalHours > 0 ? Math.round((top3Hours / totalHours) * 100) : 0;
+
+  const dominance = (() => {
+    if (totalHours <= 0) {
+      return {
+        label: "Sin datos",
+        detail: "Aun no hay horas suficientes para medir el dominio.",
+        tone: "from-[#1d293d] to-[#1d293d]",
+      };
+    }
+
+    if (concentrationPct >= 80) {
+      return {
+        label: "Jugador especializado",
+        detail: "Prefieres dominar pocos juegos antes que probar muchos.",
+        tone: "from-[#0b2f5a] to-[#1a2b4a]",
+      };
+    }
+
+    if (concentrationPct >= 55) {
+      return {
+        label: "Equilibrado",
+        detail: "Combinas unos pocos juegos fuertes con variedad.",
+        tone: "from-[#1b2a4a] to-[#1b233a]",
+      };
+    }
+
+    return {
+      label: "Explorador",
+      detail: "Te mueves por muchos juegos distintos.",
+      tone: "from-[#1d293d] to-[#1a2235]",
+    };
+  })();
+
+  const dominanceSummary =
+    totalHours > 0
+      ? `El ${concentrationPct}% de tus horas estan en tus ${Math.max(
+          top3Games.length,
+          1,
+        )} juegos principales`
+      : "Sin horas jugadas suficientes";
+
+  const recentGameIds = new Set(recentGames.map((g) => g.appId));
+  const signaturePick =
+    sortedByHours
+      .filter((g) => (g.playtime || 0) > 0)
+      .map((game) => {
+        const hours = hoursFromMinutes(game.playtime);
+        const pctRatio = totalHours > 0 ? hours / totalHours : 0;
+        const lastPlayedMs = game.lastPlayed
+          ? game.lastPlayed > 1e11
+            ? game.lastPlayed
+            : game.lastPlayed * 1000
+          : 0;
+        const daysSince = lastPlayedMs
+          ? (Date.now() - lastPlayedMs) / 86400000
+          : Number.POSITIVE_INFINITY;
+        const recencyBonus =
+          daysSince <= 7 ? 40 : daysSince <= 14 ? 25 : daysSince <= 30 ? 10 : 0;
+        const recentBonus = recentGameIds.has(game.appId) ? 20 : 0;
+        const score = hours * 1.4 + pctRatio * 120 + recencyBonus + recentBonus;
+        return {
+          game,
+          hours,
+          pctRatio,
+          score,
+        };
+      })
+      .sort((a, b) => b.score - a.score)[0] || null;
+
+  const signatureGame = signaturePick?.game || null;
+  const signatureHours = signaturePick?.hours || 0;
+  const signaturePct = signaturePick
+    ? Math.round(signaturePick.pctRatio * 100)
+    : 0;
+  const signatureLastPlayed = signatureGame?.lastPlayed
+    ? relativeLabel(signatureGame.lastPlayed, "Reciente")
+    : "Sin actividad reciente";
+
+  const recentMinutes = recentGames.reduce(
+    (sum, game) => sum + (game.playtime2Weeks || 0),
+    0,
+  );
+  const recentHours = Number((recentMinutes / 60).toFixed(1));
+  const recentMainGame =
+    [...recentGames]
+      .sort((a, b) => (b.playtime2Weeks || 0) - (a.playtime2Weeks || 0))
+      .shift() || null;
+  const recentSummary =
+    recentMinutes > 0
+      ? `Has jugado ${recentHours}h en las ultimas 2 semanas`
+      : "Modo reposo";
+  const recentDetail =
+    recentMinutes > 0 && recentMainGame
+      ? `Tu juego activo ahora es ${recentMainGame.name}`
+      : "Sin actividad reciente en las ultimas 2 semanas";
+
+  const lastPlayedFromLibrary = [...sourceGames]
+    .filter((g) => (g.lastPlayed || 0) > 0)
+    .sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))
+    .shift();
+  const lastPlayedFromRecent = [...recentGames]
+    .filter((g) => (g.lastPlayed || 0) > 0)
+    .sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))
+    .shift();
+  const lastPlayedGame = lastPlayedFromLibrary || lastPlayedFromRecent || null;
+  const lastPlayedLabel = lastPlayedGame?.lastPlayed
+    ? relativeLabel(lastPlayedGame.lastPlayed, "Reciente")
+    : "Sin actividad reciente detectada";
+
+  const signatureTitle = signatureGame ? signatureGame.name : "Sin datos aun";
+  const signatureDetail = signatureGame
+    ? `${signatureHours}h · ${signaturePct}% de todo tu tiempo jugado`
+    : "Juega un poco mas para definirlo";
+  const signatureSub = signatureGame
+    ? `Ultima sesion: ${signatureLastPlayed}`
+    : "Sin actividad reciente detectada";
+
+  const lastPlayedTitle = lastPlayedGame?.name || "Sin actividad reciente";
+  const lastPlayedDetail = lastPlayedGame
+    ? `Ultima sesion: ${lastPlayedLabel}`
+    : "Sin actividad reciente detectada";
 
   const stats = [
     {
@@ -1214,6 +1508,134 @@ export function Profile() {
             })}
           </div>
         )}
+      </section>
+
+      <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
+            <Sparkles size={18} className="text-[#51a2ff]" /> Identidad y Firma
+          </h3>
+          <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
+            INSIGHTS
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0c1b35] via-[#0f172b] to-[#1a1235] opacity-80" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
+                <span className="text-[16px]">{gamerIdentity.emoji}</span>
+                Identidad gamer
+              </div>
+              <p className="mt-2 text-[22px] font-bold text-white">
+                {gamerIdentity.label}
+              </p>
+              <p className="mt-1 text-[12px] text-[#90a1b9]">
+                {gamerIdentity.detail}
+              </p>
+              <p className="text-[10px] text-[#64748b]">{gamerIdentity.hint}</p>
+              {gamerIdentity.pct > 0 && (
+                <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#51a2ff] to-[#00b8db]"
+                    style={{ width: `${Math.min(100, gamerIdentity.pct)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1b2f] via-[#121826] to-[#22102a] opacity-80" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
+                <Trophy size={14} className="text-[#ffb900]" /> Juego firma
+              </div>
+              <p className="mt-2 text-[20px] font-bold text-white truncate">
+                {signatureTitle}
+              </p>
+              <p className="mt-1 text-[12px] text-[#90a1b9]">
+                {signatureDetail}
+              </p>
+              <p className="text-[10px] text-[#64748b]">{signatureSub}</p>
+              {signatureGame && (
+                <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#ffb900] to-[#ff637e]"
+                    style={{ width: `${Math.min(100, signaturePct)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
+            <div
+              className={`absolute inset-0 bg-gradient-to-br ${dominance.tone} opacity-80`}
+            />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
+                <Target size={14} className="text-[#00d492]" /> Dominio de
+                biblioteca
+              </div>
+              <p className="mt-2 text-[20px] font-bold text-white">
+                {dominance.label}
+              </p>
+              <p className="mt-1 text-[12px] text-[#90a1b9]">
+                {dominanceSummary}
+              </p>
+              <p className="text-[10px] text-[#64748b]">{dominance.detail}</p>
+              {totalHours > 0 && (
+                <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-[#00d492] to-[#51a2ff]"
+                    style={{ width: `${Math.min(100, concentrationPct)}%` }}
+                  />
+                </div>
+              )}
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#10263f] via-[#0f172b] to-[#0b2238] opacity-80" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
+                <Zap size={14} className="text-[#00d3f3]" /> Racha reciente
+              </div>
+              <p className="mt-2 text-[20px] font-bold text-white">
+                {recentSummary}
+              </p>
+              <p className="mt-1 text-[12px] text-[#90a1b9]">{recentDetail}</p>
+              <p className="text-[10px] text-[#64748b]">
+                {recentMinutes > 0
+                  ? "Actividad basada en las ultimas 2 semanas"
+                  : "No se detecta actividad reciente"}
+              </p>
+            </div>
+          </article>
+
+          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0f1c33] via-[#0f172b] to-[#1b1f32] opacity-80" />
+            <div className="relative">
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
+                <Clock size={14} className="text-[#51a2ff]" /> Ultimo juego
+                jugado
+              </div>
+              <p className="mt-2 text-[20px] font-bold text-white truncate">
+                {lastPlayedTitle}
+              </p>
+              <p className="mt-1 text-[12px] text-[#90a1b9]">
+                {lastPlayedDetail}
+              </p>
+              <p className="text-[10px] text-[#64748b]">
+                {lastPlayedGame
+                  ? "Se actualiza con Steam cuando hay actividad"
+                  : "Sin datos recientes disponibles"}
+              </p>
+            </div>
+          </article>
+        </div>
       </section>
     </div>
   );
