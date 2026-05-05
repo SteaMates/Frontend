@@ -698,24 +698,8 @@ export function UpcomingSessions({
               </span>
             )}
 
-            {/* Host cancels, participant leaves */}
-            {session.isHost || !session.myParticipantStatus ? (
-              <button
-                onClick={() => onRemove(session.id)}
-                className="p-1.5 text-slate-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                title="Cancelar sesión"
-              >
-                <X size={14} />
-              </button>
-            ) : (
-              <button
-                onClick={() => onLeave?.(session.id)}
-                className="text-[10px] px-2.5 py-1 rounded-full border border-slate-600 text-slate-400 hover:border-red-500/50 hover:text-red-400 hover:bg-red-500/10 transition-colors whitespace-nowrap font-medium"
-                title="Abandonar sesión"
-              >
-                Abandonar
-              </button>
-            )}
+            {/* Eliminar botón de cancelar/abandonar para sesiones confirmadas */}
+            {/* Si quieres mostrar el botón de abandonar/cancelar en otros estados, puedes añadir lógica aquí */}
           </div>
         ))}
       </div>
