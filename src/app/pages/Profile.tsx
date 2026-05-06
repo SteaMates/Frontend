@@ -849,8 +849,7 @@ export function Profile() {
 
   const libraryRows = (() => {
     if (libraryFilter === "unplayed") {
-      const unplayed = sourceGames.filter((g) => (g.playtime || 0) === 0);
-      return (unplayed.length > 0 ? unplayed : sourceGames).slice(0, 12);
+      return sourceGames.filter((g) => (g.playtime ?? 0) === 0).slice(0, 12);
     }
 
     if (libraryFilter === "recent") {
@@ -866,7 +865,8 @@ export function Profile() {
           .slice(0, 12);
       }
       return [...sourceGames]
-        .sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))
+        .filter((game) => (game.lastPlayed ?? 0) > 0)
+        .sort((a, b) => (b.lastPlayed ?? 0) - (a.lastPlayed ?? 0))
         .slice(0, 12);
     }
 
@@ -874,6 +874,13 @@ export function Profile() {
       .sort((a, b) => (b.playtime || 0) - (a.playtime || 0))
       .slice(0, 12);
   })();
+
+  const libraryEmptyMessage =
+    libraryFilter === "recent"
+      ? "Sin actividad reciente en la biblioteca"
+      : libraryFilter === "unplayed"
+        ? "No hay juegos sin jugar"
+        : "Sin juegos disponibles en la biblioteca";
 
   const recentActivity = recentGames.slice(0, 5).map((r, index) => ({
     name: r.name,
@@ -1199,7 +1206,7 @@ export function Profile() {
               {isOwnProfile && (
                 <button
                   onClick={logout}
-                  className="h-[34px] w-[34px] rounded-[10px] border border-[rgba(130,24,26,0.3)] text-[#ff637e] flex items-center justify-center hover:bg-[rgba(130,24,26,0.15)] transition-colors"
+                  className="h-[34px] w-[34px] rounded-[10px] border border-[rgba(130,24,26,0.3)] text-[#ff637e] flex items-center justify-center hover:bg-[rgba(130,24,26,0.15)] transition-colors cursor-pointer"
                   title="Cerrar sesión"
                 >
                   <LogOut size={16} />
@@ -1524,7 +1531,7 @@ export function Profile() {
 
         {libraryRows.length === 0 ? (
           <div className="h-[200px] flex items-center justify-center text-[#62748e] text-[12px]">
-            Sin juegos disponibles en la biblioteca
+            {libraryEmptyMessage}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
