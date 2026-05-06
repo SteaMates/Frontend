@@ -216,7 +216,7 @@ export function Login() {
           <div className="flex flex-col gap-3">
             <button
               onClick={login}
-              className="w-full flex items-center justify-center gap-3 h-[58px] bg-[#171a21] border border-[#2a475e] rounded-[14px] text-[#c5c3c0] font-bold text-base hover:bg-[#1e2535] hover:border-[#3d6b8f] transition-colors shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)]"
+              className="w-full flex items-center justify-center gap-3 h-[58px] bg-[#171a21] border border-[#2a475e] rounded-[14px] text-[#c5c3c0] font-bold text-base hover:bg-[#1e2535] hover:border-[#3d6b8f] transition-colors shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.1),0px_4px_6px_-4px_rgba(0,0,0,0.1)] cursor-pointer"
             >
               <img
                 src={steamLogo}
@@ -307,7 +307,7 @@ export function Login() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction className="bg-red-500 text-white hover:bg-red-400">
+            <AlertDialogAction className="bg-red-500 text-white hover:bg-red-400 cursor-pointer">
               Entendido
             </AlertDialogAction>
           </AlertDialogFooter>

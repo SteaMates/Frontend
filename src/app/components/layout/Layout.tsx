@@ -220,7 +220,7 @@ export function Layout() {
           {user ? (
             <button
               onClick={logout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-slate-800/50 rounded-xl transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-slate-800/50 rounded-xl transition-colors cursor-pointer"
             >
               <LogOut size={20} />
               <span className="text-sm">Cerrar Sesión</span>
@@ -228,7 +228,7 @@ export function Layout() {
           ) : !isLoginPage ? (
             <Link
               to="/login"
-              className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-blue-600/20 rounded-xl transition-colors border border-dashed border-slate-700 hover:border-blue-500/50"
+              className="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-blue-600/20 rounded-xl transition-colors border border-dashed border-slate-700 hover:border-blue-500/50 cursor-pointer"
             >
               <LogIn size={20} />
               <span className="text-sm">Iniciar Sesión</span>
@@ -325,7 +325,7 @@ export function Layout() {
                       logout();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="w-full text-red-400 block p-4 text-center border border-slate-800 rounded-xl hover:bg-slate-900"
+                    className="w-full text-red-400 block p-4 text-center border border-slate-800 rounded-xl hover:bg-slate-900 cursor-pointer"
                   >
                     Cerrar Sesión
                   </button>
@@ -333,7 +333,7 @@ export function Layout() {
                   <Link
                     to="/login"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="text-blue-400 block p-4 text-center border border-blue-900/50 rounded-xl hover:bg-blue-900/20"
+                    className="text-blue-400 block p-4 text-center border border-blue-900/50 rounded-xl hover:bg-blue-900/20 cursor-pointer"
                   >
                     Iniciar Sesión con Steam
                   </Link>
@@ -437,7 +437,7 @@ export function Layout() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction className="bg-amber-500 text-slate-950 hover:bg-amber-400">
+            <AlertDialogAction className="bg-amber-500 text-slate-950 hover:bg-amber-400 cursor-pointer">
               {activeNoticeIndex < loginNotices.length - 1
                 ? "Siguiente"
                 : "Entendido"}

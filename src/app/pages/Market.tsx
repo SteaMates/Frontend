@@ -215,7 +215,7 @@ function LockedRecs({ onLogin }: { onLogin: () => void }) {
           </p>
           <button
             onClick={onLogin}
-            className="bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] hover:text-white font-bold py-2.5 px-5 rounded-xl transition-all border border-[#2a475e] text-sm flex items-center gap-2 mx-auto"
+            className="bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] hover:text-white font-bold py-2.5 px-5 rounded-xl transition-all border border-[#2a475e] text-sm flex items-center gap-2 mx-auto cursor-pointer"
           >
             <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="" className="w-4 h-4"/>
             Iniciar sesión con Steam
