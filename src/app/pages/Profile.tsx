@@ -650,26 +650,6 @@ export function Profile() {
     );
   }
 
-  if (loadError) {
-    return (
-      <div className="max-w-[1084px] mx-auto pb-20">
-        <section className="rounded-[16px] border border-[#1d293d] bg-[rgba(15,23,43,0.8)] p-8 text-center">
-          <h2 className="text-white text-[26px] font-bold">
-            Perfil no disponible
-          </h2>
-          <p className="mt-3 text-[#90a1b9] text-[15px]">{loadError}</p>
-          <div className="mt-6">
-            <Link
-              to="/friends"
-              className="inline-flex items-center gap-2 rounded-[10px] bg-[#1d293d] border border-[#314158] px-4 py-2 text-[#cad5e2] hover:bg-[#263550] transition-colors"
-            >
-              Volver
-            </Link>
-          </div>
-        </section>
-      </div>
-    );
-  }
 
   const displayName =
     profile?.username || (isOwnProfile ? user.personaname : "Usuario");
@@ -685,35 +665,41 @@ export function Profile() {
   const snapshotDateLabel = snapshotCachedAt
     ? new Date(snapshotCachedAt).toLocaleString("es-ES")
     : "";
-  const feedbackTone = usingSnapshot
-    ? "from-[#155dfc]/20 to-[#00b8db]/10 border-[#2b5cb4]"
-    : noLibraryReason === "private_or_unavailable"
-      ? "from-[#7c2d12]/20 to-[#dc2626]/10 border-[#7f1d1d]"
-      : noLibraryReason === "no_games"
-        ? "from-[#92400e]/20 to-[#f59e0b]/10 border-[#b45309]"
-        : "from-[#0f172b] to-[#0f172b] border-[#1d293d]";
-  const feedbackTitle = usingSnapshot
-    ? "Mostrando tu último snapshot"
-    : noLibraryReason === "private_or_unavailable"
-      ? isOwnProfile
-        ? "Tu biblioteca de Steam es privada"
-        : "Steam no ha devuelto datos públicos"
-      : noLibraryReason === "no_games"
+  const feedbackTone = loadError
+    ? "from-[#7c2d12]/20 to-[#dc2626]/10 border-[#7f1d1d]"
+    : usingSnapshot
+      ? "from-[#155dfc]/20 to-[#00b8db]/10 border-[#2b5cb4]"
+      : noLibraryReason === "private_or_unavailable"
+        ? "from-[#7c2d12]/20 to-[#dc2626]/10 border-[#7f1d1d]"
+        : noLibraryReason === "no_games"
+          ? "from-[#92400e]/20 to-[#f59e0b]/10 border-[#b45309]"
+          : "from-[#0f172b] to-[#0f172b] border-[#1d293d]";
+  const feedbackTitle = loadError
+    ? "Perfil no disponible"
+    : usingSnapshot
+      ? "Mostrando tu último snapshot"
+      : noLibraryReason === "private_or_unavailable"
         ? isOwnProfile
-          ? "No tienes juegos visibles"
-          : "Esta cuenta no muestra juegos visibles"
-        : null;
-  const feedbackText = usingSnapshot
-    ? "Steam no ha respondido con datos completos en esta carga, así que se usa el último estado guardado para que no veas todo a 0."
-    : noLibraryReason === "private_or_unavailable"
-      ? isOwnProfile
-        ? "Steam Web API no permite acceder a bibliotecas privadas, incluso si has iniciado sesión en la app (OpenID no otorga permisos de lectura). Cambia la privacidad de 'Detalles de los juegos' a 'Público' en Steam para verlos aquí."
-        : "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
-      : noLibraryReason === "no_games"
+          ? "Tu biblioteca de Steam es privada"
+          : "Steam no ha devuelto datos públicos"
+        : noLibraryReason === "no_games"
+          ? isOwnProfile
+            ? "No tienes juegos visibles"
+            : "Esta cuenta no muestra juegos visibles"
+          : null;
+  const feedbackText = loadError
+    ? loadError
+    : usingSnapshot
+      ? "Steam no ha respondido con datos completos en esta carga, así que se usa el último estado guardado para que no veas todo a 0."
+      : noLibraryReason === "private_or_unavailable"
         ? isOwnProfile
-          ? "No hay juegos visibles en tu cuenta de Steam actualmente."
-          : "No hay biblioteca visible para este perfil en este momento."
-        : null;
+          ? "Steam Web API no permite acceder a bibliotecas privadas, incluso si has iniciado sesión en la app (OpenID no otorga permisos de lectura). Cambia la privacidad de 'Detalles de los juegos' a 'Público' en Steam para verlos aquí."
+          : "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
+        : noLibraryReason === "no_games"
+          ? isOwnProfile
+            ? "No hay juegos visibles en tu cuenta de Steam actualmente."
+            : "No hay biblioteca visible para este perfil en este momento."
+          : null;
   const totalHours = sourceGames.reduce(
     (acc, game) => acc + hoursFromMinutes(game.playtime),
     0,
@@ -1290,6 +1276,16 @@ export function Profile() {
                 <p className="mt-2 text-[#bfdbfe] text-[12px]">
                   Snapshot guardado: {snapshotDateLabel}
                 </p>
+              )}
+              {loadError && (
+                <div className="mt-3">
+                  <Link
+                    to="/friends"
+                    className="inline-flex items-center gap-2 rounded-[10px] bg-[#1d293d] border border-[#314158] px-3 py-1.5 text-[12px] text-[#cad5e2] hover:bg-[#263550] transition-colors"
+                  >
+                    Volver
+                  </Link>
+                </div>
               )}
             </div>
           </div>
