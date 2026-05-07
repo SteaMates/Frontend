@@ -650,7 +650,6 @@ export function Profile() {
     );
   }
 
-
   const displayName =
     profile?.username || (isOwnProfile ? user.personaname : "Usuario");
   const displayAvatar =
@@ -744,14 +743,16 @@ export function Profile() {
         profile?.totalAchievements ??
         0);
   const totalAchievements = apiAchievements;
-  const achievementsEstimated = apiAchievements === 0 && games.length > 0 && achievementsData !== null;
+  const achievementsEstimated =
+    apiAchievements === 0 && games.length > 0 && achievementsData !== null;
 
   const apiCompleted =
     achievementsData === null
       ? "..."
       : (achievementsData?.perfectGames ?? profile?.completedGames ?? 0);
   const completedGames = apiCompleted;
-  const completedEstimated = apiCompleted === 0 && games.length > 0 && achievementsData !== null;
+  const completedEstimated =
+    apiCompleted === 0 && games.length > 0 && achievementsData !== null;
 
   // Mostramos los logros reales más raros conseguidos por el jugador
   // O un pequeño fallback vacío mientras cargan
@@ -1100,7 +1101,9 @@ export function Profile() {
     {
       label: "Logros",
       value: `${totalAchievements}`,
-      warning: achievementsEstimated ? "Steam no devolvió datos de logros para este perfil" : undefined,
+      warning: achievementsEstimated
+        ? "Steam no devolvió datos de logros para este perfil"
+        : undefined,
       Icon: Trophy,
       valueClass: "text-[#ffb900]",
       cardClass: "bg-[rgba(254,154,0,0.1)] border-[rgba(254,154,0,0.2)]",
@@ -1109,7 +1112,9 @@ export function Profile() {
     {
       label: "Completados",
       value: `${completedGames}`,
-      warning: completedEstimated ? "Steam no devolvió datos de juegos completados para este perfil" : undefined,
+      warning: completedEstimated
+        ? "Steam no devolvió datos de juegos completados para este perfil"
+        : undefined,
       Icon: Award,
       valueClass: "text-[#ff637e]",
       cardClass: "bg-[rgba(255,32,86,0.1)] border-[rgba(255,32,86,0.2)]",
@@ -1181,10 +1186,13 @@ export function Profile() {
                   Online
                 </span>
                 <span className="bg-[rgba(28,57,142,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#51a2ff]">
-                  {memberYear
-                    ? `Miembro desde ${memberYear}`
-                    : <span title="Steam no devolvió la fecha de registro de esta cuenta">Miembro desde ⚠ Desconocido</span>
-                  }
+                  {memberYear ? (
+                    `Miembro desde ${memberYear}`
+                  ) : (
+                    <span title="Steam no devolvió la fecha de registro de esta cuenta">
+                      Miembro desde ⚠ Desconocido
+                    </span>
+                  )}
                 </span>
                 {!isOwnProfile && profile?._id && (
                   <ReportButton
@@ -1247,17 +1255,27 @@ export function Profile() {
         ))}
       </section>
 
-      <section className="flex justify-end">
-        <button
-          type="button"
-          className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
-          onClick={() => void fetchFromApi()}
-        >
-          <RefreshCw size={14} /> Refrescar
-        </button>
+      <section className="flex justify-end items-center gap-3">
+        <div className="flex items-center gap-3 mr-2">
+          {snapshotDateLabel && usingSnapshot && (
+            <div className="text-[#bfdbfe] text-[13px]">
+              Última actualización:{" "}
+              <span className="font-medium">{snapshotDateLabel}</span>
+            </div>
+          )}
+        </div>
+        <div>
+          <button
+            type="button"
+            className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
+            onClick={() => void fetchFromApi()}
+          >
+            <RefreshCw size={14} /> Refrescar
+          </button>
+        </div>
       </section>
 
-      {feedbackTitle && feedbackText && (
+      {feedbackTitle && feedbackText && (!usingSnapshot || loadError) && (
         <section
           className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}
         >
