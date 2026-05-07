@@ -42,6 +42,9 @@ export function Lists() {
   // Real Lists from backend
   const [lists, setLists] = useState<any[]>([]);
   const [loadingLists, setLoadingLists] = useState(true);
+  const [loadingMoreLists, setLoadingMoreLists] = useState(false);
+  const [listsPage, setListsPage] = useState(1);
+  const [listsHasMore, setListsHasMore] = useState(false);
 
   // Steam Game Search
   const [searchGamesOptions, setSearchGamesOptions] = useState<CreateGameOption[]>([]);
@@ -57,21 +60,41 @@ export function Lists() {
   const [createGameQuery, setCreateGameQuery] = useState("");
   const [createSelectedGames, setCreateSelectedGames] = useState<CreateGameOption[]>([]);
 
-  const fetchLists = async () => {
+  const fetchLists = async (page = 1, append = false) => {
     try {
-      setLoadingLists(true);
-      const res = await api.get('/api/lists');
-      setLists(res.data);
+      if (append) {
+        setLoadingMoreLists(true);
+      } else {
+        setLoadingLists(true);
+      }
+
+      const res = await api.get('/api/lists', {
+        params: {
+          page,
+          limit: 12,
+        },
+      });
+
+      const nextLists = res.data?.lists || [];
+      setLists((prev) => (append ? [...prev, ...nextLists] : nextLists));
+      setListsPage(res.data?.pagination?.page || page);
+      setListsHasMore((res.data?.pagination?.page || page) < (res.data?.pagination?.pages || 0));
     } catch (err) {
       console.error('Error fetching lists:', err);
     } finally {
       setLoadingLists(false);
+      setLoadingMoreLists(false);
     }
   };
 
   useEffect(() => {
-    fetchLists();
+    fetchLists(1, false);
   }, []);
+
+  const loadMoreLists = () => {
+    if (loadingMoreLists || loadingLists || !listsHasMore) return;
+    fetchLists(listsPage + 1, true);
+  };
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -170,7 +193,7 @@ export function Lists() {
       closeCreateModal();
       
       // Reload lists
-      fetchLists();
+      fetchLists(1, false);
     } catch (err: any) {
       console.error('Error creating list:', err);
       const errorMessage = err.response?.data?.error || err.message || 'Unknown error';
@@ -384,72 +407,74 @@ export function Lists() {
             Cargando listas...
           </div>
         ) : filteredLists.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-            {filteredLists.map((list) => (
-              <Link
-                key={list._id}
-                to={`/lists/${list._id}`}
-                className="bg-[#0f172b] border border-[#1d293d] rounded-[14px] overflow-hidden block hover:border-[#2b7fff] transition-colors"
-              >
-                <div className="relative h-[160px]">
-                  <img
-                    src={list.coverImage}
-                    alt={list.title}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] via-[rgba(15,23,43,0.4)] to-transparent" />
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+              {filteredLists.map((list) => (
+                <Link
+                  key={list._id}
+                  to={`/lists/${list._id}`}
+                  className="bg-[#0f172b] border border-[#1d293d] rounded-[14px] overflow-hidden block hover:border-[#2b7fff] transition-colors"
+                >
+                  <div className="relative h-[160px]">
+                    <img
+                      src={list.coverImage}
+                      alt={list.title}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] via-[rgba(15,23,43,0.4)] to-transparent" />
 
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                    {/* Add logic to calculate if it's new later based on date */}
-                    {(localStorage.getItem('steamates_user') && (() => {
-                      try {
-                        return JSON.parse(localStorage.getItem('steamates_user')!).steamid === list.author?.steamId;
-                      } catch { return false; }
-                    })()) && (
-                      <span className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.9)] text-white text-[10px] font-bold">
-                        TUYA
-                      </span>
-                    )}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      {(localStorage.getItem('steamates_user') && (() => {
+                        try {
+                          return JSON.parse(localStorage.getItem('steamates_user')!).steamid === list.author?.steamId;
+                        } catch { return false; }
+                      })()) && (
+                        <span className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.9)] text-white text-[10px] font-bold">
+                          TUYA
+                        </span>
+                      )}
+                    </div>
+
+                    <span
+                      className="absolute top-4 right-3 h-5 rounded-full border px-[9px] text-[10px] font-medium flex items-center border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
+                    >
+                      {list.categories && list.categories[0] ? list.categories[0] : 'General'}
+                    </span>
+
+                    <div className="absolute left-4 right-4 bottom-3">
+                      <h3 className="text-white text-[22px] leading-6 font-bold mb-0.5 truncate">
+                        {list.title}
+                      </h3>
+                      <p className="text-[11px] text-[#cad5e2]">
+                        por <span className="text-[#51a2ff]">{list.author?.username || 'Usuario Desconocido'}</span>
+                      </p>
+                    </div>
                   </div>
 
-                  <span
-                    className={`absolute top-4 right-3 h-5 rounded-full border px-[9px] text-[10px] font-medium flex items-center border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.15)] text-[#51a2ff]`}
-                  >
-                    {list.categories && list.categories[0] ? list.categories[0] : 'General'}
-                  </span>
-
-                  <div className="absolute left-4 right-4 bottom-3">
-                    <h3 className="text-white text-[22px] leading-6 font-bold mb-0.5 truncate">
-                      {list.title}
-                    </h3>
-                    <p className="text-[11px] text-[#cad5e2]">
-                      por <span className="text-[#51a2ff]">{list.author?.username || 'Usuario Desconocido'}</span>
+                  <div className="p-4 pt-3">
+                    <p className="text-[#90a1b9] text-[12px] leading-[19.5px] min-h-[58px] line-clamp-3">
+                      {list.description}
                     </p>
-                  </div>
-                </div>
 
-                <div className="p-4 pt-3">
-                  <p className="text-[#90a1b9] text-[12px] leading-[19.5px] min-h-[58px] line-clamp-3">
-                    {list.description}
-                  </p>
-
-                  <div className="mt-4 pt-2 border-t border-[#1d293d] flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-[#62748e] text-[12px]">
-                      <span className="flex items-center gap-1">
-                        <Heart size={13} /> {list.likes?.length || 0}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MessageSquare size={13} /> {list.commentsCount || 0}
+                    <div className="mt-4 pt-2 border-t border-[#1d293d] flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-[#62748e] text-[12px]">
+                        <span className="flex items-center gap-1">
+                          <Heart size={13} /> {list.likes?.length || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageSquare size={13} /> {list.commentsCount || 0}
+                        </span>
+                      </div>
+                      <span className="h-[17px] rounded-[4px] bg-[#1d293d] px-2 text-[#62748e] text-[10px] font-medium flex items-center">
+                        {list.games?.length || 0} juegos
                       </span>
                     </div>
-                    <span className="h-[17px] rounded-[4px] bg-[#1d293d] px-2 text-[#62748e] text-[10px] font-medium flex items-center">
-                      {list.games?.length || 0} juegos
-                    </span>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+          </>
         ) : (
           <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[14px] p-10 text-center">
             <p className="text-[#90a1b9] text-[14px] mb-4">
@@ -465,6 +490,22 @@ export function Lists() {
               className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
             >
               Limpiar filtros
+            </button>
+          </div>
+        )}
+
+        {listsHasMore && (
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={loadMoreLists}
+              disabled={loadingMoreLists}
+              className="h-10 px-5 rounded-[10px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#1d66ff] transition-colors disabled:opacity-60"
+            >
+              {loadingMoreLists ? (
+                <><span className="animate-spin">⏳</span> Cargando...</>
+              ) : (
+                "Cargar más"
+              )}
             </button>
           </div>
         )}

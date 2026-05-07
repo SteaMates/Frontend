@@ -60,6 +60,10 @@ export function ListDetail() {
   const { user, login } = useAuth();
   const [list, setList] = useState<List | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
+  const [commentsPage, setCommentsPage] = useState(1);
+  const [commentsHasMore, setCommentsHasMore] = useState(false);
+  const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
+  const [commentsTotal, setCommentsTotal] = useState(0);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -80,10 +84,13 @@ export function ListDetail() {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
-          api.get(`/api/lists/${id}/comments`)
+          api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 8 } })
         ]);
         setList(listRes.data);
-        setComments(commentsRes.data);
+        setComments(commentsRes.data?.comments || []);
+        setCommentsPage(commentsRes.data?.pagination?.page || 1);
+        setCommentsTotal(commentsRes.data?.pagination?.total || commentsRes.data?.comments?.length || 0);
+        setCommentsHasMore((commentsRes.data?.pagination?.page || 1) < (commentsRes.data?.pagination?.pages || 0));
       } catch (err) {
         console.error("Error fetching list data:", err);
         setError(true);
@@ -124,12 +131,35 @@ export function ListDetail() {
     try {
       const res = await api.post(`/api/lists/${id}/comments`, { content: newComment });
       setComments([res.data, ...comments]);
+      setCommentsTotal((prev) => prev + 1);
       setNewComment("");
     } catch (err) {
       console.error(err);
       const error = err as any;
       const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
       alert(`Error creating comment: ${errorMessage}`);
+    }
+  };
+
+  const loadMoreComments = async () => {
+    if (!id || commentsLoadingMore || loading || !commentsHasMore) return;
+
+    try {
+      setCommentsLoadingMore(true);
+      const nextPage = commentsPage + 1;
+      const response = await api.get(`/api/lists/${id}/comments`, {
+        params: { page: nextPage, limit: 8 },
+      });
+
+      const nextComments = response.data?.comments || [];
+      setComments((prev) => [...prev, ...nextComments]);
+      setCommentsPage(response.data?.pagination?.page || nextPage);
+      setCommentsTotal(response.data?.pagination?.total || commentsTotal);
+      setCommentsHasMore((response.data?.pagination?.page || nextPage) < (response.data?.pagination?.pages || 0));
+    } catch (err) {
+      console.error("Error loading more comments:", err);
+    } finally {
+      setCommentsLoadingMore(false);
     }
   };
 
@@ -212,7 +242,7 @@ export function ListDetail() {
                 type="button"
                 className="inline-flex items-center gap-2 text-[#90a1b9] text-[16px]"
               >
-                <MessageSquare size={20} /> {comments.length} Comentarios
+                <MessageSquare size={20} /> {commentsTotal || comments.length} Comentarios
               </button>
             </div>
 
@@ -372,6 +402,19 @@ export function ListDetail() {
                 </div>
               </div>
             ))}
+
+            {commentsHasMore && (
+              <div className="flex justify-center pt-2">
+                <button
+                  type="button"
+                  onClick={loadMoreComments}
+                  disabled={commentsLoadingMore}
+                  className="px-5 py-2.5 rounded-[10px] bg-[#155dfc] text-white text-[14px] font-medium hover:bg-[#1d66ff] transition-colors disabled:opacity-60"
+                >
+                  {commentsLoadingMore ? "Cargando..." : "Cargar más comentarios"}
+                </button>
+              </div>
+            )}
           </div>
         </section>
       </article>

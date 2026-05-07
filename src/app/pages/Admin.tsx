@@ -1,16 +1,42 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link } from "react-router";
 import api from "../../lib/api";
 import {
-  Shield, AlertTriangle, Users, Flag, Eye,
-  Trash2, MessageSquareOff, Ban, FileText,
-  CheckCircle2, Search, Home, AlertOctagon, AlertCircle, X
+  Shield,
+  AlertTriangle,
+  Users,
+  Flag,
+  Eye,
+  Trash2,
+  MessageSquareOff,
+  Ban,
+  FileText,
+  CheckCircle2,
+  Search,
+  Home,
+  AlertOctagon,
+  AlertCircle,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type TabType = "moderation" | "users";
-
 type ModerationActionType = "warned" | "silenced" | "banned";
+
+const ADMIN_PAGE_SIZE = 10;
+
+const initialModerationStats = {
+  pending: 0,
+  resolved: 0,
+  dismissed: 0,
+  deleted: 0,
+  warned: 0,
+  active: 0,
+  silenced: 0,
+  banned: 0,
+};
 
 const normalizeStatus = (status?: string) => (status || "").toLowerCase().trim();
 
@@ -27,9 +53,7 @@ const getActiveActionSet = (user: any) => {
   for (const item of history) {
     if (!isModerationActionCurrentlyActive(item)) continue;
     const action = normalizeStatus(item?.action);
-    if (action) {
-      actionSet.add(action);
-    }
+    if (action) actionSet.add(action);
   }
 
   const fallbackStatus = normalizeStatus(user?.status);
@@ -44,82 +68,74 @@ const getActiveActionSet = (user: any) => {
 
 const isActionActiveForUser = (user: any, action: ModerationActionType) => {
   const actions = getActiveActionSet(user);
-  if (action === "banned") {
-    return actions.has("banned") || actions.has("suspended");
-  }
+  if (action === "banned") return actions.has("banned") || actions.has("suspended");
   return actions.has(action);
 };
+
+function PaginationControls({
+  pagination,
+  onPageChange,
+  itemLabel,
+}: {
+  pagination: { page: number; pages: number; total: number; limit: number };
+  onPageChange: (page: number) => void;
+  itemLabel: string;
+}) {
+  if (!pagination.pages || pagination.pages <= 1) return null;
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-4 pt-4 border-t border-slate-800">
+      <p className="text-xs text-slate-500">
+        Página <span className="text-slate-200 font-medium">{pagination.page}</span> de <span className="text-slate-200 font-medium">{pagination.pages}</span> · {pagination.total.toLocaleString()} {itemLabel}
+      </p>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
+          disabled={pagination.page <= 1}
+          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <ChevronLeft size={16} />
+          Anterior
+        </button>
+        <button
+          onClick={() => onPageChange(Math.min(pagination.pages, pagination.page + 1))}
+          disabled={pagination.page >= pagination.pages}
+          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Siguiente
+          <ChevronRight size={16} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("moderation");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [reports, setReports] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [stats, setStats] = useState({ pending: 0, resolved: 0, deleted: 0, warned: 0, active: 0, silenced: 0, banned: 0 });
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(initialModerationStats);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [loadError, setLoadError] = useState("");
+
+  const loadOverview = async () => {
+    try {
+      setLoadingStats(true);
+      setLoadError("");
+      const response = await api.get("/api/moderation/stats");
+      setStats({ ...initialModerationStats, ...(response.data || {}) });
+    } catch (error) {
+      console.error("Error cargando estadísticas de moderación:", error);
+      setLoadError("No se pudieron cargar las estadísticas de moderación.");
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user?.isAdmin && user?.role !== 'admin') return;
-    loadData();
+    if (!user?.isAdmin && user?.role !== "admin") return;
+    loadOverview();
   }, [authLoading, user?.isAdmin, user?.role]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      setLoadError("");
-
-      const [reportsResult, usersResult] = await Promise.allSettled([
-        api.get('/api/moderation/reports?limit=50'),
-        api.get('/api/moderation/users?limit=50'),
-      ]);
-
-      const reportsData = reportsResult.status === 'fulfilled' ? reportsResult.value.data.reports || [] : [];
-      const usersData = usersResult.status === 'fulfilled' ? usersResult.value.data.users || [] : [];
-
-      setReports(reportsData);
-      setUsers(usersData);
-
-      if (reportsResult.status === 'rejected' || usersResult.status === 'rejected') {
-        if (reportsResult.status === 'rejected') {
-          console.error('Error cargando reportes:', reportsResult.reason);
-        }
-        if (usersResult.status === 'rejected') {
-          console.error('Error cargando usuarios:', usersResult.reason);
-        }
-
-        const reportsError = reportsResult.status === 'rejected' ? 'reportes' : '';
-        const usersError = usersResult.status === 'rejected' ? 'usuarios' : '';
-        const separator = reportsError && usersError ? ' y ' : '';
-        setLoadError(`No se pudieron cargar ${reportsError}${separator}${usersError}. Intenta de nuevo en unos segundos.`);
-      }
-
-      // Calcular stats
-      const pendingCount = reportsData.filter(r => r.status === 'pending').length || 0;
-      const resolvedCount = reportsData.filter(r => r.status === 'resolved').length || 0;
-      const warnedCount = usersData.filter(u => isActionActiveForUser(u, "warned")).length || 0;
-      const silencedCount = usersData.filter(u => isActionActiveForUser(u, "silenced")).length || 0;
-      const bannedCount = usersData.filter(u => isActionActiveForUser(u, "banned")).length || 0;
-      const activeCount = usersData.filter(u => {
-        const actions = getActiveActionSet(u);
-        return !actions.has("warned") && !actions.has("silenced") && !actions.has("banned") && !actions.has("suspended");
-      }).length || 0;
-
-      setStats({
-        pending: pendingCount,
-        resolved: resolvedCount,
-        deleted: 0,
-        warned: warnedCount,
-        active: activeCount,
-        silenced: silencedCount,
-        banned: bannedCount,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const tabs = [
     { id: "moderation" as TabType, name: "Moderación", icon: Shield, color: "text-blue-400", bg: "bg-blue-500/10" },
@@ -136,13 +152,12 @@ export function Admin() {
     );
   }
 
-  if (!user?.isAdmin && user?.role !== 'admin') {
+  if (!user?.isAdmin && user?.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 pb-8">
-      {/* Header */}
       <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-6 shadow-xl">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
@@ -160,7 +175,6 @@ export function Admin() {
           </Link>
         </div>
 
-        {/* Tabs */}
         <div className="flex flex-wrap gap-2">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -170,8 +184,8 @@ export function Admin() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all ${
                   activeTab === tab.id
-                    ? `${tab.bg} border-${tab.color.replace('text-', '')}/30 ${tab.color}`
-                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800'
+                    ? `${tab.bg} border-${tab.color.replace("text-", "")}/30 ${tab.color}`
+                    : "bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
                 }`}
               >
                 <Icon size={18} />
@@ -182,108 +196,128 @@ export function Admin() {
         </div>
       </div>
 
-      {/* Content */}
-      {loading && (
-        <div className="text-center py-12">
-          <p className="text-slate-400">Cargando datos...</p>
-        </div>
-      )}
-      {!loading && loadError && (
+      {loadError && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
           <p className="text-sm text-red-300">{loadError}</p>
           <button
-            onClick={loadData}
+            onClick={loadOverview}
             className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
           >
             Reintentar
           </button>
         </div>
       )}
-      {!loading && (
-        <>
-          {activeTab === "moderation" && <ModerationPanel reports={reports} stats={stats} searchTerm={searchTerm} setSearchTerm={setSearchTerm} onReload={loadData} />}
-          {activeTab === "users" && <UsersPanel users={users} stats={stats} searchTerm={searchTerm} setSearchTerm={setSearchTerm} onReload={loadData} />}
-        </>
+
+      {loadingStats && !loadError && (
+        <div className="text-center py-4">
+          <p className="text-slate-400 text-sm">Cargando estadísticas...</p>
+        </div>
       )}
+
+      {activeTab === "moderation" && <ModerationPanel stats={stats} onReload={loadOverview} />}
+      {activeTab === "users" && <UsersPanel stats={stats} onReload={loadOverview} />}
     </div>
   );
 }
 
-// ========== RF-16: Moderación Panel ==========
-function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }: { 
-  reports: any[]; 
-  stats: any;
-  searchTerm: string; 
-  setSearchTerm: (val: string) => void;
-  onReload: () => void;
-}) {
+function ModerationPanel({ stats, onReload }: { stats: any; onReload: () => Promise<void> }) {
   const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "list" | "comment" | "user">("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [reports, setReports] = useState<any[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const filteredReports = reports.filter(r => 
-    (filter === "all" || r.status === filter) &&
-    (typeFilter === "all" || r.targetType === typeFilter) &&
-    (r.reason?.toLowerCase().includes(searchTerm.toLowerCase()) || r.description?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const getTargetTypeLabel = (type: string) => {
+    if (type === "GameList") return "Lista";
+    if (type === "Comment") return "Comentario";
+    if (type === "User") return "Usuario";
+    return "Contenido";
+  };
+
+  const getTargetTypeBg = (type: string) => {
+    if (type === "GameList") return "bg-blue-500/10 text-blue-400";
+    if (type === "Comment") return "bg-purple-500/10 text-purple-400";
+    if (type === "User") return "bg-amber-500/10 text-amber-400";
+    return "bg-slate-500/10 text-slate-400";
+  };
+
+  const loadReports = async () => {
+    try {
+      setLoading(true);
+      setLoadError("");
+
+      const response = await api.get("/api/moderation/reports", {
+        params: {
+          page,
+          limit: ADMIN_PAGE_SIZE,
+          status: filter === "all" ? undefined : filter,
+          type: typeFilter === "all" ? undefined : typeFilter,
+          search: searchTerm.trim() || undefined,
+        },
+      });
+
+      setReports(response.data?.reports || []);
+      setPagination(response.data?.pagination || { page, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+    } catch (error) {
+      console.error("Error cargando reportes:", error);
+      setReports([]);
+      setPagination({ page, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+      setLoadError("No se pudieron cargar los reportes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadReports();
+  }, [page, filter, typeFilter, searchTerm]);
 
   const handleResolveReport = async (reportId: string) => {
     try {
       setSubmitting(true);
-      await api.put(`/api/moderation/reports/${reportId}`, { status: 'resolved' });
-      onReload();
+      await api.put(`/api/moderation/reports/${reportId}`, { status: "resolved" });
+      await Promise.all([onReload(), loadReports()]);
     } catch (error) {
-      console.error('Error resolviendo reporte:', error);
+      console.error("Error resolviendo reporte:", error);
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDeleteContent = async (report: any) => {
-    if (report.targetType === 'User') {
+    if (report.targetType === "User") {
       alert('Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.');
       return;
     }
 
-    const targetLabel = report.targetType === 'GameList' ? 'esta lista' : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
+    const targetLabel = report.targetType === "GameList" ? "esta lista" : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
     if (!window.confirm(`¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`)) {
       return;
     }
 
     try {
       setSubmitting(true);
-      const typeStr = report.targetType === 'GameList' ? 'list' : 'comment';
+      const typeStr = report.targetType === "GameList" ? "list" : "comment";
       const targetId = report.targetId?._id || report.targetId;
       await api.delete(`/api/moderation/content/${typeStr}/${targetId}`);
       if (showReportModal) setShowReportModal(false);
-      onReload();
+      await Promise.all([onReload(), loadReports()]);
     } catch (error) {
-      console.error('Error eliminando contenido:', error);
-      alert('Error eliminando contenido');
+      console.error("Error eliminando contenido:", error);
+      alert("Error eliminando contenido");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getTargetTypeLabel = (type: string) => {
-    if (type === 'GameList') return 'Lista';
-    if (type === 'Comment') return 'Comentario';
-    if (type === 'User') return 'Usuario';
-    return 'Contenido';
-  };
-
-  const getTargetTypeBg = (type: string) => {
-    if (type === 'GameList') return "bg-blue-500/10 text-blue-400";
-    if (type === 'Comment') return "bg-purple-500/10 text-purple-400";
-    if (type === 'User') return "bg-amber-500/10 text-amber-400";
-    return "bg-slate-500/10 text-slate-400";
-  };
-
   return (
     <div className="space-y-4">
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "Reportes Pendientes", value: stats.pending, icon: Flag, color: "text-amber-400", bg: "bg-amber-500/10" },
@@ -301,28 +335,30 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
         ))}
       </div>
 
-      {/* Filters & Search */}
       <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl">
-        {/* Search and Filters in one row */}
         <div className="flex flex-col md:flex-row gap-3 mb-4">
-          {/* Search */}
           <div className="flex-1 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
             <input
               type="text"
               placeholder="Buscar reportes..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setPage(1);
+                setSearchTerm(e.target.value);
+              }}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
 
-          {/* Status Filter */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400 whitespace-nowrap">Estado:</span>
             <select
               value={filter}
-              onChange={(e) => setFilter(e.target.value as typeof filter)}
+              onChange={(e) => {
+                setPage(1);
+                setFilter(e.target.value as typeof filter);
+              }}
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos</option>
@@ -331,12 +367,14 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
             </select>
           </div>
 
-          {/* Type Filter */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400 whitespace-nowrap">Tipo:</span>
             <select
               value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value as typeof typeFilter)}
+              onChange={(e) => {
+                setPage(1);
+                setTypeFilter(e.target.value as typeof typeFilter);
+              }}
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos</option>
@@ -347,63 +385,71 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
           </div>
         </div>
 
-        {/* Results count */}
         <div className="mb-3 text-sm text-slate-500">
-          Mostrando <span className="text-white font-medium">{filteredReports.length}</span> reporte{filteredReports.length !== 1 ? 's' : ''}
+          {loading ? (
+            <span>Cargando reportes...</span>
+          ) : (
+            <>
+              Mostrando <span className="text-white font-medium">{reports.length}</span> de <span className="text-white font-medium">{pagination.total}</span> reporte{pagination.total !== 1 ? "s" : ""}
+            </>
+          )}
         </div>
 
-        {/* Reports List */}
+        {loadError && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+            <p className="text-sm text-red-300">{loadError}</p>
+            <button
+              onClick={loadReports}
+              className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
         <div className="space-y-2">
-          {filteredReports.length === 0 ? (
+          {!loading && reports.length === 0 ? (
             <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-8 text-center">
               <p className="text-slate-500">No se encontraron reportes con los filtros aplicados</p>
             </div>
           ) : (
-            filteredReports.map(report => (
+            reports.map(report => (
               <div key={report._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(report.targetType)}`}>
-                        {getTargetTypeLabel(report.targetType)}
-                      </span>
-                      <span className={`text-xs px-2 py-1 rounded font-medium ${
-                        report.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
-                      }`}>
-                        {report.status === "pending" ? "Pendiente" : "Resuelto"}
-                      </span>
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(report.targetType)}`}>{getTargetTypeLabel(report.targetType)}</span>
+                      <span className={`text-xs px-2 py-1 rounded font-medium ${report.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"}`}>{report.status === "pending" ? "Pendiente" : "Resuelto"}</span>
                       <span className="text-xs text-slate-600">{new Date(report.createdAt).toLocaleDateString()}</span>
                     </div>
                     <h4 className="text-sm font-bold text-white mb-1">{report.type}</h4>
                     <p className="text-xs text-slate-400">Tipo: <span className="text-slate-300 font-medium">{report.type}</span> • Motivo: {report.reason}</p>
-                    {report.description && (
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">Descripción: {report.description}</p>
-                    )}
+                    {report.description && <p className="text-xs text-slate-500 mt-1 line-clamp-2 break-words">Descripción: {report.description}</p>}
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button 
+                    <button
                       onClick={() => {
                         setSelectedReport(report);
                         setShowReportModal(true);
                       }}
-                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 
+                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors"
                       title="Ver detalles"
                     >
                       <Eye size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleResolveReport(report._id)}
-                      disabled={submitting || report.status === 'resolved'}
-                      className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg transition-colors disabled:opacity-50" 
+                      disabled={submitting || report.status === "resolved"}
+                      className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg transition-colors disabled:opacity-50"
                       title="Resolver"
                     >
                       <CheckCircle2 size={16} />
                     </button>
-                    {report.targetType !== 'User' && (
-                      <button 
+                    {report.targetType !== "User" && (
+                      <button
                         onClick={() => handleDeleteContent(report)}
                         disabled={submitting}
-                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50" 
+                        className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50"
                         title="Eliminar Contenido"
                       >
                         <Trash2 size={16} />
@@ -415,6 +461,8 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
             ))
           )}
         </div>
+
+        <PaginationControls pagination={pagination} onPageChange={setPage} itemLabel="reportes" />
       </div>
 
       {showReportModal && selectedReport && (
@@ -425,57 +473,40 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                 <Flag className="text-amber-400" />
                 Detalles del Reporte
               </h3>
-              <button 
+              <button
                 onClick={() => setShowReportModal(false)}
                 className="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
               >
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="space-y-6">
-              {/* Report Info */}
               <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                 <div className="flex gap-2 mb-3">
-                  <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(selectedReport.targetType)}`}>
-                    {getTargetTypeLabel(selectedReport.targetType)}
-                  </span>
-                  <span className={`text-xs px-2 py-1 rounded font-medium ${
-                    selectedReport.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"
-                  }`}>
-                    {selectedReport.status === "pending" ? "Pendiente" : "Resuelto"}
-                  </span>
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${getTargetTypeBg(selectedReport.targetType)}`}>{getTargetTypeLabel(selectedReport.targetType)}</span>
+                  <span className={`text-xs px-2 py-1 rounded font-medium ${selectedReport.status === "pending" ? "bg-amber-500/10 text-amber-400" : "bg-emerald-500/10 text-emerald-400"}`}>{selectedReport.status === "pending" ? "Pendiente" : "Resuelto"}</span>
                 </div>
                 <p className="text-sm text-slate-400 mb-1">Motivo: <span className="text-white font-medium">{selectedReport.reason}</span></p>
-                <p className="text-sm text-slate-400 mb-1">Reportado por: <span className="text-white font-medium">{selectedReport.reportedBy?.username || 'Desconocido'}</span></p>
+                <p className="text-sm text-slate-400 mb-1">Reportado por: <span className="text-white font-medium">{selectedReport.reportedBy?.username || "Desconocido"}</span></p>
                 <p className="text-sm text-slate-400">Fecha: <span className="text-white">{new Date(selectedReport.createdAt).toLocaleString()}</span></p>
-                
-                {selectedReport.description && (
-                  <div className="mt-3 bg-slate-800 rounded-lg p-3 border border-slate-700">
-                    <p className="text-sm text-slate-300 italic whitespace-pre-wrap break-words">"{selectedReport.description}"</p>
-                  </div>
-                )}
+                {selectedReport.description && <div className="mt-3 bg-slate-800 rounded-lg p-3 border border-slate-700"><p className="text-sm text-slate-300 italic whitespace-pre-wrap break-words">"{selectedReport.description}"</p></div>}
               </div>
 
-              {/* Target Content Preview */}
               <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50">
                 <h4 className="text-sm font-bold text-white mb-3">Contenido Reportado</h4>
                 {!selectedReport.targetId ? (
                   <p className="text-sm text-slate-500 italic">El contenido ya no existe (probablemente fue eliminado).</p>
                 ) : (
                   <div className="space-y-2 text-sm text-slate-300">
-                    {selectedReport.targetType === 'GameList' && (
+                    {selectedReport.targetType === "GameList" && (
                       <>
                         <p className="break-words"><strong className="text-slate-400">Título:</strong> {selectedReport.targetId.title}</p>
                         <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Descripción:</strong> {selectedReport.targetId.description}</p>
                       </>
                     )}
-                    {selectedReport.targetType === 'Comment' && (
-                      <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>
-                    )}
-                    {selectedReport.targetType === 'User' && (
-                      <p className="break-words"><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>
-                    )}
+                    {selectedReport.targetType === "Comment" && <p className="break-words whitespace-pre-wrap"><strong className="text-slate-400">Comentario:</strong> {selectedReport.targetId.content}</p>}
+                    {selectedReport.targetType === "User" && <p className="break-words"><strong className="text-slate-400">Usuario:</strong> {selectedReport.targetId.username}</p>}
                   </div>
                 )}
               </div>
@@ -487,13 +518,13 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
                   handleResolveReport(selectedReport._id);
                   setShowReportModal(false);
                 }}
-                disabled={submitting || selectedReport.status === 'resolved'}
+                disabled={submitting || selectedReport.status === "resolved"}
                 className="flex-1 px-4 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
               >
                 <CheckCircle2 size={18} />
                 Marcar Resuelto
               </button>
-              {selectedReport.targetType !== 'User' && (
+              {selectedReport.targetType !== "User" && (
                 <button
                   onClick={() => handleDeleteContent(selectedReport)}
                   disabled={submitting || !selectedReport.targetId}
@@ -511,15 +542,14 @@ function ModerationPanel({ reports, stats, searchTerm, setSearchTerm, onReload }
   );
 }
 
-// ========== RF-17: Gestión de Usuarios ==========
-function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: { 
-  users: any[]; 
-  stats: any;
-  searchTerm: string; 
-  setSearchTerm: (val: string) => void;
-  onReload: () => void;
-}) {
+function UsersPanel({ stats, onReload }: { stats: any; onReload: () => Promise<void> }) {
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "warned" | "silenced" | "banned">("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [users, setUsers] = useState<any[]>([]);
+  const [pagination, setPagination] = useState({ page: 1, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [showActionModal, setShowActionModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -534,18 +564,36 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const filteredUsers = users.filter(u =>
-    (
-      statusFilter === "all" ||
-      (statusFilter === "active" && !isActionActiveForUser(u, "warned") && !isActionActiveForUser(u, "silenced") && !isActionActiveForUser(u, "banned")) ||
-      (statusFilter === "warned" && isActionActiveForUser(u, "warned")) ||
-      (statusFilter === "silenced" && isActionActiveForUser(u, "silenced")) ||
-      (statusFilter === "banned" && isActionActiveForUser(u, "banned"))
-    ) &&
-    (u.username?.toLowerCase().includes(searchTerm.toLowerCase()) || u.steamId?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      setLoadError("");
 
-  // Abre el modal para aplicar o revertir una sanción según el modo.
+      const response = await api.get("/api/moderation/users", {
+        params: {
+          page,
+          limit: ADMIN_PAGE_SIZE,
+          status: statusFilter === "all" ? undefined : statusFilter,
+          search: searchTerm.trim() || undefined,
+        },
+      });
+
+      setUsers(response.data?.users || []);
+      setPagination(response.data?.pagination || { page, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+    } catch (error) {
+      console.error("Error cargando usuarios:", error);
+      setUsers([]);
+      setPagination({ page, pages: 0, total: 0, limit: ADMIN_PAGE_SIZE });
+      setLoadError("No se pudieron cargar los usuarios.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, [page, statusFilter, searchTerm]);
+
   const handleOpenActionModal = (user: any, action: ModerationActionType, mode: "apply" | "undo" = "apply") => {
     setSelectedUser(user);
     setActionType(action);
@@ -556,28 +604,22 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
     setShowActionModal(true);
   };
 
-  // Cambia el tooltip según el modo actual del botón (aplicar vs deshacer).
   const getActionTitle = (user: any, action: ModerationActionType) => {
     if (action === "warned") return isActionActiveForUser(user, "warned") ? "Quitar advertencia" : "Advertir";
     if (action === "silenced") return isActionActiveForUser(user, "silenced") ? "Quitar silencio" : "Silenciar";
     return isActionActiveForUser(user, "banned") ? "Desbanear" : "Banear";
   };
 
-  // Toggle de sanción: si ya está aplicada, la revierte; si no, abre modal para aplicarla.
   const handleToggleAction = async (user: any, action: ModerationActionType) => {
     try {
       setSubmitting(true);
-
-      const isUndo = isActionActiveForUser(user, action);
-      if (isUndo) {
-        // En deshacer siempre pedimos motivo para dejar trazabilidad.
+      if (isActionActiveForUser(user, action)) {
         handleOpenActionModal(user, action, "undo");
         return;
       }
-
       handleOpenActionModal(user, action, "apply");
     } catch (error) {
-      console.error('Error alternando acción de moderación:', error);
+      console.error("Error alternando acción de moderación:", error);
     } finally {
       setSubmitting(false);
     }
@@ -592,14 +634,10 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
 
       const response = await api.get(`/api/moderation/user/${user._id}`);
       const actions = response.data?.actions || [];
-
-      const sortedActions = [...actions].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-
+      const sortedActions = [...actions].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setHistoryActions(sortedActions);
     } catch (error) {
-      console.error('Error obteniendo historial de moderación:', error);
+      console.error("Error obteniendo historial de moderación:", error);
       setHistoryActions([]);
       setHistoryError("No se pudo cargar el historial de moderación.");
     } finally {
@@ -634,18 +672,12 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
   };
 
   const handleSubmitAction = async () => {
-    if (!selectedUser || !reason.trim()) {
-      return;
-    }
+    if (!selectedUser || !reason.trim()) return;
 
     try {
       setActionError("");
       setSubmitting(true);
-      const payload: any = {
-        userId: selectedUser._id,
-        action: actionType,
-        reason: reason,
-      };
+      const payload: any = { userId: selectedUser._id, action: actionType, reason };
 
       const needsDuration = actionMode === "apply" && (actionType === "silenced" || actionType === "banned");
       if (duration && needsDuration) {
@@ -657,35 +689,18 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
         payload.duration = parsedDuration;
       }
 
-      await api.post('/api/moderation/actions', payload);
+      await api.post("/api/moderation/actions", payload);
       setShowActionModal(false);
-      onReload();
+      await Promise.all([onReload(), loadUsers()]);
     } catch (error) {
-      console.error('Error aplicando acción de moderación:', error);
+      console.error("Error aplicando acción de moderación:", error);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const getStatusColor = (status: string) => {
-    if (status === "active") return "bg-emerald-500/10 text-emerald-400";
-    if (status === "warned") return "bg-amber-500/10 text-amber-400";
-    if (status === "silenced") return "bg-orange-500/10 text-orange-400";
-    if (status === "banned") return "bg-red-500/10 text-red-400";
-    return "bg-slate-500/10 text-slate-400";
-  };
-
-  const getStatusLabel = (status: string) => {
-    if (status === "active") return "Activo";
-    if (status === "warned") return "Advertido";
-    if (status === "silenced") return "Silenciado";
-    if (status === "banned") return "Baneado";
-    return status;
-  };
-
   return (
     <div className="space-y-4">
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "Usuarios Activos", value: stats.active, icon: Users, color: "text-emerald-400", bg: "bg-emerald-500/10" },
@@ -703,7 +718,6 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
         ))}
       </div>
 
-      {/* Users Management */}
       <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-5 shadow-xl">
         <div className="flex flex-col md:flex-row gap-3 mb-4">
           <div className="flex-1 relative">
@@ -712,17 +726,22 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
               type="text"
               placeholder="Buscar usuarios..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setPage(1);
+                setSearchTerm(e.target.value);
+              }}
               className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
             />
           </div>
-          
-          {/* Status Filter */}
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400 whitespace-nowrap">Estado:</span>
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+              onChange={(e) => {
+                setPage(1);
+                setStatusFilter(e.target.value as typeof statusFilter);
+              }}
               className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 cursor-pointer"
             >
               <option value="all">Todos</option>
@@ -734,109 +753,71 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
           </div>
         </div>
 
-        {/* Users List */}
+        {loadError && (
+          <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-xl p-4">
+            <p className="text-sm text-red-300">{loadError}</p>
+            <button
+              onClick={loadUsers}
+              className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+
         <div className="space-y-2">
-          {filteredUsers.length === 0 ? (
+          {loading ? (
+            <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-8 text-center">
+              <p className="text-slate-500">Cargando usuarios...</p>
+            </div>
+          ) : users.length === 0 ? (
             <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-8 text-center">
               <p className="text-slate-500">No se encontraron usuarios con los filtros aplicados</p>
             </div>
           ) : (
-            filteredUsers.map(user => (
+            users.map(user => (
               <div key={user._id} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 hover:bg-slate-800 transition-colors">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex-1">
-                    {(() => {
-                      const hasWarned = isActionActiveForUser(user, "warned");
-                      const hasSilenced = isActionActiveForUser(user, "silenced");
-                      const hasBanned = isActionActiveForUser(user, "banned");
-                      const effectiveStatus = hasBanned
-                        ? "banned"
-                        : hasSilenced
-                          ? "silenced"
-                          : hasWarned
-                            ? "warned"
-                            : normalizeStatus(user.status) || "active";
-                      const statusLabels = [
-                        hasWarned ? "Advertido" : null,
-                        hasSilenced ? "Silenciado" : null,
-                        hasBanned ? "Baneado" : null,
-                      ].filter(Boolean) as string[];
-                      const showActiveLabel = statusLabels.length === 0;
-
-                      return (
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
                       <h4 className="text-sm font-bold text-white">{user.username}</h4>
-                      {statusLabels.map((label) => (
-                        <span
-                          key={label}
-                          className={
-                            label === "Advertido"
-                              ? "text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400"
-                              : label === "Silenciado"
-                                ? "text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400"
-                                : "text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400"
-                          }
-                        >
-                          {label}
-                        </span>
-                      ))}
-                      {showActiveLabel && (
-                        <span className="text-xs px-2 py-1 rounded font-medium bg-emerald-500/10 text-emerald-400">
-                          Activo
-                        </span>
-                      )}
-                      {user.moderationHistory && user.moderationHistory.length > 0 && (
-                        <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">
-                          {user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? 'es' : ''}
-                        </span>
-                      )}
+                      {isActionActiveForUser(user, "warned") && <span className="text-xs px-2 py-1 rounded font-medium bg-amber-500/10 text-amber-400">Advertido</span>}
+                      {isActionActiveForUser(user, "silenced") && <span className="text-xs px-2 py-1 rounded font-medium bg-orange-500/10 text-orange-400">Silenciado</span>}
+                      {isActionActiveForUser(user, "banned") && <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">Baneado</span>}
+                      {!isActionActiveForUser(user, "warned") && !isActionActiveForUser(user, "silenced") && !isActionActiveForUser(user, "banned") && <span className="text-xs px-2 py-1 rounded font-medium bg-emerald-500/10 text-emerald-400">Activo</span>}
+                      {user.moderationHistory && user.moderationHistory.length > 0 && <span className="text-xs px-2 py-1 rounded font-medium bg-red-500/10 text-red-400">{user.moderationHistory.length} acción{user.moderationHistory.length !== 1 ? "es" : ""}</span>}
                     </div>
-                      );
-                    })()}
-                    <p className="text-xs text-slate-400">
-                      SteamID: {user.steamId} • Miembro desde {new Date(user.createdAt).toLocaleDateString()}
-                    </p>
+                    <p className="text-xs text-slate-400">SteamID: {user.steamId} • Miembro desde {new Date(user.createdAt).toLocaleDateString()}</p>
                   </div>
+
                   <div className="flex flex-wrap gap-2">
-                    <button 
+                    <button
                       onClick={() => handleOpenHistoryModal(user)}
-                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors" 
+                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors"
                       title="Ver historial"
                     >
                       <FileText size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleToggleAction(user, "warned")}
                       disabled={isActionActiveForUser(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${
-                        isActionActiveForUser(user, "warned")
-                          ? "bg-yellow-500/25 border-yellow-400/40 text-yellow-300"
-                          : "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400"
-                      }`} 
+                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${isActionActiveForUser(user, "warned") ? "bg-yellow-500/25 border-yellow-400/40 text-yellow-300" : "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400"}`}
                       title={getActionTitle(user, "warned")}
                     >
                       <AlertOctagon size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleToggleAction(user, "silenced")}
                       disabled={isActionActiveForUser(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${
-                        isActionActiveForUser(user, "silenced")
-                          ? "bg-amber-500/25 border-amber-400/40 text-amber-300"
-                          : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 text-amber-400"
-                      }`} 
+                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${isActionActiveForUser(user, "silenced") ? "bg-amber-500/25 border-amber-400/40 text-amber-300" : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 text-amber-400"}`}
                       title={getActionTitle(user, "silenced")}
                     >
                       <MessageSquareOff size={16} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleToggleAction(user, "banned")}
                       title={getActionTitle(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors ${
-                        isActionActiveForUser(user, "banned")
-                          ? "bg-red-500/25 border-red-400/40 text-red-300"
-                          : "bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400"
-                      }`}
+                      className={`p-2 border rounded-lg transition-colors ${isActionActiveForUser(user, "banned") ? "bg-red-500/25 border-red-400/40 text-red-300" : "bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400"}`}
                     >
                       <Ban size={16} />
                     </button>
@@ -846,9 +827,10 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
             ))
           )}
         </div>
+
+        <PaginationControls pagination={pagination} onPageChange={setPage} itemLabel="usuarios" />
       </div>
 
-      {/* Action Modal */}
       {showActionModal && selectedUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6">
@@ -860,7 +842,7 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
               {actionMode === "apply" && actionType === "silenced" && "Silenciar usuario"}
               {actionMode === "apply" && actionType === "banned" && "Banear usuario"}
             </h3>
-            
+
             <div className="space-y-4 mb-6">
               <div>
                 <label className="text-sm text-slate-400 block mb-2">Usuario: {selectedUser.username}</label>
@@ -883,9 +865,7 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
 
               {actionMode === "apply" && (actionType === "silenced" || actionType === "banned") && (
                 <div>
-                  <label className="text-sm text-slate-400 block mb-2">
-                    Duración en días {actionType === "banned" ? "(dejar vacío para permanente)" : ""}
-                  </label>
+                  <label className="text-sm text-slate-400 block mb-2">Duración en días {actionType === "banned" ? "(dejar vacío para permanente)" : ""}</label>
                   <input
                     type="number"
                     value={duration}
@@ -911,19 +891,11 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                 </div>
               )}
 
-              {actionError && (
-                <p className="text-xs text-red-400">{actionError}</p>
-              )}
+              {actionError && <p className="text-xs text-red-400">{actionError}</p>}
             </div>
 
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowActionModal(false)}
-                disabled={submitting}
-                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
-              >
-                Cancelar
-              </button>
+              <button onClick={() => setShowActionModal(false)} disabled={submitting} className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50">Cancelar</button>
               <button
                 onClick={handleSubmitAction}
                 disabled={submitting || !reason.trim()}
@@ -936,7 +908,6 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
         </div>
       )}
 
-      {/* History Modal */}
       {showHistoryModal && historyUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 max-h-[85vh] overflow-hidden flex flex-col">
@@ -945,50 +916,28 @@ function UsersPanel({ users, stats, searchTerm, setSearchTerm, onReload }: {
                 <h3 className="text-lg font-bold text-white">Historial de moderación</h3>
                 <p className="text-sm text-slate-400">Usuario: {historyUser.username}</p>
               </div>
-              <button
-                onClick={() => setShowHistoryModal(false)}
-                className="text-slate-400 hover:text-white transition-colors"
-                aria-label="Cerrar historial"
-              >
+              <button onClick={() => setShowHistoryModal(false)} className="text-slate-400 hover:text-white transition-colors" aria-label="Cerrar historial">
                 <X size={20} />
               </button>
             </div>
 
             <div className="overflow-y-auto pr-1 space-y-3">
               {historyLoading && <p className="text-sm text-slate-400">Cargando historial...</p>}
-
-              {!historyLoading && historyError && (
-                <p className="text-sm text-red-400">{historyError}</p>
-              )}
-
-              {!historyLoading && !historyError && historyActions.length === 0 && (
-                <p className="text-sm text-slate-400">Este usuario no tiene acciones de moderación registradas.</p>
-              )}
-
+              {!historyLoading && historyError && <p className="text-sm text-red-400">{historyError}</p>}
+              {!historyLoading && !historyError && historyActions.length === 0 && <p className="text-sm text-slate-400">Este usuario no tiene acciones de moderación registradas.</p>}
               {!historyLoading && !historyError && historyActions.map((item) => (
                 <div key={item._id} className="bg-slate-800/60 border border-slate-700 rounded-xl p-4">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className={`text-xs px-2 py-1 rounded border ${getActionBadge(item.action)}`}>
-                      {getActionLabel(item.action)}
-                    </span>
-                    <span className={`text-xs px-2 py-1 rounded ${getHistoryStateBadge(item)}`}>
-                      {getHistoryStateLabel(item)}
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      {new Date(item.createdAt).toLocaleString()}
-                    </span>
+                    <span className={`text-xs px-2 py-1 rounded border ${getActionBadge(item.action)}`}>{getActionLabel(item.action)}</span>
+                    <span className={`text-xs px-2 py-1 rounded ${getHistoryStateBadge(item)}`}>{getHistoryStateLabel(item)}</span>
+                    <span className="text-xs text-slate-500">{new Date(item.createdAt).toLocaleString()}</span>
                   </div>
-
-                  <div className="text-sm text-slate-200 mb-1">
-                    Motivo: <span className="text-slate-300 break-words whitespace-pre-wrap">{item.reason || "Sin motivo"}</span>
-                  </div>
-
+                  <div className="text-sm text-slate-200 mb-1">Motivo: <span className="text-slate-300 break-words whitespace-pre-wrap">{item.reason || "Sin motivo"}</span></div>
                   {item.duration ? (
                     <p className="text-xs text-slate-400 mb-1">Duración: {item.duration} día{item.duration !== 1 ? "s" : ""}</p>
                   ) : (
                     <p className="text-xs text-slate-500 mb-1">Duración: permanente</p>
                   )}
-
                   <p className="text-xs text-slate-500">
                     Aplicada por: {item.appliedBy?.username || "-"}
                     {item.revokedBy?.username ? ` • Revertida por: ${item.revokedBy.username}` : ""}
