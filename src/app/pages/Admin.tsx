@@ -20,6 +20,8 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 
 type TabType = "moderation" | "users";
@@ -195,10 +197,8 @@ export function Admin() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-2">
-              <ExportButtons />
-            </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+            <ExportButtons />
             <Link
               to="/"
               className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700 w-full sm:w-auto"
@@ -295,50 +295,45 @@ function ExportButtons() {
     }
   };
 
+  const exportGroups: Array<{
+    type: "users" | "reports" | "actions";
+    label: string;
+  }> = [
+    { type: "users", label: "Usuarios" },
+    { type: "reports", label: "Reportes" },
+    { type: "actions", label: "Sanciones" },
+  ];
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="inline-flex items-center gap-1">
-        <button
-          onClick={() => handleExport("users", "csv")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
+    <div className="w-full sm:w-auto flex flex-wrap items-center justify-end gap-2">
+      {exportGroups.map((group) => (
+        <div
+          key={group.type}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-800/70 px-2 py-1"
         >
-          Exportar Usuarios (CSV)
-        </button>
-        <button
-          onClick={() => handleExport("users", "xlsx")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
-        >
-          (XLSX)
-        </button>
-      </div>
-      <div className="inline-flex items-center gap-1">
-        <button
-          onClick={() => handleExport("reports", "csv")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
-        >
-          Exportar Reportes (CSV)
-        </button>
-        <button
-          onClick={() => handleExport("reports", "xlsx")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
-        >
-          (XLSX)
-        </button>
-      </div>
-      <div className="inline-flex items-center gap-1">
-        <button
-          onClick={() => handleExport("actions", "csv")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
-        >
-          Exportar Sanciones (CSV)
-        </button>
-        <button
-          onClick={() => handleExport("actions", "xlsx")}
-          className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-300 hover:bg-slate-700"
-        >
-          (XLSX)
-        </button>
-      </div>
+          <div className="hidden lg:inline-flex items-center gap-1 text-[12px] font-medium text-slate-300 pr-1">
+            <Download size={13} className="text-slate-400" />
+            {group.label}
+          </div>
+          <button
+            onClick={() => handleExport(group.type, "csv")}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+            title={`Exportar ${group.label} en CSV`}
+          >
+            <FileText size={13} className="text-sky-300" />
+            CSV
+          </button>
+          <button
+            onClick={() => handleExport(group.type, "xlsx")}
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+            title={`Exportar ${group.label} en Excel`}
+          >
+            <FileSpreadsheet size={13} className="text-emerald-300" />
+            XLSX
+          </button>
+        </div>
+      ))}
+      <div className="sm:hidden w-full" />
     </div>
   );
 }
