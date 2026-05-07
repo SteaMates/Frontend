@@ -527,9 +527,7 @@ export function Profile() {
           setUsingSnapshot(true);
           setSnapshotCachedAt(snapshot.cachedAt || null);
         } else {
-          setProfile(
-            Object.keys(profileData).length > 0 ? profileData : null,
-          );
+          setProfile(Object.keys(profileData).length > 0 ? profileData : null);
           setGames(liveGames);
           setRecentGames(liveRecent);
           setGenreData(liveGenreData);
@@ -1290,7 +1288,8 @@ export function Profile() {
               Última petición a la API: {snapshotDateLabel}
             </p>
             <p className="mt-1 text-[#90a1b9] text-[12px]">
-              Si ves este mismo sello, los datos se están sirviendo desde la caché.
+              Si ves este mismo sello, los datos se están sirviendo desde la
+              caché.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -1306,8 +1305,12 @@ export function Profile() {
       ) : (
         <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3 flex items-center justify-between gap-4">
           <div>
-            <p className="text-[#cbd5e1] text-[13px] font-medium">No hay datos cacheados</p>
-            <p className="mt-1 text-[#90a1b9] text-[12px]">Pulsa "Refrescar" para cargar datos desde la API.</p>
+            <p className="text-[#cbd5e1] text-[13px] font-medium">
+              No hay datos cacheados
+            </p>
+            <p className="mt-1 text-[#90a1b9] text-[12px]">
+              Pulsa "Refrescar" para cargar datos desde la API.
+            </p>
           </div>
           <div>
             <button
