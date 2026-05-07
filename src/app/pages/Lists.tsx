@@ -41,6 +41,7 @@ export function Lists() {
   const [loadingMoreLists, setLoadingMoreLists] = useState(false);
   const [listsPage, setListsPage] = useState(1);
   const [listsHasMore, setListsHasMore] = useState(false);
+  const [listsLoadError, setListsLoadError] = useState("");
 
   // Steam Game Search
   const [searchGamesOptions, setSearchGamesOptions] = useState<
@@ -69,6 +70,7 @@ export function Lists() {
         setLoadingLists(true);
       }
 
+      setListsLoadError("");
       const res = await api.get('/api/lists', {
         params: {
           page,
@@ -93,6 +95,11 @@ export function Lists() {
       );
     } catch (err) {
       console.error("Error fetching lists:", err);
+      if (!append) {
+        setLists([]);
+      }
+      setListsHasMore(false);
+      setListsLoadError("No se pudieron cargar las listas.");
     } finally {
       setLoadingLists(false);
       setLoadingMoreLists(false);
@@ -448,6 +455,19 @@ export function Lists() {
         {loadingLists ? (
           <div className="flex items-center justify-center p-20 text-[#cad5e2]">
             Cargando listas...
+          </div>
+        ) : listsLoadError ? (
+          <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[14px] p-10 text-center">
+            <p className="text-[#ff8a8c] text-[14px] mb-4">
+              {listsLoadError}
+            </p>
+            <button
+              type="button"
+              onClick={() => fetchLists(1, false)}
+              className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
+            >
+              Reintentar
+            </button>
           </div>
         ) : filteredLists.length > 0 ? (
           <>
