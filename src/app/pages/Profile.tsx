@@ -630,9 +630,14 @@ export function Profile() {
           void loadGameDetails(snapshot.games || []);
           return;
         }
+      } else {
+        // Para perfiles de otros usuarios: si no hay caché, realizar la primera
+        // petición automáticamente y almacenar los datos (comportamiento igual al propio perfil).
+        void fetchFromApi();
+        return;
       }
 
-      // No cache available — keep loading=false and wait for user to press "Refrescar"
+      // No cache disponible para el propio perfil — esperar a la acción del usuario
       setLoading(false);
     })();
   }, [user, routeSteamId, isOwnProfile]);
@@ -1259,7 +1264,8 @@ export function Profile() {
         <div className="flex items-center gap-3 mr-2">
           {snapshotDateLabel && (
             <div className="text-[#bfdbfe] text-[13px]">
-              Última actualización: <span className="font-medium">{snapshotDateLabel}</span>
+              Última actualización:{" "}
+              <span className="font-medium">{snapshotDateLabel}</span>
             </div>
           )}
         </div>
