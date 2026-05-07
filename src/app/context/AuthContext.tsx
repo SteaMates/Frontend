@@ -31,17 +31,39 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const STORAGE_KEY = 'steamates_user';
 const TOKEN_KEY = 'steamates_token';
+const LAST_ACTIVITY_KEY = 'steamates_last_activity';
 
-// Tiempo de inactividad antes de cerrar sesión automáticamente.
-// Para pruebas: 2 minutos. En producción cambiar a 30 * 60 * 1000.
+// Tiempo de inactividad antes de cerrar sesión automáticamente (30 minutos).
 const INACTIVITY_TIMEOUT = 2 * 60 * 1000;
 
+// Escribir en localStorage máximo una vez cada 30 s para no saturar en mousemove.
+const ACTIVITY_WRITE_THROTTLE = 30 * 1000;
+
 const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'] as const;
+
+/** Borra todos los datos de sesión del almacenamiento local. */
+function clearSessionStorage() {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
+    sessionStorage.removeItem('steamates_login_notices');
+}
+
+/** Devuelve true si la última actividad registrada supera el timeout. */
+function isSessionExpiredByInactivity(): boolean {
+    const raw = localStorage.getItem(LAST_ACTIVITY_KEY);
+    if (!raw) return false; // Sin registro → sesión nueva, no caducada
+    const lastActivity = parseInt(raw, 10);
+    return Date.now() - lastActivity > INACTIVITY_TIMEOUT;
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
     const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const lastActivityWrite = useRef<number>(0);
+    const userIdRef = useRef<string | undefined>(undefined);
+    userIdRef.current = user?.id;
 
     const refreshSession = async () => {
         if (!localStorage.getItem(TOKEN_KEY)) {
@@ -76,15 +98,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         } catch {
             // Token expirado o inválido — limpiar sesión
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(TOKEN_KEY);
-            sessionStorage.removeItem('steamates_login_notices');
+            clearSessionStorage();
             setUser(null);
         }
     };
 
     const logout = useCallback(async () => {
-        // Limpiar temporizador de inactividad si existe
         if (inactivityTimer.current) {
             clearTimeout(inactivityTimer.current);
             inactivityTimer.current = null;
@@ -95,19 +114,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // ignore
         }
         setUser(null);
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TOKEN_KEY);
+        clearSessionStorage();
         window.location.href = '/login';
     }, []);
 
     // --- Sistema de cierre de sesión por inactividad ---
-    const userIdRef = useRef<string | undefined>(undefined);
-    userIdRef.current = user?.id;
-
     useEffect(() => {
         if (!userIdRef.current) return; // Solo activo cuando hay sesión iniciada
 
         const resetTimer = () => {
+            // Persistir timestamp de actividad en localStorage (throttled)
+            const now = Date.now();
+            if (now - lastActivityWrite.current > ACTIVITY_WRITE_THROTTLE) {
+                localStorage.setItem(LAST_ACTIVITY_KEY, String(now));
+                lastActivityWrite.current = now;
+            }
+
             if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
             inactivityTimer.current = setTimeout(() => {
                 logout();
@@ -143,9 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const error = params.get('error');
 
         if (error === 'user_banned') {
-            localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem(TOKEN_KEY);
-            sessionStorage.removeItem('steamates_login_notices');
+            clearSessionStorage();
             setUser(null);
             setLoading(false);
             window.history.replaceState({}, '', window.location.pathname);
@@ -198,6 +218,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(userData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             localStorage.setItem(TOKEN_KEY, token);
+            // Registrar actividad en el momento del login
+            localStorage.setItem(LAST_ACTIVITY_KEY, String(Date.now()));
             if (notices.length > 0) {
                 sessionStorage.setItem('steamates_login_notices', JSON.stringify(notices));
             }
@@ -212,6 +234,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedToken = localStorage.getItem(TOKEN_KEY);
 
         if (storedToken && stored) {
+            // Comprobar si la sesión expiró por inactividad mientras la app estaba cerrada
+            if (isSessionExpiredByInactivity()) {
+                clearSessionStorage();
+                setUser(null);
+                setLoading(false);
+                return;
+            }
+
             try {
                 const parsed = JSON.parse(stored);
                 if (parsed.steamid) {
@@ -241,7 +271,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // 3. Fallback: verificar validez del token con el backend
         const bootstrapAuth = async () => {
             if (steamId && token) {
-                // Recién llegados del login de Steam — no hace falta verificar de nuevo
                 setLoading(false);
                 return;
             }
@@ -250,6 +279,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
 
         const onFocus = () => {
+            // Al recuperar el foco también comprobar inactividad
+            if (isSessionExpiredByInactivity()) {
+                logout();
+                return;
+            }
             refreshSession();
         };
 
