@@ -101,8 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, []);
 
     // --- Sistema de cierre de sesión por inactividad ---
+    const userIdRef = useRef<string | undefined>(undefined);
+    userIdRef.current = user?.id;
+
     useEffect(() => {
-        if (!user) return; // Solo activo cuando hay sesión iniciada
+        if (!userIdRef.current) return; // Solo activo cuando hay sesión iniciada
 
         const resetTimer = () => {
             if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
@@ -127,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 inactivityTimer.current = null;
             }
         };
-    }, [user, logout]);
+    }, [user?.id, logout]);
 
     useEffect(() => {
         // 1. Comprobar si venimos del login de Steam (URL tiene parámetro steamId)
