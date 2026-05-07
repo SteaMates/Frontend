@@ -184,19 +184,19 @@ function gameImage(appId: number, fallback = "") {
   );
 }
 
-function parseMemberYear(value?: number | string) {
+function parseMemberYear(value?: number | string): number | null {
   if (typeof value === "number") {
     const ms = value > 1e11 ? value : value * 1000;
     const year = new Date(ms).getFullYear();
-    return Number.isNaN(year) ? 2014 : year;
+    return Number.isNaN(year) ? null : year;
   }
   if (typeof value === "string") {
     const asNum = Number(value);
     if (!Number.isNaN(asNum)) return parseMemberYear(asNum);
     const parsed = new Date(value).getFullYear();
-    return Number.isNaN(parsed) ? 2014 : parsed;
+    return Number.isNaN(parsed) ? null : parsed;
   }
-  return 2014;
+  return null;
 }
 
 function relativeLabel(lastPlayed?: number, fallback = "Reciente") {
@@ -218,25 +218,7 @@ function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
     [];
 
   if (candidate.length === 0) {
-    if (totalHours <= 0) {
-      return [];
-    }
-    const base = totalHours > 0 ? totalHours : 8486;
-    const fallback = [
-      { name: "FPS / Shooter", pct: 42, games: 12 },
-      { name: "RPG", pct: 22, games: 9 },
-      { name: "Sandbox / Survival", pct: 12, games: 8 },
-      { name: "Acción / Aventura", pct: 10, games: 6 },
-      { name: "Estrategia", pct: 5, games: 4 },
-      { name: "Simulación", pct: 4, games: 3 },
-      { name: "Indie", pct: 3, games: 5 },
-      { name: "Otros", pct: 2, games: 10 },
-    ];
-    return fallback.map((g, index) => ({
-      ...g,
-      hours: Math.round((base * g.pct) / 100),
-      color: GENRE_COLORS[index],
-    }));
+    return [];
   }
 
   const rows = candidate
@@ -757,7 +739,9 @@ export function Profile() {
       ? profile.memberSince > 1e11
         ? profile.memberSince
         : profile.memberSince * 1000
-      : new Date(memberYear, 0, 1).getTime();
+      : memberYear
+        ? new Date(memberYear, 0, 1).getTime()
+        : Date.now();
   const daysSinceMember = Math.max(
     1,
     Math.floor((Date.now() - memberSinceMs) / 86400000),
@@ -773,18 +757,15 @@ export function Profile() {
       : (achievementsData?.totalAchievements ??
         profile?.totalAchievements ??
         0);
-  const totalAchievements =
-    apiAchievements === 0 && games.length > 0
-      ? Math.round(games.length * 9.6)
-      : apiAchievements;
+  const totalAchievements = apiAchievements;
+  const achievementsEstimated = apiAchievements === 0 && games.length > 0 && achievementsData !== null;
+
   const apiCompleted =
     achievementsData === null
       ? "..."
       : (achievementsData?.perfectGames ?? profile?.completedGames ?? 0);
-  const completedGames =
-    apiCompleted === 0 && games.length > 0
-      ? Math.floor(games.length * 0.1)
-      : apiCompleted;
+  const completedGames = apiCompleted;
+  const completedEstimated = apiCompleted === 0 && games.length > 0 && achievementsData !== null;
 
   // Mostramos los logros reales más raros conseguidos por el jugador
   // O un pequeño fallback vacío mientras cargan
@@ -1133,6 +1114,7 @@ export function Profile() {
     {
       label: "Logros",
       value: `${totalAchievements}`,
+      warning: achievementsEstimated ? "Steam no devolvió datos de logros para este perfil" : undefined,
       Icon: Trophy,
       valueClass: "text-[#ffb900]",
       cardClass: "bg-[rgba(254,154,0,0.1)] border-[rgba(254,154,0,0.2)]",
@@ -1141,6 +1123,7 @@ export function Profile() {
     {
       label: "Completados",
       value: `${completedGames}`,
+      warning: completedEstimated ? "Steam no devolvió datos de juegos completados para este perfil" : undefined,
       Icon: Award,
       valueClass: "text-[#ff637e]",
       cardClass: "bg-[rgba(255,32,86,0.1)] border-[rgba(255,32,86,0.2)]",
@@ -1212,7 +1195,10 @@ export function Profile() {
                   Online
                 </span>
                 <span className="bg-[rgba(28,57,142,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#51a2ff]">
-                  Miembro desde {memberYear}
+                  {memberYear
+                    ? `Miembro desde ${memberYear}`
+                    : <span title="Steam no devolvió la fecha de registro de esta cuenta">Miembro desde ⚠ Desconocido</span>
+                  }
                 </span>
                 {!isOwnProfile && profile?._id && (
                   <ReportButton
@@ -1257,6 +1243,14 @@ export function Profile() {
             <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.45px] text-[#62748e]">
               <stat.Icon size={14} className={stat.iconClass} />
               {stat.label}
+              {stat.warning && (
+                <span
+                  title={stat.warning}
+                  className="ml-auto text-[#f59e0b] cursor-help"
+                >
+                  ⚠
+                </span>
+              )}
             </div>
             <p
               className={`mt-[6px] text-[20px] leading-7 font-bold ${stat.valueClass}`}
@@ -1402,9 +1396,15 @@ export function Profile() {
                 </div>
               </div>
             ) : (
-              <p className="text-[#62748e] text-[12px]">
-                Sin datos de géneros disponibles
-              </p>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <span className="text-2xl">⚠</span>
+                <p className="text-[#f59e0b] text-[12px] font-medium">
+                  Sin datos de géneros disponibles
+                </p>
+                <p className="text-[#62748e] text-[11px] max-w-[200px]">
+                  Steam no devolvió información de géneros para este perfil
+                </p>
+              </div>
             )}
           </div>
 
