@@ -76,10 +76,21 @@ export function Lists() {
         },
       });
 
-      const nextLists = res.data?.lists || [];
+      const responseLists = Array.isArray(res.data)
+        ? res.data
+        : res.data?.lists || [];
+      const responsePagination = Array.isArray(res.data)
+        ? null
+        : res.data?.pagination || null;
+
+      const nextLists = responseLists;
       setLists((prev) => (append ? [...prev, ...nextLists] : nextLists));
-      setListsPage(res.data?.pagination?.page || page);
-      setListsHasMore((res.data?.pagination?.page || page) < (res.data?.pagination?.pages || 0));
+      setListsPage(responsePagination?.page || page);
+      setListsHasMore(
+        responsePagination
+          ? responsePagination.page < responsePagination.pages
+          : false,
+      );
     } catch (err) {
       console.error("Error fetching lists:", err);
     } finally {
