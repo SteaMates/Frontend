@@ -34,7 +34,7 @@ const TOKEN_KEY = 'steamates_token';
 const LAST_ACTIVITY_KEY = 'steamates_last_activity';
 
 // Tiempo de inactividad antes de cerrar sesión automáticamente (30 minutos).
-const INACTIVITY_TIMEOUT = 2 * 60 * 1000;
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000;
 
 // Escribir en localStorage máximo una vez cada 30 s para no saturar en mousemove.
 const ACTIVITY_WRITE_THROTTLE = 30 * 1000;
