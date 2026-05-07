@@ -201,7 +201,7 @@ export function Admin() {
             <ExportButtons />
             <Link
               to="/"
-              className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-colors border border-slate-700 w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all border border-slate-700 w-full sm:w-auto hover:scale-105 active:scale-95"
             >
               <Home size={16} />
               <span className="text-sm">Volver al inicio</span>
@@ -317,7 +317,7 @@ function ExportButtons() {
           </div>
           <button
             onClick={() => handleExport(group.type, "csv")}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
             title={`Exportar ${group.label} en CSV`}
           >
             <FileText size={13} className="text-sky-300" />
@@ -325,7 +325,7 @@ function ExportButtons() {
           </button>
           <button
             onClick={() => handleExport(group.type, "xlsx")}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+            className="inline-flex items-center gap-1 rounded-lg border border-slate-600 bg-slate-900/60 px-2.5 py-1.5 text-[12px] font-medium text-slate-200 hover:bg-slate-700 hover:text-white transition-all hover:scale-105 active:scale-95"
             title={`Exportar ${group.label} en Excel`}
           >
             <FileSpreadsheet size={13} className="text-emerald-300" />
