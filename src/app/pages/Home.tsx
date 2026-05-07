@@ -50,11 +50,23 @@ const HERO_BG =
   "https://www.figma.com/api/mcp/asset/4bcb57fe-a3d3-4f67-a3eb-a29bbb4eeacb";
 
 function genreTag(genre: string) {
-  const value = genre.toLowerCase();
-  if (value.includes("rpg")) return "RPG";
-  if (value.includes("co-op") || value.includes("accion")) return "COOP";
-  if (value.includes("indie") || value.includes("ofertas")) return "IND";
-  return "TOP";
+  return genre;
+}
+
+function formatListCategoryLabel(categories?: string[]) {
+  const cleaned = (categories || [])
+    .map((category) => category.trim())
+    .filter(Boolean);
+
+  if (cleaned.length === 0) {
+    return "General";
+  }
+
+  if (cleaned.length === 1) {
+    return cleaned[0];
+  }
+
+  return `${cleaned[0]} +${cleaned.length - 1}`;
 }
 
 export function Home() {
@@ -95,7 +107,8 @@ export function Home() {
 
     updateVisibleTrendingCount();
     window.addEventListener("resize", updateVisibleTrendingCount);
-    return () => window.removeEventListener("resize", updateVisibleTrendingCount);
+    return () =>
+      window.removeEventListener("resize", updateVisibleTrendingCount);
   }, []);
 
   useEffect(() => {
@@ -344,7 +357,8 @@ export function Home() {
                     Inicia sesion para ver la actividad real de tus amigos.
                   </p>
                   <p className="mt-1 text-[11px] text-[#90a1b9]">
-                    Conecta tu cuenta de Steam y veras quienes estan online y que estan jugando ahora.
+                    Conecta tu cuenta de Steam y veras quienes estan online y
+                    que estan jugando ahora.
                   </p>
                   <Link
                     to="/login"
@@ -359,7 +373,8 @@ export function Home() {
                     No hay amigos conectados ahora mismo.
                   </p>
                   <p className="mt-1 text-[11px] text-[#90a1b9]">
-                    Vuelve mas tarde o entra en el Centro Social para revisar tu lista completa.
+                    Vuelve mas tarde o entra en el Centro Social para revisar tu
+                    lista completa.
                   </p>
                 </div>
               ) : (
@@ -414,7 +429,9 @@ export function Home() {
             <div className="mt-4 space-y-1.5">
               {loadingPopularLists ? (
                 <div className="rounded-[14px] border border-[#314158] bg-[#1d293d]/30 p-4">
-                  <p className="text-[12px] text-[#90a1b9]">Cargando listas populares...</p>
+                  <p className="text-[12px] text-[#90a1b9]">
+                    Cargando listas populares...
+                  </p>
                 </div>
               ) : popularLists.length === 0 ? (
                 <div className="rounded-[14px] border border-[#314158] bg-[#1d293d]/30 p-4">
@@ -422,7 +439,8 @@ export function Home() {
                     Aun no hay listas populares.
                   </p>
                   <p className="mt-1 text-[11px] text-[#90a1b9]">
-                    Cuando la comunidad empiece a votar, aqui veras las listas con mas likes.
+                    Cuando la comunidad empiece a votar, aqui veras las listas
+                    con mas likes.
                   </p>
                 </div>
               ) : (
@@ -432,8 +450,11 @@ export function Home() {
                     to={`/lists/${list._id}`}
                     className="h-[51px] rounded-[14px] px-3 flex items-center gap-3 hover:bg-[#1d293d]/35 transition-colors"
                   >
-                    <span className="h-7 min-w-7 rounded-[8px] bg-[#1d293d] px-2 text-[10px] text-[#90a1b9] inline-flex items-center justify-center">
-                      {genreTag(list.categories?.[0] || "General")}
+                    <span
+                      className="h-7 min-w-7 rounded-[8px] bg-[#1d293d] px-2 text-[10px] text-[#90a1b9] inline-flex items-center justify-center"
+                      title={list.categories?.join(", ") || "General"}
+                    >
+                      {formatListCategoryLabel(list.categories)}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[#e2e8f0] text-[12px] leading-4 truncate">
