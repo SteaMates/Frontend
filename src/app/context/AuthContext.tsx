@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import api from '../../lib/api';
 
 export interface User {
@@ -32,9 +32,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const STORAGE_KEY = 'steamates_user';
 const TOKEN_KEY = 'steamates_token';
 
+// Tiempo de inactividad antes de cerrar sesión automáticamente.
+// Para pruebas: 2 minutos. En producción cambiar a 30 * 60 * 1000.
+const INACTIVITY_TIMEOUT = 2 * 60 * 1000;
+
+const ACTIVITY_EVENTS = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'] as const;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const refreshSession = async () => {
         if (!localStorage.getItem(TOKEN_KEY)) {
@@ -68,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
             }
         } catch {
-            // If it crashes (token expired or invalid)
+            // Token expirado o inválido — limpiar sesión
             localStorage.removeItem(STORAGE_KEY);
             localStorage.removeItem(TOKEN_KEY);
             sessionStorage.removeItem('steamates_login_notices');
@@ -76,8 +83,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const logout = useCallback(async () => {
+        // Limpiar temporizador de inactividad si existe
+        if (inactivityTimer.current) {
+            clearTimeout(inactivityTimer.current);
+            inactivityTimer.current = null;
+        }
+        try {
+            await api.post('/api/auth/logout');
+        } catch {
+            // ignore
+        }
+        setUser(null);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(TOKEN_KEY);
+        window.location.href = '/login';
+    }, []);
+
+    // --- Sistema de cierre de sesión por inactividad ---
     useEffect(() => {
-        // 1. Check if we're returning from Steam login (URL has steamId param)
+        if (!user) return; // Solo activo cuando hay sesión iniciada
+
+        const resetTimer = () => {
+            if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
+            inactivityTimer.current = setTimeout(() => {
+                logout();
+            }, INACTIVITY_TIMEOUT);
+        };
+
+        ACTIVITY_EVENTS.forEach(event =>
+            window.addEventListener(event, resetTimer, { passive: true })
+        );
+
+        // Iniciar el temporizador nada más arrancar la sesión
+        resetTimer();
+
+        return () => {
+            ACTIVITY_EVENTS.forEach(event =>
+                window.removeEventListener(event, resetTimer)
+            );
+            if (inactivityTimer.current) {
+                clearTimeout(inactivityTimer.current);
+                inactivityTimer.current = null;
+            }
+        };
+    }, [user, logout]);
+
+    useEffect(() => {
+        // 1. Comprobar si venimos del login de Steam (URL tiene parámetro steamId)
         const params = new URLSearchParams(window.location.search);
         const steamId = params.get('steamId');
         const token = params.get('token');
@@ -109,7 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                             reason: typeof item.reason === 'string' ? item.reason : '',
                         }));
                 } catch {
-                    // Ignore malformed notices and fall back to status-specific notice.
+                    // Ignorar notices malformados, usar fallback por status.
                 }
             }
 
@@ -126,7 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (steamId && token) {
             const notices = parseLoginNotices();
 
-            // Steam callback — extract user data from URL params
+            // Steam callback — extraer datos de usuario de los parámetros de URL
             const userData: User = {
                 id: userId || '',
                 steamid: steamId,
@@ -141,20 +194,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
             setUser(userData);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-            localStorage.setItem(TOKEN_KEY, token); // <-- Guardamos el Token
+            localStorage.setItem(TOKEN_KEY, token);
             if (notices.length > 0) {
                 sessionStorage.setItem('steamates_login_notices', JSON.stringify(notices));
             }
             setLoading(false);
 
-            // Clean the URL (remove query params)
+            // Limpiar la URL (quitar query params)
             window.history.replaceState({}, '', window.location.pathname);
         }
 
-        // 2. Check localStorage for persisted session
+        // 2. Comprobar localStorage para sesión persistida
         const stored = localStorage.getItem(STORAGE_KEY);
         const storedToken = localStorage.getItem(TOKEN_KEY);
-        
+
         if (storedToken && stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -182,8 +235,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        // 3. Fallback: verify the token validity with the backend
+        // 3. Fallback: verificar validez del token con el backend
         const bootstrapAuth = async () => {
+            if (steamId && token) {
+                // Recién llegados del login de Steam — no hace falta verificar de nuevo
+                setLoading(false);
+                return;
+            }
             await refreshSession();
             setLoading(false);
         };
@@ -203,18 +261,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = () => {
         const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         window.location.href = `${backendUrl}/api/auth/steam`;
-    };
-
-    const logout = async () => {
-        try {
-            await api.post('/api/auth/logout');
-        } catch {
-            // ignore
-        }
-        setUser(null);
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TOKEN_KEY);
-        window.location.href = '/login';
     };
 
     return (
