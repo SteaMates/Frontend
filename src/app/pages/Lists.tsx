@@ -74,7 +74,7 @@ export function Lists() {
       const res = await api.get('/api/lists', {
         params: {
           page,
-          limit: 3,
+          limit: 12,
         },
       });
 

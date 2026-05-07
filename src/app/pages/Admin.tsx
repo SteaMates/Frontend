@@ -25,7 +25,7 @@ import {
 type TabType = "moderation" | "users";
 type ModerationActionType = "warned" | "silenced" | "banned";
 
-const ADMIN_PAGE_SIZE = 3;
+const ADMIN_PAGE_SIZE = 12;
 
 const initialModerationStats = {
   pending: 0,
