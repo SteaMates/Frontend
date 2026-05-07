@@ -502,8 +502,8 @@ export function Profile() {
           setRecentGames(sessionCache.recentGames || []);
           setGenreData(sessionCache.genreData || null);
           setAchievementsData(sessionCache.achievementsData || null);
+          setSnapshotCachedAt(sessionCache.cachedAt || null);
           setUsingSnapshot(false);
-          setSnapshotCachedAt(null);
           setLoading(false);
           void loadGameDetails(sessionCache.games || []);
           return; // Salir temprano si tenemos datos en caché
@@ -575,6 +575,7 @@ export function Profile() {
           };
           // Guardar en caché de sesión
           writeSessionCache(steamIdToLoad, cacheData);
+          setSnapshotCachedAt(cacheData.cachedAt);
           // Guardar en localStorage si es el perfil propio
           if (isOwnProfile) {
             writeProfileSnapshot(steamIdToLoad, cacheData);
@@ -1247,6 +1248,14 @@ export function Profile() {
               Snapshot: {snapshotDateLabel}
             </p>
           )}
+        </section>
+      )}
+
+      {snapshotCachedAt && (
+        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3">
+          <p className="text-[#cbd5e1] text-[13px] font-medium">
+            Última petición a la API: {snapshotDateLabel}
+          </p>
         </section>
       )}
 
