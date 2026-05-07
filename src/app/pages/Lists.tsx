@@ -17,11 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { Link } from "react-router";
-import {
-  CATEGORY_CHIPS,
-  FEED_TABS,
-  FeedTab,
-} from "../data/communityLists";
+import { CATEGORY_CHIPS, FEED_TABS, FeedTab } from "../data/communityLists";
 import api from "../../lib/api";
 
 type CreateGameOption = {
@@ -38,7 +34,7 @@ export function Lists() {
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [query, setQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  
+
   // Real Lists from backend
   const [lists, setLists] = useState<any[]>([]);
   const [loadingLists, setLoadingLists] = useState(true);
@@ -47,18 +43,23 @@ export function Lists() {
   const [listsHasMore, setListsHasMore] = useState(false);
 
   // Steam Game Search
-  const [searchGamesOptions, setSearchGamesOptions] = useState<CreateGameOption[]>([]);
+  const [searchGamesOptions, setSearchGamesOptions] = useState<
+    CreateGameOption[]
+  >([]);
   const [isSearchingGames, setIsSearchingGames] = useState(false);
 
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
   const [createTitle, setCreateTitle] = useState("");
   const [createDescription, setCreateDescription] = useState("");
-  const [createCategories, setCreateCategories] = useState<string[]>(["RPG"]);
+  const [createCategories, setCreateCategories] = useState<string[]>([]);
   const [createCover, setCreateCover] = useState(
-    () => "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800"
+    () =>
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
   );
   const [createGameQuery, setCreateGameQuery] = useState("");
-  const [createSelectedGames, setCreateSelectedGames] = useState<CreateGameOption[]>([]);
+  const [createSelectedGames, setCreateSelectedGames] = useState<
+    CreateGameOption[]
+  >([]);
 
   const fetchLists = async (page = 1, append = false) => {
     try {
@@ -80,7 +81,7 @@ export function Lists() {
       setListsPage(res.data?.pagination?.page || page);
       setListsHasMore((res.data?.pagination?.page || page) < (res.data?.pagination?.pages || 0));
     } catch (err) {
-      console.error('Error fetching lists:', err);
+      console.error("Error fetching lists:", err);
     } finally {
       setLoadingLists(false);
       setLoadingMoreLists(false);
@@ -101,18 +102,22 @@ export function Lists() {
       if (createGameQuery.trim().length > 2) {
         setIsSearchingGames(true);
         try {
-          const res = await api.get(`/api/steam/search?term=${encodeURIComponent(createGameQuery)}`);
+          const res = await api.get(
+            `/api/steam/search?term=${encodeURIComponent(createGameQuery)}`,
+          );
           const results = res.data.map((item: any) => {
             const appId = item.appId ? item.appId.toString() : null;
 
             // Backend now returns isFree (boolean) and price (number in dollars)
             const isFree = item.isFree === true || item.price === 0;
-            const priceLabel = isFree ? "Gratis" : `$${Number(item.price).toFixed(2)}`;
+            const priceLabel = isFree
+              ? "Gratis"
+              : `$${Number(item.price).toFixed(2)}`;
 
             // Image via Steam CDN
             const image = appId
               ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`
-              : `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(item.name?.[0] ?? '?')}`;
+              : `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(item.name?.[0] ?? "?")}`;
 
             return {
               id: appId || item.name,
@@ -144,9 +149,24 @@ export function Lists() {
 
   const createCoverOptions = useMemo(
     () => [
-      { id: "cover1", title: "Gaming Setup", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800" },
-      { id: "cover2", title: "Retro Arcade", image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800" },
-      { id: "cover3", title: "Abstract Data", image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800" },
+      {
+        id: "cover1",
+        title: "Gaming Setup",
+        image:
+          "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
+      },
+      {
+        id: "cover2",
+        title: "Retro Arcade",
+        image:
+          "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
+      },
+      {
+        id: "cover3",
+        title: "Abstract Data",
+        image:
+          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800",
+      },
     ],
     [],
   );
@@ -177,26 +197,27 @@ export function Lists() {
         categories: createCategories,
         coverImage: createCover,
         games: createSelectedGames.map((g, index) => ({
-          appId: parseInt(g.id, 10) || index + 1, 
+          appId: parseInt(g.id, 10) || index + 1,
           name: g.title,
-          imageUrl: g.image
-        }))
+          imageUrl: g.image,
+        })),
       };
-      
-      const res = await api.post('/api/lists', payload);
-      console.log('List created successfully:', res.data);
-      
+
+      const res = await api.post("/api/lists", payload);
+      console.log("List created successfully:", res.data);
+
       // Clean up fields
       setCreateTitle("");
       setCreateDescription("");
       setCreateSelectedGames([]);
       closeCreateModal();
-      
+
       // Reload lists
       fetchLists(1, false);
     } catch (err: any) {
-      console.error('Error creating list:', err);
-      const errorMessage = err.response?.data?.error || err.message || 'Unknown error';
+      console.error("Error creating list:", err);
+      const errorMessage =
+        err.response?.data?.error || err.message || "Unknown error";
       alert(`Error creating list: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
@@ -246,7 +267,7 @@ export function Lists() {
 
   const filteredCreateGameOptions = useMemo(() => {
     const selectedIds = new Set(createSelectedGames.map((game) => game.id));
-    return searchGamesOptions.filter(game => !selectedIds.has(game.id));
+    return searchGamesOptions.filter((game) => !selectedIds.has(game.id));
   }, [searchGamesOptions, createSelectedGames]);
 
   const previewCategoryLabel = useMemo(() => {
@@ -266,15 +287,16 @@ export function Lists() {
     if (createCategories.length === 0) return "Sin Categoría";
     const primary = createCategories[0];
     const icon = iconByCategory[primary] ?? "🎮";
-    const extra = createCategories.length > 1 ? ` +${createCategories.length - 1}` : "";
+    const extra =
+      createCategories.length > 1 ? ` +${createCategories.length - 1}` : "";
     return `${icon} ${primary}${extra}`;
   }, [createCategories]);
 
   const filteredLists = useMemo(() => {
     const q = query.trim().toLowerCase();
-    
+
     // Get current user robustly to prevent json parse errors
-    const currentUserStr = localStorage.getItem('steamates_user');
+    const currentUserStr = localStorage.getItem("steamates_user");
     let currentUser = null;
     try {
       if (currentUserStr) currentUser = JSON.parse(currentUserStr);
@@ -283,8 +305,10 @@ export function Lists() {
     }
 
     const result = lists.filter((item) => {
-      const isMine = currentUser ? currentUser.steamid === item.author?.steamId : false;
-      
+      const isMine = currentUser
+        ? currentUser.steamid === item.author?.steamId
+        : false;
+
       const matchesTab =
         feedTab === "trending"
           ? true // Can logic this out later based on likes
@@ -296,7 +320,10 @@ export function Lists() {
 
       const matchesCategory =
         selectedCategory === "Todas" ||
-        (item.categories && item.categories.some((c: string) => c.toLowerCase() === selectedCategory.toLowerCase()));
+        (item.categories &&
+          item.categories.some(
+            (c: string) => c.toLowerCase() === selectedCategory.toLowerCase(),
+          ));
 
       const matchesQuery =
         q.length === 0 ||
@@ -308,11 +335,16 @@ export function Lists() {
     });
 
     if (feedTab === "new") {
-      return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return result.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
     }
 
     if (feedTab === "top" || feedTab === "trending") {
-      return result.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+      return result.sort(
+        (a, b) => (b.likes?.length || 0) - (a.likes?.length || 0),
+      );
     }
 
     return result;
@@ -681,7 +713,7 @@ export function Lists() {
                               setCreateCategories((prev) =>
                                 prev.includes(option)
                                   ? prev.filter((c) => c !== option)
-                                  : [...prev, option]
+                                  : [...prev, option],
                               );
                             }}
                             className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${
@@ -704,7 +736,9 @@ export function Lists() {
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                       <label className="relative h-[88px] rounded-[10px] overflow-hidden border border-[#2f405e] hover:border-[#4766a3] transition-colors flex flex-col items-center justify-center cursor-pointer bg-[#0f172a]">
                         <Plus size={20} className="text-[#a7b6cd] mb-1" />
-                        <span className="text-[#a7b6cd] text-[12px] font-medium">Subir foto</span>
+                        <span className="text-[#a7b6cd] text-[12px] font-medium">
+                          Subir foto
+                        </span>
                         <input
                           type="file"
                           accept="image/png, image/jpeg"
@@ -801,7 +835,7 @@ export function Lists() {
                               const t = e.target as HTMLImageElement;
                               if (!t.dataset.fallback) {
                                 t.dataset.fallback = "1";
-                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? '?')}`;
+                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`;
                               }
                             }}
                           />
@@ -810,7 +844,13 @@ export function Lists() {
                               {game.title}
                             </p>
                             <p className="text-[10px] text-[#62748e]">
-                              {game.year !== "—" && game.year !== "-" ? game.year : ""}{game.year !== "—" && game.year !== "-" ? " · " : ""}{game.price}
+                              {game.year !== "—" && game.year !== "-"
+                                ? game.year
+                                : ""}
+                              {game.year !== "—" && game.year !== "-"
+                                ? " · "
+                                : ""}
+                              {game.price}
                             </p>
                           </div>
                           <button
@@ -861,7 +901,7 @@ export function Lists() {
                               const t = e.target as HTMLImageElement;
                               if (!t.dataset.fallback) {
                                 t.dataset.fallback = "1";
-                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? '?')}`;
+                                t.src = `https://placehold.co/80x80/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`;
                               }
                             }}
                           />
@@ -880,11 +920,14 @@ export function Lists() {
                         </button>
                       ))}
 
-                      {filteredCreateGameOptions.length === 0 && createGameQuery.length > 2 && (
-                        <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
-                          {isSearchingGames ? 'Buscando juegos en Steam...' : 'No hay resultados o ya están en tu lista.'}
-                        </div>
-                      )}
+                      {filteredCreateGameOptions.length === 0 &&
+                        createGameQuery.length > 2 && (
+                          <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
+                            {isSearchingGames
+                              ? "Buscando juegos en Steam..."
+                              : "No hay resultados o ya están en tu lista."}
+                          </div>
+                        )}
                       {createGameQuery.length <= 2 && (
                         <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
                           Escribe al menos 3 caracteres para buscar en Steam...
@@ -1003,7 +1046,8 @@ export function Lists() {
                     disabled={isSubmitting}
                     className="h-10 w-full sm:w-auto justify-center px-6 rounded-[14px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#2b7fff] transition-colors disabled:opacity-50"
                   >
-                    <Sparkles size={16} /> {isSubmitting ? 'Publicando...' : 'Publicar Lista'}
+                    <Sparkles size={16} />{" "}
+                    {isSubmitting ? "Publicando..." : "Publicar Lista"}
                   </button>
                 </div>
               </>
