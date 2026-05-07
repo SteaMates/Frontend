@@ -87,10 +87,23 @@ export function ListDetail() {
           api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 8 } })
         ]);
         setList(listRes.data);
-        setComments(commentsRes.data?.comments || []);
-        setCommentsPage(commentsRes.data?.pagination?.page || 1);
-        setCommentsTotal(commentsRes.data?.pagination?.total || commentsRes.data?.comments?.length || 0);
-        setCommentsHasMore((commentsRes.data?.pagination?.page || 1) < (commentsRes.data?.pagination?.pages || 0));
+        
+        // Handle both paginated and array responses
+        const commentsList = Array.isArray(commentsRes.data)
+          ? commentsRes.data
+          : commentsRes.data?.comments || [];
+        const commentsPagination = Array.isArray(commentsRes.data)
+          ? null
+          : commentsRes.data?.pagination || null;
+        
+        setComments(commentsList);
+        setCommentsPage(commentsPagination?.page || 1);
+        setCommentsTotal(commentsPagination?.total || commentsList.length);
+        setCommentsHasMore(
+          commentsPagination
+            ? commentsPagination.page < commentsPagination.pages
+            : false
+        );
       } catch (err) {
         console.error("Error fetching list data:", err);
         setError(true);
@@ -151,11 +164,22 @@ export function ListDetail() {
         params: { page: nextPage, limit: 8 },
       });
 
-      const nextComments = response.data?.comments || [];
+      // Handle both paginated and array responses
+      const nextComments = Array.isArray(response.data)
+        ? response.data
+        : response.data?.comments || [];
+      const responsePagination = Array.isArray(response.data)
+        ? null
+        : response.data?.pagination || null;
+
       setComments((prev) => [...prev, ...nextComments]);
-      setCommentsPage(response.data?.pagination?.page || nextPage);
-      setCommentsTotal(response.data?.pagination?.total || commentsTotal);
-      setCommentsHasMore((response.data?.pagination?.page || nextPage) < (response.data?.pagination?.pages || 0));
+      setCommentsPage(responsePagination?.page || nextPage);
+      setCommentsTotal(responsePagination?.total || commentsTotal);
+      setCommentsHasMore(
+        responsePagination
+          ? responsePagination.page < responsePagination.pages
+          : false
+      );
     } catch (err) {
       console.error("Error loading more comments:", err);
     } finally {
@@ -316,7 +340,7 @@ export function ListDetail() {
 
         <section className="border-t border-[#1d293d] px-4 sm:px-6 md:px-10 py-8 sm:py-10">
           <h2 className="text-white text-[20px] leading-7 font-bold mb-6">
-            Comentarios ({comments.length})
+            Comentarios ({commentsTotal || comments.length})
           </h2>
 
           {!user ? (
