@@ -1257,10 +1257,9 @@ export function Profile() {
 
       <section className="flex justify-end items-center gap-3">
         <div className="flex items-center gap-3 mr-2">
-          {snapshotDateLabel && usingSnapshot && (
+          {snapshotDateLabel && (
             <div className="text-[#bfdbfe] text-[13px]">
-              Última actualización:{" "}
-              <span className="font-medium">{snapshotDateLabel}</span>
+              Última actualización: <span className="font-medium">{snapshotDateLabel}</span>
             </div>
           )}
         </div>
