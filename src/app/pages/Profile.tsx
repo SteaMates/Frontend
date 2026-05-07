@@ -1267,62 +1267,15 @@ export function Profile() {
         ))}
       </section>
 
-      {usingSnapshot && (
-        <section className="rounded-[14px] border border-[#2b5cb4] bg-[rgba(21,93,252,0.14)] px-4 py-3">
-          <p className="text-[#dbeafe] text-[13px] font-medium">
-            Mostrando tu último snapshot guardado porque Steam no devolvió datos
-            en esta carga.
-          </p>
-          {snapshotDateLabel && (
-            <p className="mt-1 text-[#bfdbfe] text-[12px]">
-              Snapshot: {snapshotDateLabel}
-            </p>
-          )}
-        </section>
-      )}
-
-      {snapshotCachedAt ? (
-        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#cbd5e1] text-[13px] font-medium">
-              Última petición a la API: {snapshotDateLabel}
-            </p>
-            <p className="mt-1 text-[#90a1b9] text-[12px]">
-              Si ves este mismo sello, los datos se están sirviendo desde la
-              caché.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
-              onClick={() => void fetchFromApi()}
-            >
-              <RefreshCw size={14} /> Refrescar
-            </button>
-          </div>
-        </section>
-      ) : (
-        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-[#cbd5e1] text-[13px] font-medium">
-              No hay datos cacheados
-            </p>
-            <p className="mt-1 text-[#90a1b9] text-[12px]">
-              Pulsa "Refrescar" para cargar datos desde la API.
-            </p>
-          </div>
-          <div>
-            <button
-              type="button"
-              className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
-              onClick={() => void fetchFromApi()}
-            >
-              <RefreshCw size={14} /> Refrescar
-            </button>
-          </div>
-        </section>
-      )}
+      <section className="flex justify-end">
+        <button
+          type="button"
+          className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
+          onClick={() => void fetchFromApi()}
+        >
+          <RefreshCw size={14} /> Refrescar
+        </button>
+      </section>
 
       {feedbackTitle && feedbackText && (
         <section
