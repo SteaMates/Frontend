@@ -448,7 +448,7 @@ function ModerationPanel({ stats, onReload }: { stats: any; onReload: () => Prom
                     {report.targetType !== "User" && (
                       <button
                         onClick={() => handleDeleteContent(report)}
-                        disabled={submitting}
+                        disabled={submitting || report.status === "resolved"}
                         className="p-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50"
                         title="Eliminar Contenido"
                       >

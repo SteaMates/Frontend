@@ -84,7 +84,7 @@ export function ListDetail() {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
-          api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 8 } })
+          api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 3 } })
         ]);
         setList(listRes.data);
         
@@ -161,7 +161,7 @@ export function ListDetail() {
       setCommentsLoadingMore(true);
       const nextPage = commentsPage + 1;
       const response = await api.get(`/api/lists/${id}/comments`, {
-        params: { page: nextPage, limit: 8 },
+        params: { page: nextPage, limit: 3 },
       });
 
       // Handle both paginated and array responses
