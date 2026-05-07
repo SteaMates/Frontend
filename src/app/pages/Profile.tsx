@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link, useParams } from "react-router";
 import api from "../../lib/api";
@@ -17,6 +17,7 @@ import {
   Trophy,
   TrendingUp,
   Zap,
+  RefreshCw,
 } from "lucide-react";
 
 interface Game {
@@ -427,203 +428,234 @@ export function Profile() {
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
   const targetSteamId = routeSteamId || resolvedSteamId || user?.steamid;
 
-  useEffect(() => {
-    if (!user) return;
+  const loadGameDetails = useCallback(async (gamesList: Game[]) => {
+    const sorted = [...gamesList].sort(
+      (a, b) => (b.playtime || 0) - (a.playtime || 0),
+    );
+    const appIds = [...new Set(sorted.map((g) => g.appId))].slice(0, 40);
+    if (appIds.length === 0) return;
 
-    const loadGameDetails = async (gamesList: Game[]) => {
-      const sorted = [...gamesList].sort(
-        (a, b) => (b.playtime || 0) - (a.playtime || 0),
-      );
-      const appIds = [...new Set(sorted.map((g) => g.appId))].slice(0, 40);
-      if (appIds.length === 0) return;
-
-      try {
-        const res = await api.post("/api/steam/games-info", { appIds });
-        if (res?.data && typeof res.data === "object") {
-          setGameDetails((prev) => ({
-            ...prev,
-            ...res.data,
-          }));
-        }
-      } catch (error) {
-        console.error("Error loading game details:", error);
+    try {
+      const res = await api.post("/api/steam/games-info", { appIds });
+      if (res?.data && typeof res.data === "object") {
+        setGameDetails((prev) => ({
+          ...prev,
+          ...res.data,
+        }));
       }
-    };
+    } catch (error) {
+      console.error("Error loading game details:", error);
+    }
+  }, []);
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setLoadError(null);
-        setAchievementsData(null);
+  const fetchFromApi = useCallback(async () => {
+    try {
+      setLoading(true);
+      setLoadError(null);
+      setAchievementsData(null);
 
-        let steamIdToLoad = routeSteamId || user.steamid;
-        if (!routeSteamId) {
-          try {
-            const meRes = await api.get("/api/auth/me");
-            if (meRes.data?.user?.steamId) {
-              steamIdToLoad = meRes.data.user.steamId;
-            }
-          } catch {
-            // Ignore and fallback to auth context steamid
+      let steamIdToLoad = routeSteamId || user.steamid;
+      if (!routeSteamId) {
+        try {
+          const meRes = await api.get("/api/auth/me");
+          if (meRes.data?.user?.steamId) {
+            steamIdToLoad = meRes.data.user.steamId;
           }
+        } catch {
+          // Ignore and fallback to auth context steamid
         }
+      }
 
-        setResolvedSteamId(steamIdToLoad);
-        setProfileBanner(null);
-        setGameDetails({});
-        api
-          .get(`/api/steam/profile-background/${steamIdToLoad}`)
-          .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
-          .catch(() => setProfileBanner(null));
+      setResolvedSteamId(steamIdToLoad);
+      setProfileBanner(null);
+      setGameDetails({});
+      api
+        .get(`/api/steam/profile-background/${steamIdToLoad}`)
+        .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
+        .catch(() => setProfileBanner(null));
 
-        const useMeEndpoint = isOwnProfile;
+      const useMeEndpoint = isOwnProfile;
 
-        const profileEndpoint = useMeEndpoint
-          ? "/api/steam/me/profile"
-          : `/api/steam/profile/${steamIdToLoad}`;
-        const gamesEndpoint = useMeEndpoint
-          ? "/api/steam/me/games"
-          : `/api/steam/games/${steamIdToLoad}`;
-        const recentEndpoint = useMeEndpoint
-          ? "/api/steam/me/recent"
-          : `/api/steam/recent/${steamIdToLoad}`;
-        const genresEndpoint = useMeEndpoint
-          ? "/api/steam/stats/me/genres"
-          : `/api/steam/stats/genres/${steamIdToLoad}`;
-        const achievementsEndpoint = useMeEndpoint
-          ? "/api/steam/stats/me/achievements"
-          : `/api/steam/stats/achievements/${steamIdToLoad}`;
+      const profileEndpoint = useMeEndpoint
+        ? "/api/steam/me/profile"
+        : `/api/steam/profile/${steamIdToLoad}`;
+      const gamesEndpoint = useMeEndpoint
+        ? "/api/steam/me/games"
+        : `/api/steam/games/${steamIdToLoad}`;
+      const recentEndpoint = useMeEndpoint
+        ? "/api/steam/me/recent"
+        : `/api/steam/recent/${steamIdToLoad}`;
+      const genresEndpoint = useMeEndpoint
+        ? "/api/steam/stats/me/genres"
+        : `/api/steam/stats/genres/${steamIdToLoad}`;
+      const achievementsEndpoint = useMeEndpoint
+        ? "/api/steam/stats/me/achievements"
+        : `/api/steam/stats/achievements/${steamIdToLoad}`;
 
-        // Verificar si hay datos en caché de sesión
-        const sessionCache = readSessionCache(steamIdToLoad);
-        if (sessionCache && sessionCache.games.length > 0) {
-          setProfile(sessionCache.profile);
-          setGames(sessionCache.games || []);
-          setRecentGames(sessionCache.recentGames || []);
-          setGenreData(sessionCache.genreData || null);
-          setAchievementsData(sessionCache.achievementsData || null);
-          setSnapshotCachedAt(sessionCache.cachedAt || null);
-          setUsingSnapshot(false);
-          setLoading(false);
-          void loadGameDetails(sessionCache.games || []);
-          return; // Salir temprano si tenemos datos en caché
-        }
+      const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
+        api.get(profileEndpoint),
+        api.get(gamesEndpoint),
+        api.get(recentEndpoint),
+        api.get(genresEndpoint).catch(() => ({ data: null })),
+      ]);
 
-        const [profileRes, gamesRes, recentRes, genresRes] = await Promise.all([
-          api.get(profileEndpoint),
-          api.get(gamesEndpoint),
-          api.get(recentEndpoint),
-          api.get(genresEndpoint).catch(() => ({ data: null })),
-        ]);
+      const profileData = profileRes.data || {};
+      if (gamesRes.data?.libraryValue !== undefined) {
+        profileData.libraryValue = gamesRes.data.libraryValue;
+      }
 
-        const profileData = profileRes.data || {};
-        if (gamesRes.data?.libraryValue !== undefined) {
-          profileData.libraryValue = gamesRes.data.libraryValue;
-        }
+      const currentLibraryStatus: LibraryDataStatus | null =
+        gamesRes.data?.dataStatus || null;
 
-        const currentLibraryStatus: LibraryDataStatus | null =
-          gamesRes.data?.dataStatus || null;
+      setLibraryStatus(currentLibraryStatus);
 
-        setLibraryStatus(currentLibraryStatus);
+      const liveGames: Game[] = gamesRes.data?.games || [];
+      const liveRecent: RecentGame[] = recentRes.data?.games || [];
+      const liveGenreData = genresRes?.data || null;
 
-        const liveGames: Game[] = gamesRes.data?.games || [];
-        const liveRecent: RecentGame[] = recentRes.data?.games || [];
-        const liveGenreData = genresRes?.data || null;
-
-        if (isOwnProfile && steamIdToLoad && liveGames.length === 0) {
-          const snapshot = readProfileSnapshot(steamIdToLoad);
-          if (snapshot && snapshot.games.length > 0) {
-            setProfile(
-              snapshot.profile ||
-                (Object.keys(profileData).length > 0 ? profileData : null),
-            );
-            setGames(snapshot.games || []);
-            setRecentGames(snapshot.recentGames || []);
-            setGenreData(snapshot.genreData || null);
-            setAchievementsData(snapshot.achievementsData || null);
-            setUsingSnapshot(true);
-            setSnapshotCachedAt(snapshot.cachedAt || null);
-          } else {
-            setProfile(
-              Object.keys(profileData).length > 0 ? profileData : null,
-            );
-            setGames(liveGames);
-            setRecentGames(liveRecent);
-            setGenreData(liveGenreData);
-            setUsingSnapshot(false);
-            setSnapshotCachedAt(null);
-          }
+      if (isOwnProfile && steamIdToLoad && liveGames.length === 0) {
+        const snapshot = readProfileSnapshot(steamIdToLoad);
+        if (snapshot && snapshot.games.length > 0) {
+          setProfile(
+            snapshot.profile ||
+              (Object.keys(profileData).length > 0 ? profileData : null),
+          );
+          setGames(snapshot.games || []);
+          setRecentGames(snapshot.recentGames || []);
+          setGenreData(snapshot.genreData || null);
+          setAchievementsData(snapshot.achievementsData || null);
+          setUsingSnapshot(true);
+          setSnapshotCachedAt(snapshot.cachedAt || null);
         } else {
-          setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+          setProfile(
+            Object.keys(profileData).length > 0 ? profileData : null,
+          );
           setGames(liveGames);
           setRecentGames(liveRecent);
           setGenreData(liveGenreData);
           setUsingSnapshot(false);
           setSnapshotCachedAt(null);
         }
-        setLoading(false);
-        void loadGameDetails(liveGames);
+      } else {
+        setProfile(Object.keys(profileData).length > 0 ? profileData : null);
+        setGames(liveGames);
+        setRecentGames(liveRecent);
+        setGenreData(liveGenreData);
+        setUsingSnapshot(false);
+        setSnapshotCachedAt(null);
+      }
+      setLoading(false);
+      void loadGameDetails(liveGames);
 
-        if (steamIdToLoad && liveGames.length > 0) {
-          const cacheData = {
-            profile: Object.keys(profileData).length > 0 ? profileData : null,
-            games: liveGames,
-            recentGames: liveRecent,
-            genreData: liveGenreData,
-            achievementsData: null,
-            cachedAt: Date.now(),
-          };
-          // Guardar en caché de sesión
-          writeSessionCache(steamIdToLoad, cacheData);
-          setSnapshotCachedAt(cacheData.cachedAt);
-          // Guardar en localStorage si es el perfil propio
-          if (isOwnProfile) {
-            writeProfileSnapshot(steamIdToLoad, cacheData);
-          }
+      if (steamIdToLoad && liveGames.length > 0) {
+        const cacheData = {
+          profile: Object.keys(profileData).length > 0 ? profileData : null,
+          games: liveGames,
+          recentGames: liveRecent,
+          genreData: liveGenreData,
+          achievementsData: null,
+          cachedAt: Date.now(),
+        };
+        // Guardar en caché de sesión
+        writeSessionCache(steamIdToLoad, cacheData);
+        setSnapshotCachedAt(cacheData.cachedAt);
+        // Guardar en localStorage si es el perfil propio
+        if (isOwnProfile) {
+          writeProfileSnapshot(steamIdToLoad, cacheData);
         }
+      }
 
-        // Fetch achievements lazily (takes longer)
-        api
-          .get(achievementsEndpoint)
-          .then((res) => {
-            const nextAchievements = res.data || { empty: true };
-            setAchievementsData(nextAchievements);
+      // Fetch achievements lazily (takes longer)
+      api
+        .get(achievementsEndpoint)
+        .then((res) => {
+          const nextAchievements = res.data || { empty: true };
+          setAchievementsData(nextAchievements);
 
-            if (steamIdToLoad && liveGames.length > 0) {
-              const prevCache = readSessionCache(steamIdToLoad);
-              if (prevCache) {
-                const updatedCache = {
-                  ...prevCache,
-                  achievementsData: nextAchievements,
-                  cachedAt: Date.now(),
-                };
-                writeSessionCache(steamIdToLoad, updatedCache);
-                if (isOwnProfile) {
-                  writeProfileSnapshot(steamIdToLoad, updatedCache);
-                }
+          if (steamIdToLoad && liveGames.length > 0) {
+            const prevCache = readSessionCache(steamIdToLoad);
+            if (prevCache) {
+              const updatedCache = {
+                ...prevCache,
+                achievementsData: nextAchievements,
+                cachedAt: Date.now(),
+              };
+              writeSessionCache(steamIdToLoad, updatedCache);
+              if (isOwnProfile) {
+                writeProfileSnapshot(steamIdToLoad, updatedCache);
               }
             }
-          })
-          .catch((err) => {
-            console.error("Error loading achievements:", err);
-            setAchievementsData({ error: true });
-          });
-      } catch (error: any) {
-        console.error("Error loading profile:", error);
-        const status = error?.response?.status;
-        if (status === 403) {
-          setLoadError("Este perfil es privado en Steam.");
-        } else if (status === 404) {
-          setLoadError("No hemos encontrado este perfil.");
-        } else {
-          setLoadError("No se ha podido cargar el perfil.");
-        }
-        setLoading(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Error loading achievements:", err);
+          setAchievementsData({ error: true });
+        });
+    } catch (error: any) {
+      console.error("Error loading profile:", error);
+      const status = error?.response?.status;
+      if (status === 403) {
+        setLoadError("Este perfil es privado en Steam.");
+      } else if (status === 404) {
+        setLoadError("No hemos encontrado este perfil.");
+      } else {
+        setLoadError("No se ha podido cargar el perfil.");
       }
-    };
+      setLoading(false);
+    }
+  }, [routeSteamId, user, isOwnProfile]);
 
-    fetchData();
-  }, [user, routeSteamId]);
+  useEffect(() => {
+    if (!user) return;
+
+    // initial load: only attempt to use session cache or snapshot. Do NOT call network automatically.
+    (async () => {
+      let steamIdToLoad = routeSteamId || user.steamid;
+      if (!routeSteamId) {
+        try {
+          const meRes = await api.get("/api/auth/me");
+          if (meRes.data?.user?.steamId) {
+            steamIdToLoad = meRes.data.user.steamId;
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const sessionCache = readSessionCache(steamIdToLoad);
+      if (sessionCache && sessionCache.games.length > 0) {
+        setProfile(sessionCache.profile);
+        setGames(sessionCache.games || []);
+        setRecentGames(sessionCache.recentGames || []);
+        setGenreData(sessionCache.genreData || null);
+        setAchievementsData(sessionCache.achievementsData || null);
+        setSnapshotCachedAt(sessionCache.cachedAt || null);
+        setUsingSnapshot(false);
+        setLoading(false);
+        void loadGameDetails(sessionCache.games || []);
+        return;
+      }
+
+      if (isOwnProfile) {
+        const snapshot = readProfileSnapshot(steamIdToLoad);
+        if (snapshot && snapshot.games.length > 0) {
+          setProfile(snapshot.profile || null);
+          setGames(snapshot.games || []);
+          setRecentGames(snapshot.recentGames || []);
+          setGenreData(snapshot.genreData || null);
+          setAchievementsData(snapshot.achievementsData || null);
+          setSnapshotCachedAt(snapshot.cachedAt || null);
+          setUsingSnapshot(true);
+          setLoading(false);
+          void loadGameDetails(snapshot.games || []);
+          return;
+        }
+      }
+
+      // No cache available — keep loading=false and wait for user to press "Refrescar"
+      setLoading(false);
+    })();
+  }, [user, routeSteamId, isOwnProfile]);
 
   if (!user) return <Navigate to="/login" replace />;
 
@@ -1251,11 +1283,41 @@ export function Profile() {
         </section>
       )}
 
-      {snapshotCachedAt && (
-        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3">
-          <p className="text-[#cbd5e1] text-[13px] font-medium">
-            Última petición a la API: {snapshotDateLabel}
-          </p>
+      {snapshotCachedAt ? (
+        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[#cbd5e1] text-[13px] font-medium">
+              Última petición a la API: {snapshotDateLabel}
+            </p>
+            <p className="mt-1 text-[#90a1b9] text-[12px]">
+              Si ves este mismo sello, los datos se están sirviendo desde la caché.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
+              onClick={() => void fetchFromApi()}
+            >
+              <RefreshCw size={14} /> Refrescar
+            </button>
+          </div>
+        </section>
+      ) : (
+        <section className="rounded-[14px] border border-[#1d293d] bg-[rgba(15,23,43,0.7)] px-4 py-3 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-[#cbd5e1] text-[13px] font-medium">No hay datos cacheados</p>
+            <p className="mt-1 text-[#90a1b9] text-[12px]">Pulsa "Refrescar" para cargar datos desde la API.</p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="h-9 px-3 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium inline-flex items-center gap-2 hover:bg-[#2b7fff] transition-colors"
+              onClick={() => void fetchFromApi()}
+            >
+              <RefreshCw size={14} /> Refrescar
+            </button>
+          </div>
         </section>
       )}
 

@@ -412,11 +412,18 @@ export function Lists() {
                     )}
                   </div>
 
-                  <span
-                    className={`absolute top-4 right-3 h-5 rounded-full border px-[9px] text-[10px] font-medium flex items-center border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.15)] text-[#51a2ff]`}
-                  >
-                    {list.categories && list.categories[0] ? list.categories[0] : 'General'}
-                  </span>
+                  <div className="absolute top-4 right-3 flex items-center gap-2">
+                    {((list.categories && list.categories.length > 0) ? list.categories : ["General"]).slice(0,2).map((c, idx) => (
+                      <span key={idx} className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.15)] text-[#51a2ff] text-[10px] font-medium">
+                        {c}
+                      </span>
+                    ))}
+                    {list.categories && list.categories.length > 2 && (
+                      <span className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.15)] text-[#51a2ff] text-[10px] font-medium">
+                        +{list.categories.length - 2}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="absolute left-4 right-4 bottom-3">
                     <h3 className="text-white text-[22px] leading-6 font-bold mb-0.5 truncate">
