@@ -1689,7 +1689,7 @@ export function Friends() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 pr-14 sm:pr-16">
           <div className="flex flex-wrap items-center p-[7px] gap-1 bg-[#0f172b] border border-[#1d293d] rounded-[14px] shadow-sm self-start sm:self-auto w-full sm:w-auto">
             {tabs.map((tab) => (
               <button
@@ -1710,34 +1710,31 @@ export function Friends() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-4 flex flex-col gap-3">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-[8px] bg-[rgba(21,93,252,0.15)] flex items-center justify-center">
-                <Users size={14} className="text-[#51a2ff]" />
-              </div>
-              <h3 className="text-white font-bold text-[15px]">Amigos</h3>
+        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Check size={18} className="text-[#51a2ff]" />
+              <h3 className="text-white font-bold text-[18px]">
+                Selecciona Amigos
+              </h3>
             </div>
-            {selectedIds.size > 0 && (
-              <span className="text-[11px] font-bold text-[#51a2ff] bg-[rgba(21,93,252,0.15)] px-2 py-0.5 rounded-full">
-                {selectedIds.size} seleccionado
-                {selectedIds.size !== 1 ? "s" : ""}
-              </span>
-            )}
+            <p className="text-[#62748e] text-[12px] leading-relaxed">
+              Selecciona amigos de la lista para incluirlos en las comparativas
+              y sesiones.
+            </p>
           </div>
 
           <div className="relative">
             <Search
-              size={14}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#45556c]"
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]"
             />
             <input
               type="text"
               placeholder="Buscar amigos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#080f1f] border border-[#1d293d] rounded-[10px] pl-8 pr-3 py-2 text-[13px] text-white placeholder-[#45556c] focus:outline-none focus:border-[#155dfc] transition-colors"
+              className="w-full bg-[#0f172b] border border-[#1d293d] rounded-[12px] pl-9 pr-4 py-2 text-sm text-white placeholder-[#62748e] focus:outline-none focus:border-[#155dfc]"
             />
           </div>
 
@@ -1755,103 +1752,60 @@ export function Friends() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[480px] pr-1">
-              {filteredFriends.map((friend) => {
-                const isSelected = selectedIds.has(friend.steamId);
-                const online = isOnline(friend);
-                const playing = isPlayingGame(friend);
-                return (
-                  <div
-                    key={friend.steamId}
-                    className={`relative flex items-center gap-3 p-2.5 rounded-[12px] transition-all duration-200 w-full group ${
-                      isSelected
-                        ? "bg-[rgba(21,93,252,0.12)] ring-1 ring-[rgba(21,93,252,0.5)]"
-                        : "hover:bg-[rgba(29,41,61,0.5)]"
-                    }`}
-                  >
-                    {/* Avatar → perfil */}
-                    <div className="relative shrink-0">
+            <div className="flex flex-col gap-3 overflow-y-auto max-h-[480px] pr-1">
+              {filteredFriends.map((friend) => (
+                <button
+                  key={friend.steamId}
+                  onClick={() => toggleSelect(friend.steamId)}
+                  className={`flex items-center gap-3 p-3 rounded-[14px] border text-left transition-all w-full ${
+                    selectedIds.has(friend.steamId)
+                      ? "bg-[rgba(21,93,252,0.1)] border-[rgba(21,93,252,0.4)]"
+                      : "bg-[rgba(29,41,61,0.3)] border-[rgba(49,65,88,0.3)] hover:border-[#314158]"
+                  }`}
+                >
+                  <div className="relative shrink-0">
+                    <img
+                      src={friend.avatar}
+                      alt={friend.username}
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d]"
+                    />
+                    <span
+                      className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
+                    />
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
                       <UserProfileLink
                         steamId={friend.steamId}
                         username={friend.username}
-                        avatar={friend.avatar}
-                        variant="avatar"
-                        avatarClassName={`w-9 h-9 rounded-full object-cover ring-2 ${
-                          isSelected
-                            ? "ring-[#155dfc]"
-                            : playing
-                              ? "ring-[#00c950]"
-                              : "ring-[#1d293d]"
-                        }`}
-                      />
-                      <span
-                        className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
+                        variant="name"
+                        nameClassName="text-[#cad5e2] text-[14px] font-medium truncate"
                       />
                     </div>
-
-                    {/* Nombre + estado → perfil */}
-                    <UserProfileLink
-                      steamId={friend.steamId}
-                      username={friend.username}
-                      variant="name"
-                      nameClassName="flex-1 min-w-0 text-left"
-                    />
-                    <div className="flex-1 min-w-0 pointer-events-none">
-                      <p className="text-[13px] font-semibold text-[#cad5e2] truncate leading-tight">
-                        {friend.username}
-                      </p>
-                      <p
-                        className={`text-[10px] truncate leading-tight mt-0.5 ${
-                          playing
-                            ? "text-[#05df72]"
-                            : online
-                              ? "text-[#62748e]"
-                              : "text-[#3d4f63]"
-                        }`}
-                      >
-                        {friend.currentGame
-                          ? `🎮 ${friend.currentGame}`
-                          : getStatusText(friend)}
-                      </p>
-                    </div>
-
-                    {/* Checkbox → seleccionar para stats/sesiones */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSelect(friend.steamId);
-                      }}
-                      className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? "bg-[#155dfc] border-[#155dfc]"
-                          : "border-[#314158] group-hover:border-[#51a2ff]"
-                      }`}
+                    <p
+                      className={`text-[11px] truncate ${getStatusTextColor(friend)}`}
                     >
-                      {isSelected && <Check size={11} className="text-white" />}
-                    </button>
+                      {getStatusText(friend)}
+                    </p>
                   </div>
-                );
-              })}
+
+                  {selectedIds.has(friend.steamId) && (
+                    <div className="shrink-0 w-4 h-4 rounded-full bg-[#155dfc] flex items-center justify-center">
+                      <Check size={10} className="text-white" />
+                    </div>
+                  )}
+                </button>
+              ))}
             </div>
           )}
 
-          {/* Quick action buttons when friends selected */}
-          {selectedIds.size > 0 && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => setActiveTab("analitica")}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] bg-[rgba(21,93,252,0.15)] border border-[rgba(21,93,252,0.3)] text-[#51a2ff] text-[11px] font-semibold hover:bg-[rgba(21,93,252,0.25)] transition-colors"
-              >
-                <BarChart2 size={13} /> Stats
-              </button>
-              <button
-                onClick={() => setActiveTab("sesiones")}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] bg-[rgba(89,22,139,0.15)] border border-[rgba(89,22,139,0.3)] text-[#c27aff] text-[11px] font-semibold hover:bg-[rgba(89,22,139,0.25)] transition-colors"
-              >
-                <CalendarDays size={13} /> Sesión
-              </button>
-            </div>
-          )}
+          <div className="border-t border-[#1d293d] pt-3 text-center">
+            <p className="text-[#62748e] text-[12px] font-medium">
+              {selectedIds.size} amigo{selectedIds.size !== 1 ? "s" : ""}{" "}
+              seleccionado{selectedIds.size !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
 
         <div className="flex-1 min-w-0 w-full">
