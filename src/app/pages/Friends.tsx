@@ -1971,44 +1971,9 @@ export function Friends() {
                 </div>
               </div>
 
-              <div className="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="mb-6">
                 <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5">
-                  <h3 className="text-white font-bold text-lg mb-3">
-                    Invitaciones y notificaciones
-                  </h3>
-
-                  {loadingNotifications ? (
-                    <div className="flex justify-center py-10">
-                      <Loader2
-                        className="animate-spin text-blue-500"
-                        size={24}
-                      />
-                    </div>
-                  ) : notifications.length === 0 ? (
-                    <p className="text-[#62748e] text-sm">
-                      No tienes notificaciones.
-                    </p>
-                  ) : (
-                    <div className="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-                      {notifications.map((n) => (
-                        <div
-                          key={n._id}
-                          className="rounded-[16px] border border-[rgba(49,65,88,0.35)] bg-[rgba(29,41,61,0.35)] p-4"
-                        >
-                          <p className="text-white text-sm font-semibold">
-                            {n.title}
-                          </p>
-                          <p className="text-[#90a1b9] text-xs mt-1">
-                            {n.message}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5">
-                  <h3 className="text-white font-bold text-lg mb-3">
+                  <h3 className="text-white font-bold text-lg mb-4">
                     Sesiones donde participas
                   </h3>
 
