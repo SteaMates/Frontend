@@ -42,6 +42,7 @@ interface ProfileData {
   dailyAverageHours?: number;
   totalAchievements?: number;
   completedGames?: number;
+  status?: number;
 }
 
 interface RecentGame {
@@ -613,11 +614,6 @@ export function Profile() {
         setUsingSnapshot(false);
         setLoading(false);
         void loadGameDetails(sessionCache.games || []);
-        // Cargar banner aunque los datos vengan de caché
-        api
-          .get(`/api/steam/profile-background/${steamIdToLoad}`)
-          .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
-          .catch(() => setProfileBanner(null));
         return;
       }
 
@@ -633,11 +629,6 @@ export function Profile() {
           setUsingSnapshot(true);
           setLoading(false);
           void loadGameDetails(snapshot.games || []);
-          // Cargar banner aunque los datos vengan de snapshot
-          api
-            .get(`/api/steam/profile-background/${steamIdToLoad}`)
-            .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
-            .catch(() => setProfileBanner(null));
           return;
         }
       } else {
@@ -1197,9 +1188,30 @@ export function Profile() {
                   ID:{" "}
                   {displaySteamId ? `${displaySteamId.slice(0, 6)}...` : "-"}
                 </span>
-                <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
-                  Online
-                </span>
+                {(() => {
+                  const s = profile?.status;
+                  // personastate: 0=offline, 1=online, 2=busy, 3=away, 4=snooze, 5=looking to trade, 6=looking to play
+                  if (s === 0 || s === null || s === undefined) {
+                    return (
+                      <span className="bg-[rgba(30,30,30,0.5)] rounded-[4px] px-2 py-1 text-[10px] text-[#62748e]">
+                        Offline
+                      </span>
+                    );
+                  }
+                  const labels: Record<number, string> = {
+                    1: "Online",
+                    2: "Ocupado",
+                    3: "Ausente",
+                    4: "Durmiendo",
+                    5: "Buscando intercambio",
+                    6: "Buscando partida",
+                  };
+                  return (
+                    <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
+                      {labels[s] ?? "Online"}
+                    </span>
+                  );
+                })()}
                 <span className="bg-[rgba(28,57,142,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#51a2ff]">
                   {memberYear ? (
                     `Miembro desde ${memberYear}`
