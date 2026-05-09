@@ -89,10 +89,10 @@ function NotificationItem({
 }
 
 export function NotificationBell({
-  variant = "sidebar",
+  variant = "floating",
   buttonClassName,
 }: {
-  variant?: "sidebar" | "mobile";
+  variant?: "floating" | "sidebar" | "mobile";
   buttonClassName?: string;
 }) {
   const {
@@ -177,15 +177,23 @@ export function NotificationBell({
       <button
         ref={buttonRef}
         onClick={handleOpen}
-        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 w-full ${
-          buttonClassName ?? ""
-        }`}
+        className={
+          variant === "floating"
+            ? `relative flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:border-blue-500/50 shadow-lg shadow-black/30 transition-all hover:scale-110 ${buttonClassName ?? ""}`
+            : `relative flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 text-slate-400 hover:bg-slate-800 hover:text-slate-200 w-full ${buttonClassName ?? ""}`
+        }
         aria-label="Notificaciones"
       >
-        <BellDot size={20} />
-        <span>Notificaciones</span>
+        <BellDot size={variant === "floating" ? 22 : 20} />
+        {variant !== "floating" && <span>Notificaciones</span>}
         {unreadCount > 0 && (
-          <span className="ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold leading-none">
+          <span
+            className={
+              variant === "floating"
+                ? "absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-bold leading-none border-2 border-slate-950"
+                : "ml-auto min-w-[20px] h-5 px-1.5 flex items-center justify-center rounded-full bg-blue-500 text-white text-xs font-bold leading-none"
+            }
+          >
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}

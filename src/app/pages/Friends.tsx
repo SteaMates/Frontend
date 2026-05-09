@@ -712,16 +712,20 @@ function AnalyticsPanel({
                 className="absolute left-0 top-0 flex flex-col justify-between"
                 style={{ height: "calc(100% - 28px)" }}
               >
-                {[maxHours, maxHours * 0.75, maxHours * 0.5, maxHours * 0.25, 0].map(
-                  (v) => (
-                    <span
-                      key={v}
-                      className="text-[#64748b] text-[10px] text-right w-9 leading-none"
-                    >
-                      {(v / 1000).toFixed(1)}k
-                    </span>
-                  ),
-                )}
+                {[
+                  maxHours,
+                  maxHours * 0.75,
+                  maxHours * 0.5,
+                  maxHours * 0.25,
+                  0,
+                ].map((v) => (
+                  <span
+                    key={v}
+                    className="text-[#64748b] text-[10px] text-right w-9 leading-none"
+                  >
+                    {(v / 1000).toFixed(1)}k
+                  </span>
+                ))}
               </div>
 
               <div
@@ -790,7 +794,9 @@ function AnalyticsPanel({
               {peopleWithTime.map((p) => {
                 const pct =
                   p.time.totalHours > 0
-                    ? Math.round((p.time.topGameHours / p.time.totalHours) * 100)
+                    ? Math.round(
+                        (p.time.topGameHours / p.time.totalHours) * 100,
+                      )
                     : 0;
 
                 return (
@@ -1465,9 +1471,9 @@ export function Friends() {
   const [commonGames, setCommonGames] = useState<CommonGame[]>([]);
   const [loadingCommonGames, setLoadingCommonGames] = useState(false);
   const [bookingGame, setBookingGame] = useState<CommonGame | null>(null);
-  const [scheduledSessions, setScheduledSessions] = useState<ScheduledSession[]>(
-    [],
-  );
+  const [scheduledSessions, setScheduledSessions] = useState<
+    ScheduledSession[]
+  >([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
@@ -1522,7 +1528,11 @@ export function Friends() {
         username: p.user?.username || "Usuario",
         avatar: p.user?.avatar || "https://via.placeholder.com/64?text=U",
         status: p.status === "accepted" ? 1 : 0,
-        participantStatus: p.status as 'invited' | 'accepted' | 'declined' | undefined,
+        participantStatus: p.status as
+          | "invited"
+          | "accepted"
+          | "declined"
+          | undefined,
       })) || [];
 
     // Determine if current user is the host using the host field from the API
@@ -1532,7 +1542,11 @@ export function Friends() {
     const myEntry = !isHost
       ? session.participants?.find((p) => p.user?.steamId === user?.steamid)
       : undefined;
-    const myParticipantStatus = myEntry?.status as 'invited' | 'accepted' | 'declined' | undefined;
+    const myParticipantStatus = myEntry?.status as
+      | "invited"
+      | "accepted"
+      | "declined"
+      | undefined;
 
     return {
       id: session._id,
@@ -1571,7 +1585,9 @@ export function Friends() {
       const sessions = (res.data?.sessions || [])
         .map(normalizeSession)
         // Oculta sesiones rechazadas y pasadas
-        .filter((s) => s.myParticipantStatus !== 'declined' && isFutureSession(s));
+        .filter(
+          (s) => s.myParticipantStatus !== "declined" && isFutureSession(s),
+        );
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
@@ -1705,31 +1721,34 @@ export function Friends() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Check size={18} className="text-[#51a2ff]" />
-              <h3 className="text-white font-bold text-[18px]">
-                Selecciona Amigos
-              </h3>
+        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-4 flex flex-col gap-3">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-[8px] bg-[rgba(21,93,252,0.15)] flex items-center justify-center">
+                <Users size={14} className="text-[#51a2ff]" />
+              </div>
+              <h3 className="text-white font-bold text-[15px]">Amigos</h3>
             </div>
-            <p className="text-[#62748e] text-[12px] leading-relaxed">
-              Selecciona amigos de la lista para incluirlos en las comparativas
-              y sesiones.
-            </p>
+            {selectedIds.size > 0 && (
+              <span className="text-[11px] font-bold text-[#51a2ff] bg-[rgba(21,93,252,0.15)] px-2 py-0.5 rounded-full">
+                {selectedIds.size} seleccionado
+                {selectedIds.size !== 1 ? "s" : ""}
+              </span>
+            )}
           </div>
 
           <div className="relative">
             <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]"
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#45556c]"
             />
             <input
               type="text"
               placeholder="Buscar amigos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#0f172b] border border-[#1d293d] rounded-[12px] pl-9 pr-4 py-2 text-sm text-white placeholder-[#62748e] focus:outline-none focus:border-[#155dfc]"
+              className="w-full bg-[#080f1f] border border-[#1d293d] rounded-[10px] pl-8 pr-3 py-2 text-[13px] text-white placeholder-[#45556c] focus:outline-none focus:border-[#155dfc] transition-colors"
             />
           </div>
 
@@ -1747,60 +1766,98 @@ export function Friends() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3 overflow-y-auto max-h-[480px] pr-1">
-              {filteredFriends.map((friend) => (
-                <button
-                  key={friend.steamId}
-                  onClick={() => toggleSelect(friend.steamId)}
-                  className={`flex items-center gap-3 p-3 rounded-[14px] border text-left transition-all w-full ${
-                    selectedIds.has(friend.steamId)
-                      ? "bg-[rgba(21,93,252,0.1)] border-[rgba(21,93,252,0.4)]"
-                      : "bg-[rgba(29,41,61,0.3)] border-[rgba(49,65,88,0.3)] hover:border-[#314158]"
-                  }`}
-                >
-                  <div className="relative shrink-0">
-                    <img
-                      src={friend.avatar}
-                      alt={friend.username}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d]"
-                    />
-                    <span
-                      className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <UserProfileLink
-                        steamId={friend.steamId}
-                        username={friend.username}
-                        variant="name"
-                        nameClassName="text-[#cad5e2] text-[14px] font-medium truncate"
+            <div className="flex flex-col gap-1.5 overflow-y-auto max-h-[480px] pr-1">
+              {filteredFriends.map((friend) => {
+                const isSelected = selectedIds.has(friend.steamId);
+                const online = isOnline(friend);
+                const playing = isPlayingGame(friend);
+                return (
+                  <button
+                    key={friend.steamId}
+                    onClick={() => toggleSelect(friend.steamId)}
+                    className={`relative flex items-center gap-3 p-2.5 rounded-[12px] text-left transition-all duration-200 w-full group ${
+                      isSelected
+                        ? "bg-[rgba(21,93,252,0.12)] ring-1 ring-[rgba(21,93,252,0.5)]"
+                        : "hover:bg-[rgba(29,41,61,0.5)]"
+                    }`}
+                  >
+                    {/* Avatar */}
+                    <div className="relative shrink-0">
+                      <div
+                        className={`rounded-full p-[2px] ${
+                          isSelected
+                            ? "bg-gradient-to-br from-[#155dfc] to-[#00b8db]"
+                            : playing
+                              ? "bg-gradient-to-br from-[#00c950] to-[#00d492]"
+                              : online
+                                ? "bg-[#314158]"
+                                : "bg-[#1d293d]"
+                        }`}
+                      >
+                        <img
+                          src={friend.avatar}
+                          alt={friend.username}
+                          className="w-9 h-9 rounded-full object-cover block"
+                        />
+                      </div>
+                      <span
+                        className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
                       />
                     </div>
-                    <p
-                      className={`text-[11px] truncate ${getStatusTextColor(friend)}`}
-                    >
-                      {getStatusText(friend)}
-                    </p>
-                  </div>
 
-                  {selectedIds.has(friend.steamId) && (
-                    <div className="shrink-0 w-4 h-4 rounded-full bg-[#155dfc] flex items-center justify-center">
-                      <Check size={10} className="text-white" />
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13px] font-semibold text-[#cad5e2] truncate leading-tight">
+                        {friend.username}
+                      </p>
+                      <p
+                        className={`text-[10px] truncate leading-tight mt-0.5 ${
+                          playing
+                            ? "text-[#05df72]"
+                            : online
+                              ? "text-[#62748e]"
+                              : "text-[#3d4f63]"
+                        }`}
+                      >
+                        {friend.currentGame
+                          ? `🎮 ${friend.currentGame}`
+                          : getStatusText(friend)}
+                      </p>
                     </div>
-                  )}
-                </button>
-              ))}
+
+                    {/* Checkbox */}
+                    <div
+                      className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                        isSelected
+                          ? "bg-[#155dfc] border-[#155dfc]"
+                          : "border-[#314158] group-hover:border-[#51a2ff]"
+                      }`}
+                    >
+                      {isSelected && <Check size={11} className="text-white" />}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
 
-          <div className="border-t border-[#1d293d] pt-3 text-center">
-            <p className="text-[#62748e] text-[12px] font-medium">
-              {selectedIds.size} amigo{selectedIds.size !== 1 ? "s" : ""}{" "}
-              seleccionado{selectedIds.size !== 1 ? "s" : ""}
-            </p>
-          </div>
+          {/* Quick action buttons when friends selected */}
+          {selectedIds.size > 0 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setActiveTab("analitica")}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] bg-[rgba(21,93,252,0.15)] border border-[rgba(21,93,252,0.3)] text-[#51a2ff] text-[11px] font-semibold hover:bg-[rgba(21,93,252,0.25)] transition-colors"
+              >
+                <BarChart2 size={13} /> Stats
+              </button>
+              <button
+                onClick={() => setActiveTab("sesiones")}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[10px] bg-[rgba(89,22,139,0.15)] border border-[rgba(89,22,139,0.3)] text-[#c27aff] text-[11px] font-semibold hover:bg-[rgba(89,22,139,0.25)] transition-colors"
+              >
+                <CalendarDays size={13} /> Sesión
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-w-0 w-full">
@@ -1886,7 +1943,9 @@ export function Friends() {
 
           {activeTab === "analitica" && (
             <AnalyticsPanel
-              selectedFriends={friends.filter((f) => selectedIds.has(f.steamId))}
+              selectedFriends={friends.filter((f) =>
+                selectedIds.has(f.steamId),
+              )}
               user={user}
             />
           )}
@@ -1920,7 +1979,10 @@ export function Friends() {
 
                   {loadingNotifications ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-blue-500" size={24} />
+                      <Loader2
+                        className="animate-spin text-blue-500"
+                        size={24}
+                      />
                     </div>
                   ) : notifications.length === 0 ? (
                     <p className="text-[#62748e] text-sm">
@@ -1952,7 +2014,10 @@ export function Friends() {
 
                   {loadingSessions ? (
                     <div className="flex justify-center py-10">
-                      <Loader2 className="animate-spin text-blue-500" size={24} />
+                      <Loader2
+                        className="animate-spin text-blue-500"
+                        size={24}
+                      />
                     </div>
                   ) : scheduledSessions.length === 0 ? (
                     <p className="text-[#62748e] text-sm">
@@ -1974,7 +2039,9 @@ export function Friends() {
                       onLeave={async (id: string) => {
                         try {
                           // Remove immediately from UI for instant feedback
-                          setScheduledSessions((prev) => prev.filter((s) => s.id !== id));
+                          setScheduledSessions((prev) =>
+                            prev.filter((s) => s.id !== id),
+                          );
                           await leaveGamingSession(id);
                           // Then sync with backend
                           await loadSessions();

@@ -197,9 +197,6 @@ export function Layout() {
             );
           })}
 
-          {/* Notifications bell - only for logged in users */}
-          {user && <NotificationBell />}
-
           {/* Admin Panel Link - Only for admins */}
           {isAdmin && (
             <Link
@@ -294,13 +291,6 @@ export function Layout() {
                 );
               })}
 
-              {user && (
-                <NotificationBell
-                  variant="mobile"
-                  buttonClassName="py-4 text-lg"
-                />
-              )}
-
               {/* Admin Panel Link - Mobile */}
               {isAdmin && (
                 <Link
@@ -371,6 +361,13 @@ export function Layout() {
           </motion.div>
         </div>
       </main>
+      {/* Floating notification bell — top right corner */}
+      {user && (
+        <div className="fixed top-4 right-20 md:top-6 md:right-24 z-40">
+          <NotificationBell variant="floating" />
+        </div>
+      )}
+
       <AssistantModal />
 
       {/* Floating invite toasts */}
