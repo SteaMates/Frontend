@@ -71,7 +71,7 @@ export function Lists() {
       }
 
       setListsLoadError("");
-      const res = await api.get('/api/lists', {
+      const res = await api.get("/api/lists", {
         params: {
           page,
           limit: 12,
@@ -370,7 +370,7 @@ export function Lists() {
 
   return (
     <div className="pb-20 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pr-14 sm:pr-16">
         <div>
           <h1 className="text-[28px] sm:text-[36px] lg:text-[42px] leading-[1.1] font-bold text-white mb-2">
             Listas de la Comunidad
@@ -458,9 +458,7 @@ export function Lists() {
           </div>
         ) : listsLoadError ? (
           <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[14px] p-10 text-center">
-            <p className="text-[#ff8a8c] text-[14px] mb-4">
-              {listsLoadError}
-            </p>
+            <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
             <button
               type="button"
               onClick={() => fetchLists(1, false)}
@@ -487,21 +485,28 @@ export function Lists() {
                     <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] via-[rgba(15,23,43,0.4)] to-transparent" />
 
                     <div className="absolute top-3 left-3 flex items-center gap-1.5">
-                      {(localStorage.getItem('steamates_user') && (() => {
-                        try {
-                          return JSON.parse(localStorage.getItem('steamates_user')!).steamid === list.author?.steamId;
-                        } catch { return false; }
-                      })()) && (
-                        <span className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.9)] text-white text-[10px] font-bold">
-                          TUYA
-                        </span>
-                      )}
+                      {localStorage.getItem("steamates_user") &&
+                        (() => {
+                          try {
+                            return (
+                              JSON.parse(
+                                localStorage.getItem("steamates_user")!,
+                              ).steamid === list.author?.steamId
+                            );
+                          } catch {
+                            return false;
+                          }
+                        })() && (
+                          <span className="h-[19px] rounded-full px-2 bg-[rgba(43,127,255,0.9)] text-white text-[10px] font-bold">
+                            TUYA
+                          </span>
+                        )}
                     </div>
 
-                    <span
-                      className="absolute top-4 right-3 h-5 rounded-full border px-[9px] text-[10px] font-medium flex items-center border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
-                    >
-                      {list.categories && list.categories[0] ? list.categories[0] : 'General'}
+                    <span className="absolute top-4 right-3 h-5 rounded-full border px-[9px] text-[10px] font-medium flex items-center border-[rgba(43,127,255,0.2)] bg-[rgba(43,127,255,0.15)] text-[#51a2ff]">
+                      {list.categories && list.categories[0]
+                        ? list.categories[0]
+                        : "General"}
                     </span>
 
                     <div className="absolute left-4 right-4 bottom-3">
@@ -509,7 +514,10 @@ export function Lists() {
                         {list.title}
                       </h3>
                       <p className="text-[11px] text-[#cad5e2]">
-                        por <span className="text-[#51a2ff]">{list.author?.username || 'Usuario Desconocido'}</span>
+                        por{" "}
+                        <span className="text-[#51a2ff]">
+                          {list.author?.username || "Usuario Desconocido"}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -536,7 +544,6 @@ export function Lists() {
                 </Link>
               ))}
             </div>
-
           </>
         ) : (
           <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[14px] p-10 text-center">
@@ -565,7 +572,9 @@ export function Lists() {
               className="h-10 px-5 rounded-[10px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#1d66ff] transition-colors disabled:opacity-60"
             >
               {loadingMoreLists ? (
-                <><span className="animate-spin">⏳</span> Cargando...</>
+                <>
+                  <span className="animate-spin">⏳</span> Cargando...
+                </>
               ) : (
                 "Cargar más"
               )}
