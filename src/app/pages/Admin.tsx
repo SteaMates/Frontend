@@ -102,7 +102,7 @@ function PaginationControls({
         <button
           onClick={() => onPageChange(Math.max(1, pagination.page - 1))}
           disabled={pagination.page <= 1}
-          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           <ChevronLeft size={16} />
           Anterior
@@ -112,7 +112,7 @@ function PaginationControls({
             onPageChange(Math.min(pagination.pages, pagination.page + 1))
           }
           disabled={pagination.page >= pagination.pages}
-          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1 px-3 py-2 text-sm rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           Siguiente
           <ChevronRight size={16} />
@@ -220,7 +220,7 @@ export function Admin() {
                   activeTab === tab.id
                     ? `${tab.bg} border-${tab.color.replace("text-", "")}/30 ${tab.color}`
                     : "bg-slate-800/50 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800"
-                }`}
+                } cursor-pointer hover:scale-[1.02] active:scale-[0.98]`}
               >
                 <Icon size={18} />
                 <span className="text-sm font-medium">{tab.name}</span>
@@ -235,7 +235,7 @@ export function Admin() {
           <p className="text-sm text-red-300">{loadError}</p>
           <button
             onClick={loadOverview}
-            className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+            className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
             Reintentar
           </button>
@@ -983,6 +983,46 @@ function UsersPanel({
     return "bg-slate-600/20 text-slate-300";
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = filename;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportUserHistory = async (user: any, format: "csv" | "xlsx") => {
+    try {
+      const response = await api.get(
+        `/api/moderation/user/${user._id}/export`,
+        {
+          params: { format },
+          responseType: "blob",
+        },
+      );
+
+      const extension = format === "xlsx" ? "xlsx" : "csv";
+      const safeUsername = String(user?.username || user?.steamId || user?._id)
+        .trim()
+        .replace(/[^a-z0-9-_]+/gi, "_");
+      const blob = new Blob([response.data], {
+        type:
+          response.headers["content-type"] ||
+          (format === "xlsx"
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            : "text/csv"),
+      });
+
+      downloadBlob(blob, `historial-${safeUsername}.${extension}`);
+    } catch (error) {
+      console.error("Error exportando historial de usuario:", error);
+      alert("Error exportando historial de usuario");
+    }
+  };
+
   const handleSubmitAction = async () => {
     if (!selectedUser || !reason.trim()) return;
 
@@ -1110,7 +1150,7 @@ function UsersPanel({
             <p className="text-sm text-red-300">{loadError}</p>
             <button
               onClick={loadUsers}
-              className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
+              className="mt-3 px-3 py-1.5 text-xs bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
             >
               Reintentar
             </button>
@@ -1179,15 +1219,29 @@ function UsersPanel({
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => handleOpenHistoryModal(user)}
-                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-colors"
+                      className="p-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
                       title="Ver historial"
                     >
                       <FileText size={16} />
                     </button>
                     <button
+                      onClick={() => handleExportUserHistory(user, "csv")}
+                      className="p-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 text-sky-400 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="Descargar historial en CSV"
+                    >
+                      <Download size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleExportUserHistory(user, "xlsx")}
+                      className="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 text-emerald-400 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                      title="Descargar historial en Excel"
+                    >
+                      <FileSpreadsheet size={16} />
+                    </button>
+                    <button
                       onClick={() => handleToggleAction(user, "warned")}
                       disabled={isActionActiveForUser(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${isActionActiveForUser(user, "warned") ? "bg-yellow-500/25 border-yellow-400/40 text-yellow-300" : "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400"}`}
+                      className={`p-2 border rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:hover:scale-100 ${isActionActiveForUser(user, "warned") ? "bg-yellow-500/25 border-yellow-400/40 text-yellow-300" : "bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/20 text-yellow-400"}`}
                       title={getActionTitle(user, "warned")}
                     >
                       <AlertOctagon size={16} />
@@ -1195,7 +1249,7 @@ function UsersPanel({
                     <button
                       onClick={() => handleToggleAction(user, "silenced")}
                       disabled={isActionActiveForUser(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors disabled:opacity-50 ${isActionActiveForUser(user, "silenced") ? "bg-amber-500/25 border-amber-400/40 text-amber-300" : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 text-amber-400"}`}
+                      className={`p-2 border rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:hover:scale-100 ${isActionActiveForUser(user, "silenced") ? "bg-amber-500/25 border-amber-400/40 text-amber-300" : "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/20 text-amber-400"}`}
                       title={getActionTitle(user, "silenced")}
                     >
                       <MessageSquareOff size={16} />
@@ -1203,7 +1257,7 @@ function UsersPanel({
                     <button
                       onClick={() => handleToggleAction(user, "banned")}
                       title={getActionTitle(user, "banned")}
-                      className={`p-2 border rounded-lg transition-colors ${isActionActiveForUser(user, "banned") ? "bg-red-500/25 border-red-400/40 text-red-300" : "bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400"}`}
+                      className={`p-2 border rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer ${isActionActiveForUser(user, "banned") ? "bg-red-500/25 border-red-400/40 text-red-300" : "bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400"}`}
                     >
                       <Ban size={16} />
                     </button>
@@ -1314,14 +1368,14 @@ function UsersPanel({
               <button
                 onClick={() => setShowActionModal(false)}
                 disabled={submitting}
-                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:hover:scale-100"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubmitAction}
                 disabled={submitting || !reason.trim()}
-                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all hover:scale-105 active:scale-95 cursor-pointer disabled:opacity-50 disabled:hover:scale-100"
               >
                 {submitting
                   ? "Procesando..."
@@ -1352,7 +1406,7 @@ function UsersPanel({
               </div>
               <button
                 onClick={() => setShowHistoryModal(false)}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-slate-400 hover:text-white transition-all hover:scale-110 active:scale-95 cursor-pointer"
                 aria-label="Cerrar historial"
               >
                 <X size={20} />
