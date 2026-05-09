@@ -1690,17 +1690,6 @@ export function Friends() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[rgba(15,23,43,0.8)] border border-[#1d293d]">
-              <Bell size={18} className="text-[#90a1b9]" />
-            </div>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#ef4444] text-white text-[10px] font-bold flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </div>
-
           <div className="flex flex-wrap items-center p-[7px] gap-1 bg-[#0f172b] border border-[#1d293d] rounded-[14px] shadow-sm self-start sm:self-auto w-full sm:w-auto">
             {tabs.map((tab) => (
               <button
@@ -1772,41 +1761,42 @@ export function Friends() {
                 const online = isOnline(friend);
                 const playing = isPlayingGame(friend);
                 return (
-                  <button
+                  <div
                     key={friend.steamId}
-                    onClick={() => toggleSelect(friend.steamId)}
-                    className={`relative flex items-center gap-3 p-2.5 rounded-[12px] text-left transition-all duration-200 w-full group ${
+                    className={`relative flex items-center gap-3 p-2.5 rounded-[12px] transition-all duration-200 w-full group ${
                       isSelected
                         ? "bg-[rgba(21,93,252,0.12)] ring-1 ring-[rgba(21,93,252,0.5)]"
                         : "hover:bg-[rgba(29,41,61,0.5)]"
                     }`}
                   >
-                    {/* Avatar */}
+                    {/* Avatar → perfil */}
                     <div className="relative shrink-0">
-                      <div
-                        className={`rounded-full p-[2px] ${
+                      <UserProfileLink
+                        steamId={friend.steamId}
+                        username={friend.username}
+                        avatar={friend.avatar}
+                        variant="avatar"
+                        avatarClassName={`w-9 h-9 rounded-full object-cover ring-2 ${
                           isSelected
-                            ? "bg-gradient-to-br from-[#155dfc] to-[#00b8db]"
+                            ? "ring-[#155dfc]"
                             : playing
-                              ? "bg-gradient-to-br from-[#00c950] to-[#00d492]"
-                              : online
-                                ? "bg-[#314158]"
-                                : "bg-[#1d293d]"
+                              ? "ring-[#00c950]"
+                              : "ring-[#1d293d]"
                         }`}
-                      >
-                        <img
-                          src={friend.avatar}
-                          alt={friend.username}
-                          className="w-9 h-9 rounded-full object-cover block"
-                        />
-                      </div>
+                      />
                       <span
                         className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
                       />
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
+                    {/* Nombre + estado → perfil */}
+                    <UserProfileLink
+                      steamId={friend.steamId}
+                      username={friend.username}
+                      variant="name"
+                      nameClassName="flex-1 min-w-0 text-left"
+                    />
+                    <div className="flex-1 min-w-0 pointer-events-none">
                       <p className="text-[13px] font-semibold text-[#cad5e2] truncate leading-tight">
                         {friend.username}
                       </p>
@@ -1825,8 +1815,12 @@ export function Friends() {
                       </p>
                     </div>
 
-                    {/* Checkbox */}
-                    <div
+                    {/* Checkbox → seleccionar para stats/sesiones */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelect(friend.steamId);
+                      }}
                       className={`shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                         isSelected
                           ? "bg-[#155dfc] border-[#155dfc]"
@@ -1834,8 +1828,8 @@ export function Friends() {
                       }`}
                     >
                       {isSelected && <Check size={11} className="text-white" />}
-                    </div>
-                  </button>
+                    </button>
+                  </div>
                 );
               })}
             </div>

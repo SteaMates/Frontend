@@ -361,9 +361,9 @@ export function Layout() {
           </motion.div>
         </div>
       </main>
-      {/* Floating notification bell — top right corner */}
+      {/* Floating notification bell — sits to the left of the AI button */}
       {user && (
-        <div className="fixed top-4 right-20 md:top-6 md:right-24 z-40">
+        <div className="fixed bottom-6 right-[4.5rem] md:bottom-10 md:right-[5.5rem] z-40">
           <NotificationBell variant="floating" />
         </div>
       )}
