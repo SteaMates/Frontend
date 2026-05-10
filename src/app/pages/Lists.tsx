@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  ArrowBigDown,
+  ArrowBigUp,
   Bookmark,
   Check,
   ChevronLeft,
@@ -7,17 +9,25 @@ import {
   Clock3,
   Eye,
   Flame,
+  Gamepad2,
   GripVertical,
   Heart,
   MessageSquare,
   Plus,
   Search,
+  Shield,
   Sparkles,
   Star,
+  TrendingUp,
+  Users,
   X,
 } from "lucide-react";
 import { Link } from "react-router";
+import { motion } from "motion/react";
+import { formatDistanceToNow } from "date-fns";
+import { es } from "date-fns/locale";
 import { CATEGORY_CHIPS, FEED_TABS, FeedTab } from "../data/communityLists";
+import { useAuth } from "../context/AuthContext";
 import api from "../../lib/api";
 
 type CreateGameOption = {
@@ -30,6 +40,7 @@ type CreateGameOption = {
 };
 
 export function Lists() {
+  const { user, login } = useAuth();
   const [feedTab, setFeedTab] = useState<FeedTab>("trending");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [query, setQuery] = useState("");
@@ -367,6 +378,21 @@ export function Lists() {
 
     return result;
   }, [lists, feedTab, query, selectedCategory]);
+
+  const handleVote = async (listId: string, type: 'like' | 'dislike') => {
+    if (!user) return login();
+    try {
+      const res = await api.post(`/api/lists/${listId}/${type}`);
+      setLists(prev => prev.map(l =>
+        l._id === listId ? { ...l, likes: res.data.likes, dislikes: res.data.dislikes } : l
+      ));
+    } catch (err) {
+      console.error(`Error toggling ${type}:`, err);
+    }
+  };
+
+  const getSteamImg = (appId: number | string) =>
+    `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`;
 
   return (
     <div className="pb-20 space-y-6">
