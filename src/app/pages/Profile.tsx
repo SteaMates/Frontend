@@ -1165,7 +1165,13 @@ export function Profile() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[3px] border-[#0f172b] bg-[#00c950] opacity-70" />
+              <span className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[3px] border-[#0f172b] opacity-70 ${
+                !profile?.status || profile.status === 0
+                  ? "bg-[#62748e]"
+                  : profile.status === 3 || profile.status === 4
+                    ? "bg-[#f59e0b]"
+                    : "bg-[#00c950]"
+              }`} />
             </div>
 
             <div className="flex-1 pt-2 sm:pt-3 min-w-0">
