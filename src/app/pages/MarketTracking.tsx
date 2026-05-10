@@ -9,6 +9,8 @@ import {
   RefreshCw,
   Trash2,
   TrendingDown,
+  ExternalLink,
+  Target
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -237,10 +239,10 @@ export function MarketTracking() {
       <div className="h-[55vh] flex items-center justify-center">
         <div className="text-center">
           <Loader2
-            className="animate-spin text-blue-500 mx-auto mb-3"
+            className="animate-spin text-[#51a2ff] mx-auto mb-3"
             size={32}
           />
-          <p className="text-slate-400 text-sm">
+          <p className="text-[#62748e] text-sm">
             Cargando seguimiento de mercado...
           </p>
         </div>
@@ -249,136 +251,128 @@ export function MarketTracking() {
   }
 
   return (
-    <div className="space-y-8 pb-20">
+    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto">
+      {/* HEADER SECTION */}
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pr-14 sm:pr-16">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
+            <Target className="text-[#51a2ff]" size={28} />
             Seguimiento de mercado
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Gestiona tu wishlist y alertas de precio en tiempo real con datos de
-            CheapShark.
+          <p className="text-sm text-[#90a1b9] mt-2 max-w-xl">
+            Gestiona tu wishlist y alertas de precio en tiempo real. Organiza tus compras y nunca te pierdas una oferta.
           </p>
         </div>
 
         <button
           onClick={() => loadData(true)}
           disabled={refreshing}
-          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900 hover:bg-slate-800 text-slate-200 text-sm font-medium transition-colors disabled:opacity-50"
+          className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-5 py-2.5 rounded-[12px] bg-[#155dfc] hover:bg-[#2b7fff] text-white text-sm font-bold transition-all shadow-[0_0_15px_rgba(21,93,252,0.2)] disabled:opacity-50 shrink-0"
         >
           {refreshing ? (
             <>
-              <Loader2 size={15} className="animate-spin" /> Actualizando...
+              <Loader2 size={16} className="animate-spin" /> Actualizando...
             </>
           ) : (
             <>
-              <RefreshCw size={15} /> Actualizar precios
+              <RefreshCw size={16} /> Actualizar precios
             </>
           )}
         </button>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-xs text-slate-500 mb-1">Juegos en wishlist</p>
-          <p className="text-2xl font-bold text-white">{wishlist.length}</p>
+      {/* STATS CARDS */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[rgba(251,113,133,0.1)] flex items-center justify-center shrink-0">
+            <Heart size={24} className="text-rose-400" />
+          </div>
+          <div>
+            <p className="text-xs text-[#62748e] font-bold uppercase tracking-wider mb-0.5">En Wishlist</p>
+            <p className="text-2xl font-black text-white leading-none">{wishlist.length}</p>
+          </div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-xs text-slate-500 mb-1">Alertas activas</p>
-          <p className="text-2xl font-bold text-blue-400">{activeAlerts}</p>
+        <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[rgba(81,162,255,0.1)] flex items-center justify-center shrink-0">
+            <Bell size={24} className="text-[#51a2ff]" />
+          </div>
+          <div>
+            <p className="text-xs text-[#62748e] font-bold uppercase tracking-wider mb-0.5">Alertas Activas</p>
+            <p className="text-2xl font-black text-[#51a2ff] leading-none">{activeAlerts}</p>
+          </div>
         </div>
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-xs text-slate-500 mb-1">Objetivos cumplidos</p>
-          <p className="text-2xl font-bold text-emerald-400">
-            {triggeredAlerts}
-          </p>
+        <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-5 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-[rgba(0,212,146,0.1)] flex items-center justify-center shrink-0">
+            <TrendingDown size={24} className="text-[#00d492]" />
+          </div>
+          <div>
+            <p className="text-xs text-[#62748e] font-bold uppercase tracking-wider mb-0.5">Objetivos Cumplidos</p>
+            <p className="text-2xl font-black text-[#00d492] leading-none">{triggeredAlerts}</p>
+          </div>
         </div>
       </section>
 
+      {/* WISHLIST SECTION */}
       <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Heart size={18} className="text-rose-400" /> Wishlist
+        <h2 className="text-[20px] font-bold text-white flex items-center gap-2 pb-2 border-b border-[#1d293d]">
+          <Heart size={20} className="text-rose-400" /> Mi Wishlist
         </h2>
 
         {wishlist.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-            Aún no tienes juegos en wishlist. Desde el detalle de cualquier
-            juego puedes guardarlo.
+          <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center text-[#90a1b9] text-sm">
+            Aún no tienes juegos en wishlist. Desde el detalle de cualquier juego puedes guardarlo.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+          <div className="flex flex-col gap-3">
             {wishlist.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
-              const savings =
-                typeof item.savings === "number" ? Math.round(item.savings) : 0;
+              const savings = typeof item.savings === "number" ? Math.round(item.savings) : 0;
+              const linkState = { deal: { title: item.title, steamAppID: item.steamAppId, thumb: item.thumb, salePrice: item.currentPrice, normalPrice: item.normalPrice, dealID: "", gameID: item.gameId, storeID: "1" } };
 
               return (
-                <div
-                  key={identity || `${item.title}-${item.addedAt}`}
-                  className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col"
-                >
-                  <Link
-                    to={`/game/${detailId}`}
-                    state={{
-                      deal: {
-                        title: item.title,
-                        steamAppID: item.steamAppId,
-                        thumb: item.thumb,
-                        salePrice: item.currentPrice,
-                        normalPrice: item.normalPrice,
-                        dealID: "",
-                        gameID: item.gameId,
-                        storeID: "1",
-                      },
-                    }}
-                    className="block relative aspect-video bg-slate-800 group"
-                  >
+                <div key={identity || `${item.title}-${item.addedAt}`} className="bg-[#0f172b] border border-[#1d293d] hover:border-[#314158] rounded-[12px] p-3 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors group">
+                  {/* Thumbnail */}
+                  <Link to={`/game/${detailId}`} state={linkState} className="relative w-full sm:w-[140px] h-[64px] rounded-[8px] overflow-hidden bg-[#1d293d] shrink-0 block">
                     {item.thumb ? (
-                      <img
-                        src={item.thumb}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
-                        Sin imagen
-                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-[#62748e] text-[10px]">Sin imagen</div>
                     )}
                     {item.hasDiscount && savings > 0 && (
-                      <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">
+                      <div className="absolute top-1.5 left-1.5 bg-[#00d492] text-[#0f172b] text-[10px] font-black px-1.5 py-0.5 rounded-[4px] shadow-lg">
                         -{savings}%
                       </div>
                     )}
                   </Link>
 
-                  <div className="p-3 flex flex-col flex-1">
-                    <Link
-                      to={`/game/${detailId}`}
-                      className="font-semibold text-slate-100 line-clamp-1 mb-2 hover:text-blue-400 transition-colors text-sm"
-                      title={item.title}
-                    >
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <Link to={`/game/${detailId}`} state={linkState} className="font-bold text-white text-[16px] truncate hover:text-[#51a2ff] transition-colors" title={item.title}>
                       {item.title}
                     </Link>
+                  </div>
 
-                    <div className="mt-auto flex items-end justify-between">
-                      <div className="flex flex-col">
-                        {item.hasDiscount && item.normalPrice ? (
-                          <span className="text-xs text-slate-500 line-through">
-                            {formatPrice(item.normalPrice)}
-                          </span>
-                        ) : null}
-                        <span className="text-base font-bold text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]">
-                          {formatPrice(item.currentPrice)}
+                  {/* Pricing & Actions */}
+                  <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t border-[#1d293d] sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                    <div className="flex flex-col items-end">
+                      {item.hasDiscount && item.normalPrice ? (
+                        <span className="text-[11px] text-[#62748e] line-through font-medium">
+                          {formatPrice(item.normalPrice)}
                         </span>
-                      </div>
+                      ) : (
+                        <span className="text-[11px] text-transparent select-none">-</span>
+                      )}
+                      <span className="text-[18px] font-black text-white">
+                        {formatPrice(item.currentPrice)}
+                      </span>
+                    </div>
 
-                      <button
-                        onClick={() => onRemoveWishlist(item)}
-                        className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-colors"
-                        title="Quitar de wishlist"
-                      >
-                        <Trash2 size={14} />
+                    <div className="w-px h-8 bg-[#1d293d] hidden sm:block" />
+
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => onRemoveWishlist(item)} className="h-9 w-9 flex items-center justify-center rounded-[8px] text-[#62748e] hover:text-[#ff6467] hover:bg-[rgba(255,100,103,0.1)] transition-colors" title="Quitar de wishlist">
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
@@ -389,139 +383,86 @@ export function MarketTracking() {
         )}
       </section>
 
+      {/* PRICE ALERTS SECTION */}
       <section className="space-y-4">
-        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <TrendingDown size={18} className="text-indigo-400" /> Alertas de
-          Precio
+        <h2 className="text-[20px] font-bold text-white flex items-center gap-2 pb-2 border-b border-[#1d293d]">
+          <TrendingDown size={20} className="text-[#00d492]" /> Alertas de Precio
         </h2>
 
         {alerts.length === 0 ? (
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-sm">
-            No has configurado alertas de precio. Añade alertas desde el detalle
-            de los juegos.
+          <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center text-[#90a1b9] text-sm">
+            No has configurado alertas de precio. Añade alertas desde el detalle de los juegos.
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+          <div className="flex flex-col gap-3">
             {alerts.map((item) => {
               const identity = getActionId(item);
               const detailId = getDetailId(item);
-              const savings =
-                typeof item.savings === "number" ? Math.round(item.savings) : 0;
+              const linkState = { deal: { title: item.title, steamAppID: item.steamAppId, thumb: item.thumb, salePrice: item.currentPrice, normalPrice: item.normalPrice, dealID: "", gameID: item.gameId, storeID: "1" } };
 
               return (
-                <div
-                  key={identity || `alert-${item.title}`}
-                  className={`bg-slate-900 border rounded-lg overflow-hidden flex flex-col transition-colors ${
-                    item.triggered
-                      ? "border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
-                      : "border-slate-800"
-                  }`}
-                >
-                  <Link
-                    to={`/game/${detailId}`}
-                    state={{
-                      deal: {
-                        title: item.title,
-                        steamAppID: item.steamAppId,
-                        thumb: item.thumb,
-                        salePrice: item.currentPrice,
-                        normalPrice: item.normalPrice,
-                        dealID: "",
-                        gameID: item.gameId,
-                        storeID: "1",
-                      },
-                    }}
-                    className="block relative aspect-video bg-slate-800 group"
-                  >
+                <div key={identity || `alert-${item.title}`} className={`relative bg-[#0f172b] border rounded-[12px] p-3 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors group ${item.triggered ? "border-[#00d492] shadow-[0_0_20px_rgba(0,212,146,0.15)]" : "border-[#1d293d] hover:border-[#314158]"}`}>
+                  
+                  {/* Thumbnail */}
+                  <Link to={`/game/${detailId}`} state={linkState} className="relative w-full sm:w-[140px] h-[64px] rounded-[8px] overflow-hidden bg-[#1d293d] shrink-0 block">
                     {item.thumb ? (
-                      <img
-                        src={item.thumb}
-                        alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <img src={item.thumb} alt={item.title} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!item.enabled && "grayscale opacity-50"}`} />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-slate-500 text-[10px]">
-                        Sin imagen
-                      </div>
+                      <div className="w-full h-full flex items-center justify-center text-[#62748e] text-[10px]">Sin imagen</div>
                     )}
-                    <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
-                      {item.hasDiscount && savings > 0 && (
-                        <div className="bg-emerald-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-lg">
-                          -{savings}%
-                        </div>
-                      )}
-                      {item.triggered && (
-                        <div className="bg-emerald-500/90 backdrop-blur-sm text-white text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
-                          ¡OBJETIVO!
-                        </div>
-                      )}
-                    </div>
+                    {item.triggered && (
+                      <div className="absolute top-0 left-0 w-full h-full bg-[rgba(0,212,146,0.2)] pointer-events-none" />
+                    )}
                   </Link>
 
-                  <div className="p-3 flex flex-col flex-1">
-                    <Link
-                      to={`/game/${detailId}`}
-                      className="font-semibold text-slate-100 line-clamp-1 mb-2 hover:text-blue-400 transition-colors text-sm flex-1"
-                      title={item.title}
+                  {/* Info */}
+                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Link to={`/game/${detailId}`} state={linkState} className={`font-bold text-[16px] truncate hover:text-[#51a2ff] transition-colors ${!item.enabled ? "text-[#62748e]" : "text-white"}`} title={item.title}>
+                        {item.title}
+                      </Link>
+                      {item.triggered && (
+                        <span className="bg-[#00d492] text-[#0f172b] text-[9px] font-black px-1.5 py-0.5 rounded-[4px] uppercase tracking-wider shrink-0">
+                          ¡Objetivo Alcanzado!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pricing Dash (Current vs Target) */}
+                  <div className={`flex items-center gap-4 sm:gap-6 shrink-0 bg-[rgba(2,6,24,0.5)] px-4 py-2 rounded-[8px] border ${item.triggered ? "border-[rgba(0,212,146,0.3)]" : "border-[#1d293d]"} mt-2 sm:mt-0`}>
+                    <div className="flex flex-col items-center min-w-[60px]">
+                      <span className="text-[10px] text-[#62748e] font-bold uppercase tracking-wider mb-0.5">Actual</span>
+                      <span className={`text-[15px] font-black ${item.triggered ? "text-[#00d492]" : "text-white"}`}>
+                        {formatPrice(item.currentPrice)}
+                      </span>
+                    </div>
+                    
+                    <div className="w-px h-6 bg-[#314158]" />
+                    
+                    <div onClick={() => onEditTarget(item)} className="flex flex-col items-center min-w-[60px] group/target cursor-pointer relative" title="Click para editar objetivo">
+                      <span className="text-[10px] text-[#62748e] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                        Objetivo
+                        <Pencil size={10} className="text-[#51a2ff] opacity-0 group-hover/target:opacity-100 transition-opacity absolute -right-4" />
+                      </span>
+                      <span className="text-[15px] font-black text-[#51a2ff]">
+                        {formatPrice(item.targetPrice)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-2 shrink-0 border-t border-[#1d293d] sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
+                    <button 
+                      onClick={() => onToggleAlert(item)} 
+                      className={`h-9 px-3 flex items-center gap-1.5 rounded-[8px] text-[12px] font-bold transition-colors ${item.enabled ? "bg-[rgba(81,162,255,0.1)] text-[#51a2ff] hover:bg-[rgba(81,162,255,0.2)]" : "bg-[#1d293d] text-[#62748e] hover:text-white"}`}
+                      title={item.enabled ? "Desactivar alerta" : "Activar alerta"}
                     >
-                      {item.title}
-                    </Link>
-
-                    <div className="flex items-center justify-between py-2 border-t border-slate-800/50 mb-2">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold">
-                          Actual
-                        </span>
-                        <span
-                          className={`text-sm font-bold ${item.triggered ? "text-emerald-400" : "text-slate-200"}`}
-                        >
-                          {formatPrice(item.currentPrice)}
-                        </span>
-                      </div>
-                      <div className="h-6 w-px bg-slate-800/50" />
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-slate-500 uppercase font-semibold flex items-center gap-1">
-                          Objetivo
-                          <button
-                            onClick={() => onEditTarget(item)}
-                            className="hover:text-blue-400"
-                            title="Editar objetivo"
-                          >
-                            <Pencil size={10} />
-                          </button>
-                        </span>
-                        <span className="text-sm font-bold text-indigo-400">
-                          {formatPrice(item.targetPrice)}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <button
-                        onClick={() => onToggleAlert(item)}
-                        className={`p-1.5 rounded-md transition-colors flex items-center justify-center flex-1 mr-2 ${
-                          item.enabled
-                            ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
-                            : "bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300"
-                        }`}
-                        title={
-                          item.enabled ? "Desactivar alerta" : "Activar alerta"
-                        }
-                      >
-                        {item.enabled ? (
-                          <Bell size={14} />
-                        ) : (
-                          <BellOff size={14} />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => onDeleteAlert(item)}
-                        className="p-1.5 text-slate-500 hover:text-red-400 bg-slate-800 hover:bg-red-500/10 rounded-md transition-colors"
-                        title="Eliminar alerta"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                      {item.enabled ? <><Bell size={14} /> Activa</> : <><BellOff size={14} /> Pausada</>}
+                    </button>
+                    <button onClick={() => onDeleteAlert(item)} className="h-9 w-9 flex items-center justify-center rounded-[8px] text-[#62748e] hover:text-[#ff6467] hover:bg-[rgba(255,100,103,0.1)] transition-colors" title="Eliminar alerta">
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 </div>
               );
