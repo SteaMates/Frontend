@@ -323,19 +323,9 @@ export function ListDetail() {
                 </div>
                 <div className="relative w-full sm:w-[192px] h-[118px] rounded-[10px] overflow-hidden bg-[#1d293d] shrink-0">
                   <img
-                    src={game.appId ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg` : (game.imageUrl || game.image || `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.name)}`)}
+                    src={game.imageUrl || game.image || `https://picsum.photos/seed/${game.name}/200/100`}
                     alt={game.name}
                     className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      const t = e.target as HTMLImageElement;
-                      if (!t.dataset.fallback) {
-                        t.dataset.fallback = '1';
-                        t.src = game.imageUrl || game.image || `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.name)}`;
-                      } else if (t.dataset.fallback === '1') {
-                        t.dataset.fallback = '2';
-                        t.src = `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.name)}`;
-                      }
-                    }}
                   />
                 </div>
                 <div className="min-w-0 flex-1">
