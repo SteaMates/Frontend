@@ -86,7 +86,7 @@ export function ListDetail() {
           api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 12 } })
         ]);
         setList(listRes.data);
-        
+
         // Handle both paginated and array responses
         const commentsList = Array.isArray(commentsRes.data)
           ? commentsRes.data
@@ -94,7 +94,7 @@ export function ListDetail() {
         const commentsPagination = Array.isArray(commentsRes.data)
           ? null
           : commentsRes.data?.pagination || null;
-        
+
         setComments(commentsList);
         setCommentsPage(commentsPagination?.page || 1);
         setCommentsTotal(commentsPagination?.total || commentsList.length);
@@ -237,14 +237,14 @@ export function ListDetail() {
             </div>
 
             <div className="h-auto sm:h-[54px] rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.5)] px-3 py-2 sm:py-0 flex flex-wrap items-center gap-3 w-full sm:w-fit">
-              <button 
+              <button
                 onClick={handleLike}
                 className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#62748e]'}`}
               >
                 <ThumbsUp size={18} /> {list.likes?.length || 0}
               </button>
               <div className="w-px h-6 bg-[#314158]" />
-              <button 
+              <button
                 onClick={handleDislike}
                 className={`h-9 rounded-[10px] px-3 flex items-center gap-2 hover:bg-[#1d293d] transition-colors text-[16px] font-bold ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467]' : 'text-[#62748e]'}`}
               >
@@ -307,34 +307,32 @@ export function ListDetail() {
               {list.games.length}
             </span>
             <h2 className="text-white text-[20px] leading-7 font-bold">
-              Juegos en esta coleccion
+              Juegos en esta colección
             </h2>
           </div>
 
           <div className="space-y-4">
             {list.games.map((game, index) => {
-              // HELPER: Construir la URL de Steam CDN basada en el appId
-              const steamCdnUrl = game.appId 
+              const steamCdnUrl = game.appId
                 ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`
                 : null;
-              
-              // Cadena de fallback inicial
+
               const initialImageUrl = game.imageUrl || game.image || steamCdnUrl || `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
 
               return (
-                <div
+                <Link
+                  to={`/game/${game.appId}`}
                   key={game._id}
-                  className="rounded-[14px] border border-[#1d293d] bg-[#0f172b] p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:border-[#314158] transition-colors"
+                  className="rounded-[14px] border border-[#1d293d] bg-[#0f172b] p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:border-[#314158] transition-colors block cursor-pointer group"
                 >
-                  <div className="text-[#314158] text-[24px] leading-8 font-bold w-10 text-center shrink-0">
+                  <div className="text-[#314158] text-[24px] leading-8 font-bold w-10 text-center shrink-0 group-hover:text-[#51a2ff] transition-colors">
                     #{index + 1}
                   </div>
                   <div className="relative w-full sm:w-[192px] h-[118px] rounded-[10px] overflow-hidden bg-[#1d293d] shrink-0 shadow-inner">
                     <img
                       src={initialImageUrl}
                       alt={game.name}
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
-                      // HANDLER ROBUSTO: Si la URL inicial falla, intenta cargar un placeholder estático
+                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         if (!target.dataset.failed) {
@@ -345,11 +343,11 @@ export function ListDetail() {
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="text-white text-[20px] leading-7 font-bold truncate">
+                    <h3 className="text-white text-[20px] leading-7 font-bold truncate group-hover:text-[#51a2ff] transition-colors">
                       {game.name}
                     </h3>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>

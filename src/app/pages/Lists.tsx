@@ -19,12 +19,13 @@ import {
   TrendingUp,
   X,
 } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { CATEGORY_CHIPS, FEED_TABS, FeedTab } from "../data/communityLists";
 import api from "../../lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
 type CreateGameOption = {
   id: string;
@@ -36,6 +37,9 @@ type CreateGameOption = {
 };
 
 export function Lists() {
+  const { user, login } = useAuth();
+  const navigate = useNavigate();
+
   const [feedTab, setFeedTab] = useState<FeedTab>("trending");
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [query, setQuery] = useState("");
@@ -110,12 +114,36 @@ export function Lists() {
     fetchLists(listsPage + 1, true);
   };
 
+  // LÓGICA DE VOTOS
+  const handleVote = async (e: React.MouseEvent, listId: string, action: 'like' | 'dislike') => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!user) {
+      login();
+      return;
+    }
+
+    try {
+      const res = await api.post(`/api/lists/${listId}/${action}`);
+      setLists(prev => prev.map(list =>
+        list._id === listId
+          ? { ...list, likes: res.data.likes, dislikes: res.data.dislikes }
+          : list
+      ));
+    } catch (err) {
+      console.error(`Error procesando ${action}:`, err);
+    }
+  };
+
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
       if (createGameQuery.trim().length > 2) {
         setIsSearchingGames(true);
         try {
-          const res = await api.get(`/api/steam/search?term=${encodeURIComponent(createGameQuery)}`);
+          const res = await api.get(
+            `/api/steam/search?term=${encodeURIComponent(createGameQuery)}`,
+          );
           const results = res.data.map((item: any) => {
             const appId = item.appId ? item.appId.toString() : null;
             const isFree = item.isFree === true || item.price === 0;
@@ -238,7 +266,9 @@ export function Lists() {
   };
 
   useEffect(() => {
-    if (!isCreateModalOpen) return;
+    if (!isCreateModalOpen) {
+      return;
+    }
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -247,7 +277,9 @@ export function Lists() {
   }, [isCreateModalOpen]);
 
   useEffect(() => {
-    if (!isCreateModalOpen) return;
+    if (!isCreateModalOpen) {
+      return;
+    }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeCreateModal();
@@ -263,39 +295,16 @@ export function Lists() {
   }, [searchGamesOptions, createSelectedGames]);
 
   const previewCategoryLabel = useMemo(() => {
-    const iconByCategory: Record<string, string> = {
-      RPG: "⚔️",
-      "Co-op": "🤝",
-      Indie: "🎨",
-      Ofertas: "💰",
-      Terror: "👻",
-      Estrategia: "🧠",
-      Retro: "🕹️",
-      Simulacion: "🏗️",
-      "Sci-Fi": "🚀",
-      Accion: "💥",
-    };
-
     if (createCategories.length === 0) return "Sin Categoría";
     const primary = createCategories[0];
-    const icon = iconByCategory[primary] ?? "🎮";
-    const extra = createCategories.length > 1 ? ` +${createCategories.length - 1}` : "";
-    return `${icon} ${primary}${extra}`;
+    return `🎮 ${primary}${createCategories.length > 1 ? ` +${createCategories.length - 1}` : ""}`;
   }, [createCategories]);
 
   const filteredLists = useMemo(() => {
     const q = query.trim().toLowerCase();
 
-    const currentUserStr = localStorage.getItem("steamates_user");
-    let currentUser = null;
-    try {
-      if (currentUserStr) currentUser = JSON.parse(currentUserStr);
-    } catch (e) {
-      console.error(e);
-    }
-
     const result = lists.filter((item) => {
-      const isMine = currentUser ? currentUser.steamid === item.author?.steamId : false;
+      const isMine = user ? user.id === item.author?.steamId : false;
 
       const matchesTab =
         feedTab === "trending"
@@ -329,10 +338,12 @@ export function Lists() {
     }
 
     return result;
-  }, [lists, feedTab, query, selectedCategory]);
+  }, [lists, feedTab, query, selectedCategory, user]);
+
+  const totalVotesLoaded = lists.reduce((acc, list) => acc + (list.likes?.length || 0) + (list.dislikes?.length || 0), 0);
 
   return (
-    <div className="pb-20 max-w-[1200px] mx-auto">
+    <div className="pb-20 max-w-[1400px] mx-auto px-4">
       {/* HEADER BANNER ESTILO REDDIT */}
       <div className="relative rounded-[16px] overflow-hidden mb-8 border border-[#1d293d] bg-[#0f172b]">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(21,93,252,0.1)_0%,rgba(79,57,246,0.1)_50%,rgba(152,16,250,0.1)_100%)]" />
@@ -348,6 +359,7 @@ export function Lists() {
           </div>
           <button
             onClick={() => {
+              if (!user) return login();
               setCreateStep(1);
               setIsCreateModalOpen(true);
             }}
@@ -360,7 +372,7 @@ export function Lists() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* COLUMNA PRINCIPAL (FEED) */}
-        <div className="flex-1 space-y-6 max-w-[800px]">
+        <div className="flex-1 space-y-6 w-full">
           {/* Barra de Filtros y Búsqueda */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#0f172b] p-3 rounded-[12px] border border-[#1d293d]">
             <div className="flex gap-1 overflow-x-auto no-scrollbar">
@@ -370,11 +382,10 @@ export function Lists() {
                   <button
                     key={tab.id}
                     onClick={() => setFeedTab(tab.id)}
-                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-                      active
+                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${active
                         ? "bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
                         : "text-[#62748e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#cad5e2]"
-                    }`}
+                      }`}
                   >
                     {tab.id === "trending" && <Flame size={16} />}
                     {tab.id === "top" && <Star size={16} />}
@@ -385,11 +396,8 @@ export function Lists() {
                 );
               })}
             </div>
-            <div className="relative w-full sm:w-[240px] shrink-0">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]"
-              />
+            <div className="relative w-full sm:w-[280px] shrink-0">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -402,12 +410,8 @@ export function Lists() {
           {/* LISTA DE POSTS */}
           <div className="space-y-4">
             {loadingLists ? (
-              // Skeleton Loading Reddit Style
               [...Array(4)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex bg-[#0f172b] border border-[#1d293d] rounded-[12px] h-[160px] animate-pulse"
-                >
+                <div key={i} className="flex bg-[#0f172b] border border-[#1d293d] rounded-[12px] h-[160px] animate-pulse">
                   <div className="w-12 bg-[rgba(255,255,255,0.02)] border-r border-[#1d293d]" />
                   <div className="p-4 flex-1 space-y-3">
                     <div className="h-4 bg-[#1d293d] w-1/3 rounded" />
@@ -417,123 +421,106 @@ export function Lists() {
                 </div>
               ))
             ) : listsLoadError ? (
-               <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
-                  <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
-                  <button
-                    type="button"
-                    onClick={() => fetchLists(1, false)}
-                    className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
-                  >
-                    Reintentar
-                  </button>
-                </div>
+              <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
+                <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
+                <button onClick={() => fetchLists(1, false)} className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium">
+                  Reintentar
+                </button>
+              </div>
             ) : filteredLists.length > 0 ? (
               <AnimatePresence>
-                {filteredLists.map((list, idx) => (
-                  <motion.div
-                    key={list._id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                  >
-                    <Link
-                      to={`/lists/${list._id}`}
-                      className="block bg-[#0f172b] border border-[#1d293d] rounded-[12px] hover:border-[#314158] transition-colors group overflow-hidden"
+                {filteredLists.map((list, idx) => {
+                  const hasLiked = user && list.likes?.includes(user.id);
+                  const hasDisliked = user && list.dislikes?.includes(user.id);
+
+                  return (
+                    <motion.div
+                      key={list._id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
                     >
-                      <div className="flex">
-                        {/* COLUMNA DE VOTOS */}
-                        <div className="w-12 bg-[rgba(15,23,43,0.3)] border-r border-[#1d293d] flex flex-col items-center py-3 gap-1 shrink-0">
-                          <button
-                            onClick={(e) => e.preventDefault()}
-                            className="text-[#62748e] hover:text-[#ff4500] transition-colors p-1 rounded hover:bg-[rgba(255,69,0,0.1)]"
-                          >
-                            <ArrowBigUp size={22} />
-                          </button>
-                          <span className="text-white text-[13px] font-bold">
-                            {list.likes?.length || 0}
-                          </span>
-                          <button
-                            onClick={(e) => e.preventDefault()}
-                            className="text-[#62748e] hover:text-[#7193ff] transition-colors p-1 rounded hover:bg-[rgba(113,147,255,0.1)]"
-                          >
-                            <ArrowBigDown size={22} />
-                          </button>
-                        </div>
-
-                        {/* CONTENIDO DEL POST */}
-                        <div className="p-3 sm:p-4 flex-1 flex flex-col sm:flex-row gap-4">
-                          <div className="flex-1 min-w-0">
-                            {/* Metadata */}
-                            <div className="flex items-center gap-2 text-[12px] text-[#62748e] mb-2 flex-wrap">
-                              {list.categories && list.categories[0] && (
-                                <span className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-full font-bold">
-                                  l/{list.categories[0].toLowerCase()}
-                                </span>
-                              )}
-                              <span>•</span>
-                              <span>
-                                Posteado por{" "}
-                                <span className="text-[#cad5e2] hover:underline">
-                                  u/{list.author?.username || "Usuario"}
-                                </span>
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {list.createdAt
-                                  ? formatDistanceToNow(new Date(list.createdAt), {
-                                      addSuffix: true,
-                                      locale: es,
-                                    })
-                                  : ""}
-                              </span>
-                            </div>
-
-                            <h3 className="text-[18px] sm:text-[20px] text-white font-bold mb-2 leading-tight group-hover:text-[#51a2ff] transition-colors">
-                              {list.title}
-                            </h3>
-                            <p className="text-[14px] text-[#90a1b9] line-clamp-3 mb-4">
-                              {list.description}
-                            </p>
-
-                            {/* Acciones */}
-                            <div className="flex items-center gap-1 text-[#62748e] text-[12px] font-bold">
-                              <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                <MessageSquare size={16} /> {list.commentsCount || 0} Comentarios
-                              </div>
-                              <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                <Gamepad2 size={16} /> {list.games?.length || 0} Juegos
-                              </div>
-                            </div>
+                      <Link
+                        to={`/lists/${list._id}`}
+                        className="block bg-[#0f172b] border border-[#1d293d] rounded-[12px] hover:border-[#314158] transition-colors group overflow-hidden"
+                      >
+                        <div className="flex">
+                          {/* COLUMNA DE VOTOS */}
+                          <div className="w-12 sm:w-16 bg-[rgba(15,23,43,0.3)] border-r border-[#1d293d] flex flex-col items-center py-3 gap-1 shrink-0">
+                            <button
+                              onClick={(e) => handleVote(e, list._id, 'like')}
+                              className={`transition-colors p-1 rounded ${hasLiked ? 'text-[#ff4500] bg-[rgba(255,69,0,0.1)]' : 'text-[#62748e] hover:text-[#ff4500] hover:bg-[rgba(255,69,0,0.1)]'}`}
+                            >
+                              <ArrowBigUp size={24} />
+                            </button>
+                            <span className={`text-[14px] font-bold ${hasLiked ? 'text-[#ff4500]' : hasDisliked ? 'text-[#7193ff]' : 'text-white'}`}>
+                              {(list.likes?.length || 0) - (list.dislikes?.length || 0)}
+                            </span>
+                            <button
+                              onClick={(e) => handleVote(e, list._id, 'dislike')}
+                              className={`transition-colors p-1 rounded ${hasDisliked ? 'text-[#7193ff] bg-[rgba(113,147,255,0.1)]' : 'text-[#62748e] hover:text-[#7193ff] hover:bg-[rgba(113,147,255,0.1)]'}`}
+                            >
+                              <ArrowBigDown size={24} />
+                            </button>
                           </div>
 
-                          {/* THUMBNAIL (Si hay imagen de cover) */}
-                          {list.coverImage && (
-                            <div className="w-full sm:w-[140px] h-[100px] rounded-[8px] overflow-hidden shrink-0 border border-[#1d293d]">
-                              <img
-                                src={list.coverImage}
-                                alt="Cover"
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                              />
+                          {/* CONTENIDO DEL POST */}
+                          <div className="p-4 flex-1 flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 text-[12px] text-[#62748e] mb-2 flex-wrap">
+                                {list.categories && list.categories[0] && (
+                                  <span className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-full font-bold">
+                                    l/{list.categories[0].toLowerCase()}
+                                  </span>
+                                )}
+                                <span>•</span>
+                                <span>
+                                  Posteado por <span className="text-[#cad5e2] hover:underline">@{list.author?.username || "Usuario"}</span>
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {list.createdAt ? formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es }) : ""}
+                                </span>
+                              </div>
+
+                              <h3 className="text-[18px] sm:text-[20px] text-white font-bold mb-2 leading-tight group-hover:text-[#51a2ff] transition-colors">
+                                {list.title}
+                              </h3>
+                              <p className="text-[14px] text-[#90a1b9] line-clamp-2 mb-4">
+                                {list.description}
+                              </p>
+
+                              <div className="flex items-center gap-1 text-[#62748e] text-[12px] font-bold">
+                                <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
+                                  <MessageSquare size={16} /> {list.commentsCount || 0} Comentarios
+                                </div>
+                                <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
+                                  <Gamepad2 size={16} /> {list.games?.length || 0} Juegos
+                                </div>
+                              </div>
                             </div>
-                          )}
+
+                            {list.coverImage && (
+                              <div className="w-full sm:w-[180px] h-[120px] rounded-[8px] overflow-hidden shrink-0 border border-[#1d293d]">
+                                <img
+                                  src={list.coverImage}
+                                  alt="Cover"
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
+                      </Link>
+                    </motion.div>
+                  );
+                })}
               </AnimatePresence>
             ) : (
               <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
-                <p className="text-[#90a1b9] text-[14px] mb-4">
-                  No se encontraron listas en esta sección.
-                </p>
+                <p className="text-[#90a1b9] text-[14px] mb-4">No se encontraron listas en esta sección.</p>
                 <button
-                  type="button"
-                  onClick={() => {
-                    setFeedTab("trending");
-                    setSelectedCategory("Todas");
-                    setQuery("");
-                  }}
+                  onClick={() => { setFeedTab("trending"); setSelectedCategory("Todas"); setQuery(""); }}
                   className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
                 >
                   Limpiar filtros
@@ -555,7 +542,6 @@ export function Lists() {
 
         {/* BARRA LATERAL (SIDEBAR) */}
         <div className="hidden lg:block w-[320px] shrink-0 space-y-6">
-          {/* Card: Info de la Comunidad */}
           <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] overflow-hidden">
             <div className="h-12 bg-[linear-gradient(to_right,#155dfc,#4f39f6)] px-4 flex items-center">
               <h3 className="text-white font-bold text-[14px]">Acerca de Listas</h3>
@@ -566,17 +552,20 @@ export function Lists() {
               </p>
               <div className="flex items-center justify-between py-3 border-y border-[#1d293d] mb-4">
                 <div className="text-center">
-                  <div className="text-white font-bold text-[18px]">14.2k</div>
-                  <div className="text-[#62748e] text-[12px]">Listas Creadas</div>
+                  <div className="text-white font-bold text-[18px]">
+                    {lists.length > 0 ? `+${lists.length}` : "0"}
+                  </div>
+                  <div className="text-[#62748e] text-[12px]">Listas (Pág actual)</div>
                 </div>
                 <div className="w-px h-8 bg-[#1d293d]" />
                 <div className="text-center">
-                  <div className="text-white font-bold text-[18px]">89k</div>
-                  <div className="text-[#62748e] text-[12px]">Votos Totales</div>
+                  <div className="text-white font-bold text-[18px]">{totalVotesLoaded}</div>
+                  <div className="text-[#62748e] text-[12px]">Votos (Pág actual)</div>
                 </div>
               </div>
               <button
                 onClick={() => {
+                  if (!user) return login();
                   setCreateStep(1);
                   setIsCreateModalOpen(true);
                 }}
@@ -587,7 +576,6 @@ export function Lists() {
             </div>
           </div>
 
-          {/* Card: Filtros por Categoría */}
           <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-4">
             <h3 className="text-white font-bold text-[14px] mb-3">Filtrar por Etiqueta</h3>
             <div className="flex flex-wrap gap-2">
@@ -597,11 +585,10 @@ export function Lists() {
                   <button
                     key={chip}
                     onClick={() => setSelectedCategory(chip)}
-                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${
-                      active
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${active
                         ? "bg-[#155dfc] text-white"
                         : "bg-[rgba(255,255,255,0.05)] text-[#90a1b9] hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
-                    }`}
+                      }`}
                   >
                     {chip}
                   </button>
@@ -612,7 +599,6 @@ export function Lists() {
         </div>
       </div>
 
-      {/* MODAL DE CREACIÓN */}
       {isCreateModalOpen && (
         <div
           className="fixed inset-0 z-40 bg-[rgba(2,6,24,0.78)] backdrop-blur-[2px] px-4 py-8 overflow-y-auto"
@@ -647,59 +633,61 @@ export function Lists() {
               <div className="mt-5 flex items-center gap-2 text-[12px]">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 1 ? "bg-[#2b7fff] text-white" : "bg-[#00bc7d] text-white"
-                    }`}
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 1
+                        ? "bg-[#2b7fff] text-white"
+                        : "bg-[#00bc7d] text-white"
+                      }`}
                   >
                     {createStep === 1 ? "1" : <Check size={14} />}
                   </span>
                   <span
-                    className={`font-medium ${
-                      createStep === 1 ? "text-white" : "text-[#62748e]"
-                    }`}
+                    className={`font-medium ${createStep === 1 ? "text-white" : "text-[#62748e]"
+                      }`}
                   >
                     Info
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${
-                    createStep >= 2 ? "bg-[rgba(0,188,125,0.5)]" : "bg-[#40517b]"
-                  }`}
+                  className={`h-px flex-1 ${createStep >= 2
+                      ? "bg-[rgba(0,188,125,0.5)]"
+                      : "bg-[#40517b]"
+                    }`}
                 />
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 2
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 2
                         ? "bg-[#2b7fff] text-white"
                         : createStep === 3
                           ? "bg-[#00bc7d] text-white"
                           : "bg-[#253353] text-[#62748e]"
-                    }`}
+                      }`}
                   >
                     {createStep === 3 ? <Check size={14} /> : "2"}
                   </span>
                   <span
-                    className={`font-medium ${
-                      createStep === 2 ? "text-white" : "text-[#62748e]"
-                    }`}
+                    className={`font-medium ${createStep === 2 ? "text-white" : "text-[#62748e]"
+                      }`}
                   >
                     Juegos
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${
-                    createStep === 3 ? "bg-[rgba(0,188,125,0.5)]" : "bg-[#2a3554]"
-                  }`}
+                  className={`h-px flex-1 ${createStep === 3
+                      ? "bg-[rgba(0,188,125,0.5)]"
+                      : "bg-[#2a3554]"
+                    }`}
                 />
                 <div
-                  className={`flex items-center gap-2 ${
-                    createStep === 3 ? "text-white" : "text-[#5f6f8f] opacity-40"
-                  }`}
+                  className={`flex items-center gap-2 ${createStep === 3
+                      ? "text-white"
+                      : "text-[#5f6f8f] opacity-40"
+                    }`}
                 >
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 3 ? "bg-[#2b7fff] text-white" : "bg-[#253353] text-[#62748e]"
-                    }`}
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 3
+                        ? "bg-[#2b7fff] text-white"
+                        : "bg-[#253353] text-[#62748e]"
+                      }`}
                   >
                     3
                   </span>
@@ -713,8 +701,12 @@ export function Lists() {
                 <div className="px-6 py-6 space-y-6">
                   <div>
                     <div className="mb-2 flex items-center justify-between text-[14px]">
-                      <label htmlFor="list-title" className="text-[#cad5e2] font-medium">
-                        Titulo de la lista <span className="text-[#ff5f6d]">*</span>
+                      <label
+                        htmlFor="list-title"
+                        className="text-[#cad5e2] font-medium"
+                      >
+                        Titulo de la lista{" "}
+                        <span className="text-[#ff5f6d]">*</span>
                       </label>
                       <span className="text-[#62748e] text-[12px]">
                         {titleChars}/80
@@ -723,7 +715,9 @@ export function Lists() {
                     <input
                       id="list-title"
                       value={createTitle}
-                      onChange={(event) => setCreateTitle(event.target.value.slice(0, 80))}
+                      onChange={(event) =>
+                        setCreateTitle(event.target.value.slice(0, 80))
+                      }
                       placeholder="Ej: Top RPGs de todos los tiempos"
                       className="w-full h-11 rounded-[10px] bg-[#0f1f3b] border border-[#2f405e] px-4 text-[14px] text-[#cad5e2] placeholder:text-[#62748e] focus:outline-none focus:border-[#2b7fff]"
                     />
@@ -731,7 +725,10 @@ export function Lists() {
 
                   <div>
                     <div className="mb-2 flex items-center justify-between text-[14px]">
-                      <label htmlFor="list-description" className="text-[#cad5e2] font-medium">
+                      <label
+                        htmlFor="list-description"
+                        className="text-[#cad5e2] font-medium"
+                      >
                         Descripcion
                       </label>
                       <span className="text-[#62748e] text-[12px]">
@@ -741,7 +738,9 @@ export function Lists() {
                     <textarea
                       id="list-description"
                       value={createDescription}
-                      onChange={(event) => setCreateDescription(event.target.value.slice(0, 200))}
+                      onChange={(event) =>
+                        setCreateDescription(event.target.value.slice(0, 200))
+                      }
                       placeholder="Cuentale a la comunidad de que va tu lista..."
                       className="w-full h-[96px] rounded-[12px] bg-[#0f1f3b] border border-[#2f405e] px-4 py-3 text-[14px] text-[#cad5e2] placeholder:text-[#62748e] focus:outline-none focus:border-[#2b7fff] resize-none"
                     />
@@ -765,11 +764,10 @@ export function Lists() {
                                   : [...prev, option],
                               );
                             }}
-                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${
-                              active
+                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${active
                                 ? "bg-[#1a3770] border-[#2b7fff] text-white"
                                 : "bg-[#111f3a] border-[#2f405e] text-[#a7b6cd] hover:text-white"
-                            }`}
+                              }`}
                           >
                             {option}
                           </button>
@@ -779,11 +777,15 @@ export function Lists() {
                   </div>
 
                   <div>
-                    <p className="mb-2 text-[14px] text-[#cad5e2] font-medium">Portada</p>
+                    <p className="mb-2 text-[14px] text-[#cad5e2] font-medium">
+                      Portada
+                    </p>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                       <label className="relative h-[88px] rounded-[10px] overflow-hidden border border-[#2f405e] hover:border-[#4766a3] transition-colors flex flex-col items-center justify-center cursor-pointer bg-[#0f172a]">
                         <Plus size={20} className="text-[#a7b6cd] mb-1" />
-                        <span className="text-[#a7b6cd] text-[12px] font-medium">Subir foto</span>
+                        <span className="text-[#a7b6cd] text-[12px] font-medium">
+                          Subir foto
+                        </span>
                         <input
                           type="file"
                           accept="image/png, image/jpeg"
@@ -807,9 +809,10 @@ export function Lists() {
                             key={cover.id}
                             type="button"
                             onClick={() => setCreateCover(cover.image)}
-                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${
-                              active ? "border-[#2b7fff]" : "border-[#2f405e] hover:border-[#4766a3]"
-                            }`}
+                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${active
+                                ? "border-[#2b7fff]"
+                                : "border-[#2f405e] hover:border-[#4766a3]"
+                              }`}
                             aria-label={`Seleccionar portada ${cover.title}`}
                           >
                             <img
@@ -843,11 +846,10 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(2)}
                     disabled={!canContinueInfo}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
-                      canContinueInfo
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueInfo
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
@@ -883,10 +885,16 @@ export function Lists() {
                             }}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-[14px] text-white truncate">{game.title}</p>
+                            <p className="text-[14px] text-white truncate">
+                              {game.title}
+                            </p>
                             <p className="text-[10px] text-[#62748e]">
-                              {game.year !== "—" && game.year !== "-" ? game.year : ""}
-                              {game.year !== "—" && game.year !== "-" ? " · " : ""}
+                              {game.year !== "—" && game.year !== "-"
+                                ? game.year
+                                : ""}
+                              {game.year !== "—" && game.year !== "-"
+                                ? " · "
+                                : ""}
                               {game.price}
                             </p>
                           </div>
@@ -914,7 +922,9 @@ export function Lists() {
                       />
                       <input
                         value={createGameQuery}
-                        onChange={(event) => setCreateGameQuery(event.target.value)}
+                        onChange={(event) =>
+                          setCreateGameQuery(event.target.value)
+                        }
                         placeholder="Buscar por nombre..."
                         className="w-full h-[42px] rounded-[14px] bg-[#0f172b] border border-[#314158] pl-9 pr-4 text-[14px] text-[#cad5e2] placeholder:text-[#45556c] focus:outline-none focus:border-[#2b7fff]"
                       />
@@ -946,20 +956,23 @@ export function Lists() {
                             </p>
                             <p className="text-[10px] text-[#62748e]">
                               {game.year} · {game.price} ·{" "}
-                              <span className="text-[#51a2ff]">{game.score}</span>
+                              <span className="text-[#51a2ff]">
+                                {game.score}
+                              </span>
                             </p>
                           </div>
                           <Plus size={16} className="text-[#51a2ff]" />
                         </button>
                       ))}
 
-                      {filteredCreateGameOptions.length === 0 && createGameQuery.length > 2 && (
-                        <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
-                          {isSearchingGames
-                            ? "Buscando juegos en Steam..."
-                            : "No hay resultados o ya están en tu lista."}
-                        </div>
-                      )}
+                      {filteredCreateGameOptions.length === 0 &&
+                        createGameQuery.length > 2 && (
+                          <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
+                            {isSearchingGames
+                              ? "Buscando juegos en Steam..."
+                              : "No hay resultados o ya están en tu lista."}
+                          </div>
+                        )}
                       {createGameQuery.length <= 2 && (
                         <div className="h-[62px] rounded-[14px] border border-[rgba(29,41,61,0.5)] bg-[rgba(15,23,43,0.5)] px-4 flex items-center text-[13px] text-[#62748e]">
                           Escribe al menos 3 caracteres para buscar en Steam...
@@ -982,11 +995,10 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(3)}
                     disabled={!canContinueGames}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
-                      canContinueGames
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueGames
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                    }`}
+                      }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
@@ -1078,7 +1090,8 @@ export function Lists() {
                     disabled={isSubmitting}
                     className="h-10 w-full sm:w-auto justify-center px-6 rounded-[14px] bg-[#155dfc] text-white text-[14px] font-medium flex items-center gap-2 hover:bg-[#2b7fff] transition-colors disabled:opacity-50"
                   >
-                    <Sparkles size={16} /> {isSubmitting ? "Publicando..." : "Publicar Lista"}
+                    <Sparkles size={16} />{" "}
+                    {isSubmitting ? "Publicando..." : "Publicar Lista"}
                   </button>
                 </div>
               </>

@@ -8,6 +8,7 @@ import {
 import { DealCard, Deal } from "../components/market/DealCard";
 import { useAuth } from "../context/AuthContext";
 import api from "../../lib/api";
+
 // ── helpers ──────────────────────────────────────────────────────────────────
 
 function useDraggableScroll() {
@@ -53,13 +54,13 @@ function useDraggableScroll() {
 const SORT_OPTIONS = [
   { value: "Popular", label: "Más populares" },
   { value: "Savings", label: "Mayor descuento" },
-  { value: "Free",    label: "Gratis" },
+  { value: "Free", label: "Gratis" },
 ];
 
 const STEAM_SORT_MAP: Record<string, string> = {
   "Popular": "_ASC",
   "Savings": "Reviews_DESC",
-  "Free":    "_ASC",
+  "Free": "_ASC",
 };
 
 export const GLOBAL_TAGS = [
@@ -98,9 +99,9 @@ interface RecommendedDeal extends Deal {
 }
 
 function AIRecommendations({ steamId }: { steamId: string }) {
-  const [deals,    setDeals]   = useState<RecommendedDeal[]>([]);
-  const [loading,  setLoading] = useState(false);
-  const [error,    setError]   = useState("");
+  const [deals, setDeals] = useState<RecommendedDeal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const ranRef = useRef(false);
   const { ref: scrollRef, events: scrollEvents, isDragging } = useDraggableScroll();
 
@@ -132,7 +133,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
     <section className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-white flex items-center gap-2">
-          <Sparkles size={20} className="text-amber-400"/>
+          <Sparkles size={20} className="text-amber-400" />
           Recomendado para ti
           <span className="text-[11px] font-normal text-[#62748e] bg-[#1d293d] px-2 py-0.5 rounded-full">IA</span>
         </h2>
@@ -141,20 +142,20 @@ function AIRecommendations({ steamId }: { steamId: string }) {
             onClick={() => { ranRef.current = false; fetchRecs(); }}
             className="flex items-center gap-1.5 text-[12px] text-[#62748e] hover:text-white transition-colors"
           >
-            <RefreshCw size={13}/> Refrescar
+            <RefreshCw size={13} /> Refrescar
           </button>
         )}
       </div>
 
       {loading && (
-        <div 
+        <div
           ref={scrollRef}
           {...scrollEvents}
           className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse pointer-events-none"/>
+            <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse pointer-events-none" />
           ))}
         </div>
       )}
@@ -170,7 +171,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       )}
 
       {!loading && deals.length > 0 && (
-        <div 
+        <div
           ref={scrollRef}
           {...scrollEvents}
           className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
@@ -178,7 +179,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         >
           {deals.map(deal => (
             <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group ${isDragging ? "pointer-events-none" : ""}`}>
-              <DealCard deal={deal}/>
+              <DealCard deal={deal} />
               {deal.reason && (
                 <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
                   <div className="bg-slate-950/90 backdrop-blur rounded-lg px-2 py-1.5 text-[10px] text-slate-200 leading-tight">
@@ -201,13 +202,13 @@ function LockedRecs({ onLogin }: { onLogin: () => void }) {
     <section className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/50">
       <div className="flex overflow-x-hidden gap-4 p-6 blur-sm opacity-40 pointer-events-none select-none">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="flex-shrink-0 w-[240px] bg-slate-800 rounded-xl h-52"/>
+          <div key={i} className="flex-shrink-0 w-[240px] bg-slate-800 rounded-xl h-52" />
         ))}
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-slate-950/60 backdrop-blur-[2px]">
         <div className="bg-slate-900 border border-slate-700 p-8 rounded-2xl text-center max-w-sm mx-4 shadow-2xl">
           <div className="w-14 h-14 bg-blue-900/30 border border-blue-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Lock size={26} className="text-blue-400"/>
+            <Lock size={26} className="text-blue-400" />
           </div>
           <h3 className="text-white font-bold text-lg mb-2">Recomendaciones personalizadas</h3>
           <p className="text-slate-400 text-sm mb-5">
@@ -217,7 +218,7 @@ function LockedRecs({ onLogin }: { onLogin: () => void }) {
             onClick={onLogin}
             className="bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] hover:text-white font-bold py-2.5 px-5 rounded-xl transition-all border border-[#2a475e] text-sm flex items-center gap-2 mx-auto cursor-pointer"
           >
-            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="" className="w-4 h-4"/>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" alt="" className="w-4 h-4" />
             Iniciar sesión con Steam
           </button>
         </div>
@@ -240,10 +241,9 @@ interface SteamGame {
 }
 
 function SteamGameCard({ game }: { game: SteamGame }) {
-  // Parse numeric prices from strings like "$7.99"
   const saleP = game.price === "Gratis" ? "0.00" : game.price.replace("$", "");
-  const normP = game.originalPrice 
-    ? game.originalPrice.replace("$", "") 
+  const normP = game.originalPrice
+    ? game.originalPrice.replace("$", "")
     : saleP;
 
   const synthesizedDeal = {
@@ -274,11 +274,11 @@ function SteamGameCard({ game }: { game: SteamGame }) {
           loading="lazy"
           onError={(e) => {
             const t = e.target as HTMLImageElement;
-            if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`;}
+            if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://placehold.co/460x215/1e293b/94a3b8?text=${encodeURIComponent(game.title[0] ?? "?")}`; }
           }}
         />
         <div className="absolute top-1.5 left-1.5 bg-[#171a21]/90 backdrop-blur text-[#c5c3c0] text-[9px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 shadow-lg">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-2.5 h-2.5" alt=""/> Steam
+          <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-2.5 h-2.5" alt="" /> Steam
         </div>
       </Link>
 
@@ -312,16 +312,16 @@ function SteamGameCard({ game }: { game: SteamGame }) {
               </span>
             )}
             <a
-            href={`https://store.steampowered.com/app/${game.steamAppID}/`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors z-10"
-            title="Ver en Steam"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ExternalLink size={14} />
-          </a>
-        </div>
+              href={`https://store.steampowered.com/app/${game.steamAppID}/`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors z-10"
+              title="Ver en Steam"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink size={14} />
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -333,26 +333,22 @@ function SteamGameCard({ game }: { game: SteamGame }) {
 export function Market() {
   const { user, login } = useAuth();
 
-  // deals state
-  const [deals,          setDeals]          = useState<Deal[]>([]);
-  const [loading,        setLoading]        = useState(true);
-  const [isLoadingMore,  setIsLoadingMore]  = useState(false);
-  const [page,           setPage]           = useState(0);
-  const [hasMore,        setHasMore]        = useState(true);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
 
-  // filters
-  const [search,   setSearch]   = useState("");
-  const [sortBy,   setSortBy]   = useState("Popular");
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("Popular");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
 
-  // steam fallback (when CheapShark has 0 deals for a search term)
-  const [steamGames,   setSteamGames]   = useState<SteamGame[]>([]);
+  const [steamGames, setSteamGames] = useState<SteamGame[]>([]);
   const [steamLoading, setSteamLoading] = useState(false);
 
   const { ref: categoriesScrollRef, events: categoriesScrollEvents, isDragging: isCategoriesDragging } = useDraggableScroll();
 
-  // steam fallback search via existing backend endpoint (returns only type=game)
   const fetchSteamFallback = useCallback(async (term: string) => {
     setSteamLoading(true);
     setSteamGames([]);
@@ -360,7 +356,6 @@ export function Market() {
       const res = await api.get(`/api/steam/search?term=${encodeURIComponent(term)}`);
       const mapped: SteamGame[] = (res.data ?? []).map((item: any) => {
         const appId = item.appId?.toString() ?? "";
-        // Backend now sends isFree (boolean) and price (number in dollars)
         const isFree = item.isFree === true || item.price === 0;
         const price = isFree ? "Gratis" : `$${Number(item.price).toFixed(2)}`;
         return {
@@ -383,8 +378,8 @@ export function Market() {
   }, []);
 
   const hasPriceFilter = minPrice !== "" || maxPrice !== "";
-  const isFreeMode     = sortBy === "Free";
-  const isPopularMode  = !search.trim() && sortBy === "Popular";
+  const isFreeMode = sortBy === "Free";
+  const isPopularMode = !search.trim() && sortBy === "Popular";
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -393,20 +388,18 @@ export function Market() {
   };
 
   const fetchDeals = useCallback(async (pg = 0, append = false) => {
-    const searchTerm  = search.trim();
+    const searchTerm = search.trim();
 
     if (append) setIsLoadingMore(true); else setLoading(true);
     if (!append) { setSteamGames([]); setSteamLoading(false); }
 
-    // "Mayor descuento" always routes to CheapShark (has real discount data).
-    // Popular / Free / Tags use Steam API — UNLESS a price filter is active.
     const isSavingsMode = sortBy === "Savings";
 
     if (!isSavingsMode && !hasPriceFilter && (selectedTags.length > 0 || isFreeMode || isPopularMode)) {
       try {
         const steamSort = STEAM_SORT_MAP[sortBy] ?? "Reviews_DESC";
         let endpoint = "";
-        
+
         if (selectedTags.length > 0) {
           endpoint = `/api/steam/by-tags?tags=${selectedTags.join(',')}&isFree=${isFreeMode}`;
         } else if (isFreeMode) {
@@ -414,22 +407,22 @@ export function Market() {
         } else {
           endpoint = "/api/steam/most-played";
         }
-        
+
         const connector = endpoint.includes('?') ? '&' : '?';
         const res = await api.get(`${endpoint}${connector}sort=${steamSort}&page=${pg}`);
         const { games: raw = [], hasMore: more = false } = res.data ?? {};
-        
+
         const mapped: SteamGame[] = raw.map((item: any) => {
           const priceVal = item.price === "Gratis" ? "Gratis" : (item.price === 0 || isFreeMode ? "Gratis" : `$${Number(item.price).toFixed(2)}`);
           const origVal = item.originalPrice ? `$${Number(item.originalPrice).toFixed(2)}` : priceVal;
           return {
-            id:        item.appId || item.name,
-            title:     item.name,
-            price:     priceVal,
+            id: item.appId || item.name,
+            title: item.name,
+            price: priceVal,
             originalPrice: origVal,
             discountPct: item.discountPct || 0,
-            isFree:    item.isFree || isFreeMode,
-            image:     item.appId
+            isFree: item.isFree || isFreeMode,
+            image: item.appId
               ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${item.appId}/header.jpg`
               : item.tinyImage ?? `https://placehold.co/460x215/1e293b/94a3b8?text=?`,
             steamAppID: item.appId ?? "",
@@ -449,14 +442,12 @@ export function Market() {
 
     try {
       const params: Record<string, any> = {
-        storeID:    "1",
-        pageSize:   40,
+        storeID: "1",
+        pageSize: 40,
         pageNumber: pg,
         sortBy,
       };
-      
-      // "Savings" (Mayor descuento) is naturally sorted highest to lowest savings by CheapShark.
-      // Setting desc = 1 artificially reverses it to lowest savings first, which breaks the UI.
+
       if (sortBy !== "Price" && sortBy !== "Free" && sortBy !== "Savings") {
         params.desc = 1;
       }
@@ -470,7 +461,7 @@ export function Market() {
           params.upperPrice = 0; params.lowerPrice = 0; delete params.desc;
         } else {
           if (min !== null && min > 0) params.lowerPrice = min;
-          if (max !== null)            params.upperPrice = max;
+          if (max !== null) params.upperPrice = max;
         }
       }
 
@@ -479,7 +470,7 @@ export function Market() {
       setHasMore(data.length === 40);
       setDeals(prev => append ? [...prev, ...data] : data);
 
-      if (data.length === 0 && searchTerm && !append) {
+      if (searchTerm && !append) {
         fetchSteamFallback(searchTerm);
       }
     } catch {
@@ -513,12 +504,12 @@ export function Market() {
       </div>
 
       {user ? (
-        <AIRecommendations steamId={user.steamid}/>
+        <AIRecommendations steamId={user.steamid} />
       ) : (
-        <LockedRecs onLogin={login}/>
+        <LockedRecs onLogin={login} />
       )}
 
-      <div className="border-t border-slate-800"/>
+      <div className="border-t border-slate-800" />
 
       <div className="flex flex-col gap-4 mb-8">
         <div className="flex flex-col md:flex-row gap-4">
@@ -544,7 +535,6 @@ export function Market() {
           </div>
 
           <div className="flex flex-wrap md:flex-nowrap gap-3 items-center">
-            {/* Price filter: always visible except in free mode */}
             {!isFreeMode && (
               <div className="flex flex-wrap items-center gap-2 bg-slate-800/50 rounded-xl p-2 border border-slate-700/50 w-full md:w-auto">
                 <div className="flex items-center gap-2 px-3 text-xs sm:text-sm text-slate-400">
@@ -615,8 +605,8 @@ export function Market() {
               </button>
             )}
           </div>
-          
-          <div 
+
+          <div
             ref={categoriesScrollRef}
             {...categoriesScrollEvents}
             className={`flex overflow-x-auto pb-2 -mx-2 px-2 gap-2 cursor-grab scrollbar-none ${isCategoriesDragging ? "cursor-grabbing" : ""}`}
@@ -634,11 +624,10 @@ export function Market() {
                     }
                     toggleTag(tag.id)
                   }}
-                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 select-none ${
-                    isActive
+                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 select-none ${isActive
                       ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
                       : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
-                  }`}
+                    }`}
                 >
                   {tag.name}
                 </button>
@@ -690,68 +679,68 @@ export function Market() {
         </h2>
       </div>
 
-
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
           {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse" />
           ))}
         </div>
-      ) : deals.length > 0 ? (
-        <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-            {deals.map(d => <DealCard key={d.dealID} deal={d}/>)}
-          </div>
-          {hasMore && (
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={loadMore}
-                disabled={isLoadingMore}
-                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
-              >
-                {isLoadingMore ? <><Loader2 size={15} className="animate-spin"/> Cargando...</> : "Cargar más"}
-              </button>
+      ) : (deals.length > 0 || steamGames.length > 0) ? (
+        <div className="space-y-12">
+
+          {deals.length > 0 && (
+            <div>
+              {search && steamGames.length > 0 && <h3 className="text-lg text-slate-300 font-bold mb-4">Ofertas encontradas</h3>}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                {deals.map(d => <DealCard key={d.dealID} deal={d} />)}
+              </div>
+              {hasMore && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={loadMore}
+                    disabled={isLoadingMore}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
+                  >
+                    {isLoadingMore ? <><Loader2 size={15} className="animate-spin" /> Cargando...</> : "Cargar más"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
-        </>
-      ) : steamLoading ? (
-        <div className="space-y-3">
-          <p className="text-xs text-slate-500 flex items-center gap-1.5">
-            <Loader2 size={12} className="animate-spin"/>
-            Cargando juegos de Steam...
-          </p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="bg-slate-900 border border-slate-800 rounded-xl h-48 animate-pulse"/>
-            ))}
-          </div>
-        </div>
-      ) : steamGames.length > 0 ? (
-        <div className="space-y-3">
-          {!isFreeMode && !isPopularMode && selectedTags.length === 0 && (
-            <p className="text-xs text-slate-500 flex items-center gap-2">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt=""/>
-              Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
-            </p>
-          )}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-            {steamGames.map(g => <SteamGameCard key={g.id} game={g}/>)}
-          </div>
-          {hasMore && (
-            <div className="flex justify-center pt-4">
-              <button
-                onClick={loadMore}
-                disabled={isLoadingMore}
-                className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
-              >
-                {isLoadingMore ? <><Loader2 size={15} className="animate-spin"/> Cargando...</> : "Cargar más"}
-              </button>
+
+          {steamGames.length > 0 && (
+            <div className="space-y-3">
+              {search && deals.length > 0 && (
+                <div className="border-t border-slate-800 pt-8 mt-8">
+                  <h3 className="text-lg text-slate-300 font-bold mb-4">Catálogo Completo en Steam Store</h3>
+                </div>
+              )}
+              {!isFreeMode && !isPopularMode && selectedTags.length === 0 && !search && (
+                <p className="text-xs text-slate-500 flex items-center gap-2">
+                  <img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Steam_icon_logo.svg" className="w-3 h-3" alt="" />
+                  Sin ofertas activas en CheapShark · mostrando resultados de Steam Store
+                </p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                {steamGames.map(g => <SteamGameCard key={g.id} game={g} />)}
+              </div>
+              {hasMore && !search && (
+                <div className="flex justify-center pt-4">
+                  <button
+                    onClick={loadMore}
+                    disabled={isLoadingMore}
+                    className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
+                  >
+                    {isLoadingMore ? <><Loader2 size={15} className="animate-spin" /> Cargando...</> : "Cargar más"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
       ) : (
         <div className="text-center py-20 text-slate-500">
-          <Star size={40} className="mx-auto mb-4 text-slate-700"/>
+          <Star size={40} className="mx-auto mb-4 text-slate-700" />
           <p className="text-lg">No se encontraron resultados.</p>
           <button
             onClick={() => { setSearch(""); setMinPrice(""); setMaxPrice(""); }}
