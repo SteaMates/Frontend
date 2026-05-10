@@ -52,6 +52,9 @@ export function Lists() {
   const [listsPage, setListsPage] = useState(1);
   const [listsHasMore, setListsHasMore] = useState(false);
   const [listsLoadError, setListsLoadError] = useState("");
+  
+  // Total lists in database
+  const [totalDbLists, setTotalDbLists] = useState<number>(0);
 
   // Steam Game Search
   const [searchGamesOptions, setSearchGamesOptions] = useState<CreateGameOption[]>([]);
@@ -92,6 +95,12 @@ export function Lists() {
       setListsHasMore(
         responsePagination ? responsePagination.page < responsePagination.pages : false,
       );
+
+      // Obtenemos el Total de listas real de la Base de Datos
+      if (page === 1) {
+        setTotalDbLists(responsePagination?.total || responseLists.length);
+      }
+      
     } catch (err) {
       console.error("Error fetching lists:", err);
       if (!append) {
@@ -118,7 +127,7 @@ export function Lists() {
   const handleVote = async (e: React.MouseEvent, listId: string, action: 'like' | 'dislike') => {
     e.preventDefault();
     e.stopPropagation();
-
+    
     if (!user) {
       login();
       return;
@@ -126,9 +135,9 @@ export function Lists() {
 
     try {
       const res = await api.post(`/api/lists/${listId}/${action}`);
-      setLists(prev => prev.map(list =>
-        list._id === listId
-          ? { ...list, likes: res.data.likes, dislikes: res.data.dislikes }
+      setLists(prev => prev.map(list => 
+        list._id === listId 
+          ? { ...list, likes: res.data.likes, dislikes: res.data.dislikes } 
           : list
       ));
     } catch (err) {
@@ -294,10 +303,11 @@ export function Lists() {
     return searchGamesOptions.filter((game) => !selectedIds.has(game.id));
   }, [searchGamesOptions, createSelectedGames]);
 
+  // CATEGORÍAS SIN GUIÑOS NI ICONOS PARA LA VISTA PREVIA
   const previewCategoryLabel = useMemo(() => {
     if (createCategories.length === 0) return "Sin Categoría";
     const primary = createCategories[0];
-    return `🎮 ${primary}${createCategories.length > 1 ? ` +${createCategories.length - 1}` : ""}`;
+    return `${primary}${createCategories.length > 1 ? ` +${createCategories.length - 1}` : ""}`;
   }, [createCategories]);
 
   const filteredLists = useMemo(() => {
@@ -359,7 +369,7 @@ export function Lists() {
           </div>
           <button
             onClick={() => {
-              if (!user) return login();
+              if(!user) return login();
               setCreateStep(1);
               setIsCreateModalOpen(true);
             }}
@@ -382,10 +392,11 @@ export function Lists() {
                   <button
                     key={tab.id}
                     onClick={() => setFeedTab(tab.id)}
-                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${active
+                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
+                      active
                         ? "bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
                         : "text-[#62748e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#cad5e2]"
-                      }`}
+                    }`}
                   >
                     {tab.id === "trending" && <Flame size={16} />}
                     {tab.id === "top" && <Star size={16} />}
@@ -421,12 +432,12 @@ export function Lists() {
                 </div>
               ))
             ) : listsLoadError ? (
-              <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
-                <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
-                <button onClick={() => fetchLists(1, false)} className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium">
-                  Reintentar
-                </button>
-              </div>
+               <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
+                  <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
+                  <button onClick={() => fetchLists(1, false)} className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium">
+                    Reintentar
+                  </button>
+                </div>
             ) : filteredLists.length > 0 ? (
               <AnimatePresence>
                 {filteredLists.map((list, idx) => {
@@ -467,11 +478,17 @@ export function Lists() {
                           {/* CONTENIDO DEL POST */}
                           <div className="p-4 flex-1 flex flex-col sm:flex-row gap-4">
                             <div className="flex-1 min-w-0">
+                              
+                              {/* AQUÍ ESTÁN LAS CATEGORÍAS CORREGIDAS (SIN L/ Y CON SU NOMBRE REAL) */}
                               <div className="flex items-center gap-2 text-[12px] text-[#62748e] mb-2 flex-wrap">
-                                {list.categories && list.categories[0] && (
-                                  <span className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-full font-bold">
-                                    l/{list.categories[0].toLowerCase()}
-                                  </span>
+                                {list.categories && list.categories.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {list.categories.map((cat: string, i: number) => (
+                                      <span key={i} className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] font-bold">
+                                        {cat}
+                                      </span>
+                                    ))}
+                                  </div>
                                 )}
                                 <span>•</span>
                                 <span>
@@ -550,22 +567,25 @@ export function Lists() {
               <p className="text-[#90a1b9] text-[13px] mb-4 leading-relaxed">
                 El mejor lugar para organizar y descubrir colecciones de juegos. Crea tus tops, guías de compra o simplemente muestra tus favoritos.
               </p>
+              
+              {/* AQUÍ ESTÁN LAS ESTADÍSTICAS GLOBALES */}
               <div className="flex items-center justify-between py-3 border-y border-[#1d293d] mb-4">
-                <div className="text-center">
+                <div className="text-center w-1/2">
                   <div className="text-white font-bold text-[18px]">
-                    {lists.length > 0 ? `+${lists.length}` : "0"}
+                    {totalDbLists > 0 ? totalDbLists : "..."}
                   </div>
-                  <div className="text-[#62748e] text-[12px]">Listas (Pág actual)</div>
+                  <div className="text-[#62748e] text-[12px]">Listas (Total DB)</div>
                 </div>
                 <div className="w-px h-8 bg-[#1d293d]" />
-                <div className="text-center">
+                <div className="text-center w-1/2">
                   <div className="text-white font-bold text-[18px]">{totalVotesLoaded}</div>
-                  <div className="text-[#62748e] text-[12px]">Votos (Pág actual)</div>
+                  <div className="text-[#62748e] text-[12px]">Votos (Pág. Actual)</div>
                 </div>
               </div>
+
               <button
                 onClick={() => {
-                  if (!user) return login();
+                  if(!user) return login();
                   setCreateStep(1);
                   setIsCreateModalOpen(true);
                 }}
@@ -585,10 +605,11 @@ export function Lists() {
                   <button
                     key={chip}
                     onClick={() => setSelectedCategory(chip)}
-                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${active
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${
+                      active
                         ? "bg-[#155dfc] text-white"
                         : "bg-[rgba(255,255,255,0.05)] text-[#90a1b9] hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
-                      }`}
+                    }`}
                   >
                     {chip}
                   </button>
@@ -633,61 +654,69 @@ export function Lists() {
               <div className="mt-5 flex items-center gap-2 text-[12px]">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 1
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
+                      createStep === 1
                         ? "bg-[#2b7fff] text-white"
                         : "bg-[#00bc7d] text-white"
-                      }`}
+                    }`}
                   >
                     {createStep === 1 ? "1" : <Check size={14} />}
                   </span>
                   <span
-                    className={`font-medium ${createStep === 1 ? "text-white" : "text-[#62748e]"
-                      }`}
+                    className={`font-medium ${
+                      createStep === 1 ? "text-white" : "text-[#62748e]"
+                    }`}
                   >
                     Info
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${createStep >= 2
+                  className={`h-px flex-1 ${
+                    createStep >= 2
                       ? "bg-[rgba(0,188,125,0.5)]"
                       : "bg-[#40517b]"
-                    }`}
+                  }`}
                 />
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 2
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
+                      createStep === 2
                         ? "bg-[#2b7fff] text-white"
                         : createStep === 3
                           ? "bg-[#00bc7d] text-white"
                           : "bg-[#253353] text-[#62748e]"
-                      }`}
+                    }`}
                   >
                     {createStep === 3 ? <Check size={14} /> : "2"}
                   </span>
                   <span
-                    className={`font-medium ${createStep === 2 ? "text-white" : "text-[#62748e]"
-                      }`}
+                    className={`font-medium ${
+                      createStep === 2 ? "text-white" : "text-[#62748e]"
+                    }`}
                   >
                     Juegos
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${createStep === 3
+                  className={`h-px flex-1 ${
+                    createStep === 3
                       ? "bg-[rgba(0,188,125,0.5)]"
                       : "bg-[#2a3554]"
-                    }`}
+                  }`}
                 />
                 <div
-                  className={`flex items-center gap-2 ${createStep === 3
+                  className={`flex items-center gap-2 ${
+                    createStep === 3
                       ? "text-white"
                       : "text-[#5f6f8f] opacity-40"
-                    }`}
+                  }`}
                 >
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 3
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
+                      createStep === 3
                         ? "bg-[#2b7fff] text-white"
                         : "bg-[#253353] text-[#62748e]"
-                      }`}
+                    }`}
                   >
                     3
                   </span>
@@ -764,10 +793,11 @@ export function Lists() {
                                   : [...prev, option],
                               );
                             }}
-                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${active
+                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${
+                              active
                                 ? "bg-[#1a3770] border-[#2b7fff] text-white"
                                 : "bg-[#111f3a] border-[#2f405e] text-[#a7b6cd] hover:text-white"
-                              }`}
+                            }`}
                           >
                             {option}
                           </button>
@@ -809,10 +839,11 @@ export function Lists() {
                             key={cover.id}
                             type="button"
                             onClick={() => setCreateCover(cover.image)}
-                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${active
+                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${
+                              active
                                 ? "border-[#2b7fff]"
                                 : "border-[#2f405e] hover:border-[#4766a3]"
-                              }`}
+                            }`}
                             aria-label={`Seleccionar portada ${cover.title}`}
                           >
                             <img
@@ -846,10 +877,11 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(2)}
                     disabled={!canContinueInfo}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueInfo
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
+                      canContinueInfo
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                      }`}
+                    }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
@@ -995,10 +1027,11 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(3)}
                     disabled={!canContinueGames}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueGames
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
+                      canContinueGames
                         ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
                         : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                      }`}
+                    }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
