@@ -614,6 +614,11 @@ export function Profile() {
         setUsingSnapshot(false);
         setLoading(false);
         void loadGameDetails(sessionCache.games || []);
+        // Cargar banner aunque los datos vengan de caché
+        api
+          .get(`/api/steam/profile-background/${steamIdToLoad}`)
+          .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
+          .catch(() => setProfileBanner(null));
         return;
       }
 
@@ -629,6 +634,11 @@ export function Profile() {
           setUsingSnapshot(true);
           setLoading(false);
           void loadGameDetails(snapshot.games || []);
+          // Cargar banner aunque los datos vengan de snapshot
+          api
+            .get(`/api/steam/profile-background/${steamIdToLoad}`)
+            .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
+            .catch(() => setProfileBanner(null));
           return;
         }
       } else {
