@@ -2,7 +2,6 @@ import {
   ArrowLeft,
   Lock,
   MessageSquare,
-  Plus,
   Share2,
   ThumbsDown,
   ThumbsUp,
@@ -292,7 +291,7 @@ export function ListDetail() {
                 type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  alert("!Enlace copiado al portapapeles!");
+                  alert("¡Enlace copiado al portapapeles!");
                 }}
                 className="inline-flex items-center gap-2 text-[#90a1b9] text-[16px] hover:text-white transition-colors"
               >
@@ -313,28 +312,46 @@ export function ListDetail() {
           </div>
 
           <div className="space-y-4">
-            {list.games.map((game, index) => (
-              <div
-                key={game._id}
-                className="rounded-[14px] border border-[#1d293d] bg-[#0f172b] p-4 flex flex-col sm:flex-row sm:items-center gap-4"
-              >
-                <div className="text-[#314158] text-[24px] leading-8 font-bold w-10 text-center shrink-0">
-                  #{index + 1}
+            {list.games.map((game, index) => {
+              // HELPER: Construir la URL de Steam CDN basada en el appId
+              const steamCdnUrl = game.appId 
+                ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`
+                : null;
+              
+              // Cadena de fallback inicial
+              const initialImageUrl = game.imageUrl || game.image || steamCdnUrl || `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
+
+              return (
+                <div
+                  key={game._id}
+                  className="rounded-[14px] border border-[#1d293d] bg-[#0f172b] p-4 flex flex-col sm:flex-row sm:items-center gap-4 hover:border-[#314158] transition-colors"
+                >
+                  <div className="text-[#314158] text-[24px] leading-8 font-bold w-10 text-center shrink-0">
+                    #{index + 1}
+                  </div>
+                  <div className="relative w-full sm:w-[192px] h-[118px] rounded-[10px] overflow-hidden bg-[#1d293d] shrink-0 shadow-inner">
+                    <img
+                      src={initialImageUrl}
+                      alt={game.name}
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-300"
+                      // HANDLER ROBUSTO: Si la URL inicial falla, intenta cargar un placeholder estático
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.dataset.failed) {
+                          target.dataset.failed = "true";
+                          target.src = `https://placehold.co/400x200/1d293d/94a3b8?text=${encodeURIComponent(game.name || "Juego")}`;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-white text-[20px] leading-7 font-bold truncate">
+                      {game.name}
+                    </h3>
+                  </div>
                 </div>
-                <div className="relative w-full sm:w-[192px] h-[118px] rounded-[10px] overflow-hidden bg-[#1d293d] shrink-0">
-                  <img
-                    src={game.imageUrl || game.image || `https://picsum.photos/seed/${game.name}/200/100`}
-                    alt={game.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-white text-[20px] leading-7 font-bold truncate">
-                    {game.name}
-                  </h3>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 
