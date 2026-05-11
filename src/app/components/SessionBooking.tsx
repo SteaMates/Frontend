@@ -247,13 +247,9 @@ export function SessionBooking({
       onClose();
     } catch (error: any) {
       console.error("Error creating gaming session:", error);
-      const status = error?.response?.status;
-      const msg = error?.response?.data?.error;
-      if (status === 409) {
-        toast.error(msg || "Ya tienes una sesión programada a esa hora. Elige otro horario.", { duration: 6000 });
-      } else {
-        toast.error(msg || "No se pudo crear la sesión.");
-      }
+      toast.error(
+        error?.response?.data?.error || "No se pudo crear la sesión.",
+      );
     } finally {
       setSaving(false);
     }
@@ -266,10 +262,6 @@ export function SessionBooking({
     return `${dayName} ${d} de ${MONTHS_ES[m - 1]}`;
   };
 
-  const isPopularHour = (time: string) => {
-    const hour = parseInt(time.split(":")[0]);
-    return hour >= 18 && hour <= 23;
-  };
 
   const gameImage =
     game.headerImage ||
@@ -464,7 +456,6 @@ export function SessionBooking({
 
               <div className="grid grid-cols-4 gap-2">
                 {HOURS.map((time) => {
-                  const popular = isPopularHour(time);
                   const isSelected = selectedTime === time;
 
                   return (
@@ -472,7 +463,7 @@ export function SessionBooking({
                       key={time}
                       onClick={() => handleTimeSelect(time)}
                       disabled={saving}
-                      className={`relative py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                         isSelected
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
                           : "bg-slate-800/60 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-slate-600"
@@ -480,11 +471,6 @@ export function SessionBooking({
                     >
                       <Clock size={12} className="inline mr-1 opacity-50" />
                       {time}
-                      {popular && !isSelected && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center">
-                          <span className="text-[6px] text-black font-bold">🔥</span>
-                        </div>
-                      )}
                     </button>
                   );
                 })}
@@ -694,34 +680,13 @@ export function UpcomingSessions({
               <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
                 Pendiente
               </span>
-            ) : (() => {
-              // Host view — show summary of participant responses
-              const total = session.friends?.length ?? 0;
-              const accepted = session.friends?.filter(f => f.participantStatus === 'accepted').length ?? 0;
-              const declined = session.friends?.filter(f => f.participantStatus === 'declined').length ?? 0;
-              if (declined === total && total > 0) {
-                return (
-                  <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
-                    <X size={10} className="inline mr-0.5" />
-                    Todos rechazaron
-                  </span>
-                );
-              }
-              if (accepted > 0) {
-                return (
-                  <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
-                    <Check size={10} className="inline mr-0.5" />
-                    {accepted}/{total} confirmados
-                  </span>
-                );
-              }
-              return (
-                <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
-                  Esperando respuesta
-                </span>
-              );
-            })()
-            }
+            ) : (
+              // Host view — show overall session status
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
+                <Check size={10} className="inline mr-0.5" />
+                Programada
+              </span>
+            )}
 
             {/* Eliminar botón de cancelar/abandonar para sesiones confirmadas */}
             {/* Si quieres mostrar el botón de abandonar/cancelar en otros estados, puedes añadir lógica aquí */}
