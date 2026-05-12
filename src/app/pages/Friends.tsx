@@ -1504,7 +1504,11 @@ export function Friends() {
         return;
       }
 
-      const steamIds = [user.steamid, ...Array.from(selectedIds)];
+      const steamIds = [user.steamid, ...Array.from(selectedIds)].slice(0, 6);
+      if (steamIds.length < 2) {
+        setCommonGames([]);
+        return;
+      }
 
       setLoadingCommonGames(true);
       try {
@@ -1586,9 +1590,7 @@ export function Friends() {
 
       // Show declined sessions briefly so the badge is visible, then filter them
       // after 5s. Always hide past sessions.
-      const sessions = allSessions.filter(
-        (s) => isFutureSession(s),
-      );
+      const sessions = allSessions.filter((s) => isFutureSession(s));
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);

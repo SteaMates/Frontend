@@ -36,6 +36,11 @@ type CreateGameOption = {
   image: string;
 };
 
+const MAX_LIST_TITLE = 120;
+const MAX_LIST_DESCRIPTION = 1000;
+const MAX_LIST_CATEGORIES = 10;
+const MAX_LIST_GAMES = 50;
+
 export function Lists() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
@@ -52,12 +57,14 @@ export function Lists() {
   const [listsPage, setListsPage] = useState(1);
   const [listsHasMore, setListsHasMore] = useState(false);
   const [listsLoadError, setListsLoadError] = useState("");
-  
+
   // Total lists in database
   const [totalDbLists, setTotalDbLists] = useState<number>(0);
 
   // Steam Game Search
-  const [searchGamesOptions, setSearchGamesOptions] = useState<CreateGameOption[]>([]);
+  const [searchGamesOptions, setSearchGamesOptions] = useState<
+    CreateGameOption[]
+  >([]);
   const [isSearchingGames, setIsSearchingGames] = useState(false);
 
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
@@ -65,10 +72,13 @@ export function Lists() {
   const [createDescription, setCreateDescription] = useState("");
   const [createCategories, setCreateCategories] = useState<string[]>([]);
   const [createCover, setCreateCover] = useState(
-    () => "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
+    () =>
+      "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
   );
   const [createGameQuery, setCreateGameQuery] = useState("");
-  const [createSelectedGames, setCreateSelectedGames] = useState<CreateGameOption[]>([]);
+  const [createSelectedGames, setCreateSelectedGames] = useState<
+    CreateGameOption[]
+  >([]);
 
   const fetchLists = async (page = 1, append = false) => {
     try {
@@ -86,21 +96,26 @@ export function Lists() {
         },
       });
 
-      const responseLists = Array.isArray(res.data) ? res.data : res.data?.lists || [];
-      const responsePagination = Array.isArray(res.data) ? null : res.data?.pagination || null;
+      const responseLists = Array.isArray(res.data)
+        ? res.data
+        : res.data?.lists || [];
+      const responsePagination = Array.isArray(res.data)
+        ? null
+        : res.data?.pagination || null;
 
       const nextLists = responseLists;
       setLists((prev) => (append ? [...prev, ...nextLists] : nextLists));
       setListsPage(responsePagination?.page || page);
       setListsHasMore(
-        responsePagination ? responsePagination.page < responsePagination.pages : false,
+        responsePagination
+          ? responsePagination.page < responsePagination.pages
+          : false,
       );
 
       // Obtenemos el Total de listas real de la Base de Datos
       if (page === 1) {
         setTotalDbLists(responsePagination?.total || responseLists.length);
       }
-      
     } catch (err) {
       console.error("Error fetching lists:", err);
       if (!append) {
@@ -124,10 +139,14 @@ export function Lists() {
   };
 
   // LÓGICA DE VOTOS
-  const handleVote = async (e: React.MouseEvent, listId: string, action: 'like' | 'dislike') => {
+  const handleVote = async (
+    e: React.MouseEvent,
+    listId: string,
+    action: "like" | "dislike",
+  ) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (!user) {
       login();
       return;
@@ -135,11 +154,13 @@ export function Lists() {
 
     try {
       const res = await api.post(`/api/lists/${listId}/${action}`);
-      setLists(prev => prev.map(list => 
-        list._id === listId 
-          ? { ...list, likes: res.data.likes, dislikes: res.data.dislikes } 
-          : list
-      ));
+      setLists((prev) =>
+        prev.map((list) =>
+          list._id === listId
+            ? { ...list, likes: res.data.likes, dislikes: res.data.dislikes }
+            : list,
+        ),
+      );
     } catch (err) {
       console.error(`Error procesando ${action}:`, err);
     }
@@ -156,7 +177,9 @@ export function Lists() {
           const results = res.data.map((item: any) => {
             const appId = item.appId ? item.appId.toString() : null;
             const isFree = item.isFree === true || item.price === 0;
-            const priceLabel = isFree ? "Gratis" : `$${Number(item.price).toFixed(2)}`;
+            const priceLabel = isFree
+              ? "Gratis"
+              : `$${Number(item.price).toFixed(2)}`;
 
             const image = appId
               ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`
@@ -195,17 +218,20 @@ export function Lists() {
       {
         id: "cover1",
         title: "Gaming Setup",
-        image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
+        image:
+          "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80&w=800",
       },
       {
         id: "cover2",
         title: "Retro Arcade",
-        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
+        image:
+          "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&q=80&w=800",
       },
       {
         id: "cover3",
         title: "Abstract Data",
-        image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800",
+        image:
+          "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800",
       },
     ],
     [],
@@ -228,13 +254,47 @@ export function Lists() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const validateListDraft = () => {
+    const title = createTitle.trim();
+    const description = createDescription.trim();
+
+    if (!title) return "El titulo es obligatorio.";
+    if (title.length > MAX_LIST_TITLE) {
+      return `El titulo no puede superar ${MAX_LIST_TITLE} caracteres.`;
+    }
+    if (!description) return "La descripcion es obligatoria.";
+    if (description.length > MAX_LIST_DESCRIPTION) {
+      return `La descripcion no puede superar ${MAX_LIST_DESCRIPTION} caracteres.`;
+    }
+    if (createCategories.length === 0) {
+      return "Selecciona al menos una categoria.";
+    }
+    if (createCategories.length > MAX_LIST_CATEGORIES) {
+      return `No puedes seleccionar mas de ${MAX_LIST_CATEGORIES} categorias.`;
+    }
+    if (createSelectedGames.length === 0) {
+      return "Selecciona al menos un juego.";
+    }
+    if (createSelectedGames.length > MAX_LIST_GAMES) {
+      return `No puedes seleccionar mas de ${MAX_LIST_GAMES} juegos.`;
+    }
+
+    return "";
+  };
+
   const submitList = async () => {
+    const validationError = validateListDraft();
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const payload = {
-        title: createTitle,
-        description: createDescription,
-        categories: createCategories,
+        title: createTitle.trim(),
+        description: createDescription.trim(),
+        categories: createCategories.map((c) => c.trim()).filter(Boolean),
         coverImage: createCover,
         games: createSelectedGames.map((g, index) => ({
           appId: parseInt(g.id, 10) || index + 1,
@@ -254,7 +314,8 @@ export function Lists() {
       fetchLists(1, false);
     } catch (err: any) {
       console.error("Error creating list:", err);
-      const errorMessage = err.response?.data?.error || err.message || "Unknown error";
+      const errorMessage =
+        err.response?.data?.error || err.message || "Unknown error";
       alert(`Error creating list: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
@@ -328,7 +389,9 @@ export function Lists() {
       const matchesCategory =
         selectedCategory === "Todas" ||
         (item.categories &&
-          item.categories.some((c: string) => c.toLowerCase() === selectedCategory.toLowerCase()));
+          item.categories.some(
+            (c: string) => c.toLowerCase() === selectedCategory.toLowerCase(),
+          ));
 
       const matchesQuery =
         q.length === 0 ||
@@ -340,17 +403,26 @@ export function Lists() {
     });
 
     if (feedTab === "new") {
-      return result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return result.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
     }
 
     if (feedTab === "top" || feedTab === "trending") {
-      return result.sort((a, b) => (b.likes?.length || 0) - (a.likes?.length || 0));
+      return result.sort(
+        (a, b) => (b.likes?.length || 0) - (a.likes?.length || 0),
+      );
     }
 
     return result;
   }, [lists, feedTab, query, selectedCategory, user]);
 
-  const totalVotesLoaded = lists.reduce((acc, list) => acc + (list.likes?.length || 0) + (list.dislikes?.length || 0), 0);
+  const totalVotesLoaded = lists.reduce(
+    (acc, list) =>
+      acc + (list.likes?.length || 0) + (list.dislikes?.length || 0),
+    0,
+  );
 
   return (
     <div className="pb-20 max-w-[1400px] mx-auto px-4">
@@ -364,12 +436,13 @@ export function Lists() {
               Listas de la Comunidad
             </h1>
             <p className="text-[#90a1b9] text-[16px] max-w-xl">
-              Descubre, comparte y vota las mejores colecciones curadas por jugadores de todo el mundo.
+              Descubre, comparte y vota las mejores colecciones curadas por
+              jugadores de todo el mundo.
             </p>
           </div>
           <button
             onClick={() => {
-              if(!user) return login();
+              if (!user) return login();
               setCreateStep(1);
               setIsCreateModalOpen(true);
             }}
@@ -408,7 +481,10 @@ export function Lists() {
               })}
             </div>
             <div className="relative w-full sm:w-[280px] shrink-0">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]" />
+              <Search
+                size={16}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]"
+              />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -422,7 +498,10 @@ export function Lists() {
           <div className="space-y-4">
             {loadingLists ? (
               [...Array(4)].map((_, i) => (
-                <div key={i} className="flex bg-[#0f172b] border border-[#1d293d] rounded-[12px] h-[160px] animate-pulse">
+                <div
+                  key={i}
+                  className="flex bg-[#0f172b] border border-[#1d293d] rounded-[12px] h-[160px] animate-pulse"
+                >
                   <div className="w-12 bg-[rgba(255,255,255,0.02)] border-r border-[#1d293d]" />
                   <div className="p-4 flex-1 space-y-3">
                     <div className="h-4 bg-[#1d293d] w-1/3 rounded" />
@@ -432,12 +511,17 @@ export function Lists() {
                 </div>
               ))
             ) : listsLoadError ? (
-               <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
-                  <p className="text-[#ff8a8c] text-[14px] mb-4">{listsLoadError}</p>
-                  <button onClick={() => fetchLists(1, false)} className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium">
-                    Reintentar
-                  </button>
-                </div>
+              <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
+                <p className="text-[#ff8a8c] text-[14px] mb-4">
+                  {listsLoadError}
+                </p>
+                <button
+                  onClick={() => fetchLists(1, false)}
+                  className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
+                >
+                  Reintentar
+                </button>
+              </div>
             ) : filteredLists.length > 0 ? (
               <AnimatePresence>
                 {filteredLists.map((list, idx) => {
@@ -459,17 +543,22 @@ export function Lists() {
                           {/* COLUMNA DE VOTOS */}
                           <div className="w-12 sm:w-16 bg-[rgba(15,23,43,0.3)] border-r border-[#1d293d] flex flex-col items-center py-3 gap-1 shrink-0">
                             <button
-                              onClick={(e) => handleVote(e, list._id, 'like')}
-                              className={`transition-colors p-1 rounded ${hasLiked ? 'text-[#ff4500] bg-[rgba(255,69,0,0.1)]' : 'text-[#62748e] hover:text-[#ff4500] hover:bg-[rgba(255,69,0,0.1)]'}`}
+                              onClick={(e) => handleVote(e, list._id, "like")}
+                              className={`transition-colors p-1 rounded ${hasLiked ? "text-[#ff4500] bg-[rgba(255,69,0,0.1)]" : "text-[#62748e] hover:text-[#ff4500] hover:bg-[rgba(255,69,0,0.1)]"}`}
                             >
                               <ArrowBigUp size={24} />
                             </button>
-                            <span className={`text-[14px] font-bold ${hasLiked ? 'text-[#ff4500]' : hasDisliked ? 'text-[#7193ff]' : 'text-white'}`}>
-                              {(list.likes?.length || 0) - (list.dislikes?.length || 0)}
+                            <span
+                              className={`text-[14px] font-bold ${hasLiked ? "text-[#ff4500]" : hasDisliked ? "text-[#7193ff]" : "text-white"}`}
+                            >
+                              {(list.likes?.length || 0) -
+                                (list.dislikes?.length || 0)}
                             </span>
                             <button
-                              onClick={(e) => handleVote(e, list._id, 'dislike')}
-                              className={`transition-colors p-1 rounded ${hasDisliked ? 'text-[#7193ff] bg-[rgba(113,147,255,0.1)]' : 'text-[#62748e] hover:text-[#7193ff] hover:bg-[rgba(113,147,255,0.1)]'}`}
+                              onClick={(e) =>
+                                handleVote(e, list._id, "dislike")
+                              }
+                              className={`transition-colors p-1 rounded ${hasDisliked ? "text-[#7193ff] bg-[rgba(113,147,255,0.1)]" : "text-[#62748e] hover:text-[#7193ff] hover:bg-[rgba(113,147,255,0.1)]"}`}
                             >
                               <ArrowBigDown size={24} />
                             </button>
@@ -478,25 +567,38 @@ export function Lists() {
                           {/* CONTENIDO DEL POST */}
                           <div className="p-4 flex-1 flex flex-col sm:flex-row gap-4">
                             <div className="flex-1 min-w-0">
-                              
                               {/* AQUÍ ESTÁN LAS CATEGORÍAS CORREGIDAS (SIN L/ Y CON SU NOMBRE REAL) */}
                               <div className="flex items-center gap-2 text-[12px] text-[#62748e] mb-2 flex-wrap">
-                                {list.categories && list.categories.length > 0 && (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {list.categories.map((cat: string, i: number) => (
-                                      <span key={i} className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] font-bold">
-                                        {cat}
-                                      </span>
-                                    ))}
-                                  </div>
-                                )}
+                                {list.categories &&
+                                  list.categories.length > 0 && (
+                                    <div className="flex flex-wrap gap-1.5">
+                                      {list.categories.map(
+                                        (cat: string, i: number) => (
+                                          <span
+                                            key={i}
+                                            className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] font-bold"
+                                          >
+                                            {cat}
+                                          </span>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
                                 <span>•</span>
                                 <span>
-                                  Posteado por <span className="text-[#cad5e2] hover:underline">@{list.author?.username || "Usuario"}</span>
+                                  Posteado por{" "}
+                                  <span className="text-[#cad5e2] hover:underline">
+                                    @{list.author?.username || "Usuario"}
+                                  </span>
                                 </span>
                                 <span>•</span>
                                 <span>
-                                  {list.createdAt ? formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es }) : ""}
+                                  {list.createdAt
+                                    ? formatDistanceToNow(
+                                        new Date(list.createdAt),
+                                        { addSuffix: true, locale: es },
+                                      )
+                                    : ""}
                                 </span>
                               </div>
 
@@ -509,10 +611,12 @@ export function Lists() {
 
                               <div className="flex items-center gap-1 text-[#62748e] text-[12px] font-bold">
                                 <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                  <MessageSquare size={16} /> {list.commentsCount || 0} Comentarios
+                                  <MessageSquare size={16} />{" "}
+                                  {list.commentsCount || 0} Comentarios
                                 </div>
                                 <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                  <Gamepad2 size={16} /> {list.games?.length || 0} Juegos
+                                  <Gamepad2 size={16} />{" "}
+                                  {list.games?.length || 0} Juegos
                                 </div>
                               </div>
                             </div>
@@ -535,9 +639,15 @@ export function Lists() {
               </AnimatePresence>
             ) : (
               <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-10 text-center">
-                <p className="text-[#90a1b9] text-[14px] mb-4">No se encontraron listas en esta sección.</p>
+                <p className="text-[#90a1b9] text-[14px] mb-4">
+                  No se encontraron listas en esta sección.
+                </p>
                 <button
-                  onClick={() => { setFeedTab("trending"); setSelectedCategory("Todas"); setQuery(""); }}
+                  onClick={() => {
+                    setFeedTab("trending");
+                    setSelectedCategory("Todas");
+                    setQuery("");
+                  }}
                   className="h-9 px-4 rounded-[10px] bg-[#155dfc] text-white text-[13px] font-medium"
                 >
                   Limpiar filtros
@@ -561,31 +671,41 @@ export function Lists() {
         <div className="hidden lg:block w-[320px] shrink-0 space-y-6">
           <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] overflow-hidden">
             <div className="h-12 bg-[linear-gradient(to_right,#155dfc,#4f39f6)] px-4 flex items-center">
-              <h3 className="text-white font-bold text-[14px]">Acerca de Listas</h3>
+              <h3 className="text-white font-bold text-[14px]">
+                Acerca de Listas
+              </h3>
             </div>
             <div className="p-4">
               <p className="text-[#90a1b9] text-[13px] mb-4 leading-relaxed">
-                El mejor lugar para organizar y descubrir colecciones de juegos. Crea tus tops, guías de compra o simplemente muestra tus favoritos.
+                El mejor lugar para organizar y descubrir colecciones de juegos.
+                Crea tus tops, guías de compra o simplemente muestra tus
+                favoritos.
               </p>
-              
+
               {/* AQUÍ ESTÁN LAS ESTADÍSTICAS GLOBALES */}
               <div className="flex items-center justify-between py-3 border-y border-[#1d293d] mb-4">
                 <div className="text-center w-1/2">
                   <div className="text-white font-bold text-[18px]">
                     {totalDbLists > 0 ? totalDbLists : "..."}
                   </div>
-                  <div className="text-[#62748e] text-[12px]">Listas (Total DB)</div>
+                  <div className="text-[#62748e] text-[12px]">
+                    Listas (Total DB)
+                  </div>
                 </div>
                 <div className="w-px h-8 bg-[#1d293d]" />
                 <div className="text-center w-1/2">
-                  <div className="text-white font-bold text-[18px]">{totalVotesLoaded}</div>
-                  <div className="text-[#62748e] text-[12px]">Votos (Pág. Actual)</div>
+                  <div className="text-white font-bold text-[18px]">
+                    {totalVotesLoaded}
+                  </div>
+                  <div className="text-[#62748e] text-[12px]">
+                    Votos (Pág. Actual)
+                  </div>
                 </div>
               </div>
 
               <button
                 onClick={() => {
-                  if(!user) return login();
+                  if (!user) return login();
                   setCreateStep(1);
                   setIsCreateModalOpen(true);
                 }}
@@ -597,7 +717,9 @@ export function Lists() {
           </div>
 
           <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-4">
-            <h3 className="text-white font-bold text-[14px] mb-3">Filtrar por Etiqueta</h3>
+            <h3 className="text-white font-bold text-[14px] mb-3">
+              Filtrar por Etiqueta
+            </h3>
             <div className="flex flex-wrap gap-2">
               {CATEGORY_CHIPS.map((chip) => {
                 const active = chip === selectedCategory;
