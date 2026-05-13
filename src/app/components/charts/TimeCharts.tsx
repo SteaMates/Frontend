@@ -124,7 +124,10 @@ export function TimeCharts({ players }: Props) {
                   <div className="flex-1">
                     <div className="flex justify-between items-end mb-1.5">
                       <span className="text-xs font-semibold text-slate-300">{player.topGame.name}</span>
-                      <span className="text-xs font-black" style={{ color: player.color }}>{player.topGame.hours.toLocaleString()}h</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-slate-400">({player.topGame.percentOfTotal}%)</span>
+                        <span className="text-xs font-black" style={{ color: player.color }}>{player.topGame.hours.toLocaleString()}h</span>
+                      </div>
                     </div>
                     <div className="h-3 bg-slate-700 rounded-full overflow-hidden">
                       <div
