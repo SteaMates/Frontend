@@ -10,7 +10,7 @@ import {
   X,
   AlertTriangle
 } from "lucide-react";
-import { Link, Navigate, useParams, useNavigate } from "react-router";
+import { Link, Navigate, useParams, useNavigate, useLocation } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState, useRef } from "react";
 import api from "../../lib/api";
@@ -18,7 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReportButton } from "../components/ReportButton";
 import { UserProfileLink } from "../components/UserProfileLink";
-import { toast } from "sonner"; // IMPORTANTE: Importamos toast para las alertas bonitas
+import { toast } from "sonner";
 
 interface Game {
   appId: string | number;
@@ -62,6 +62,7 @@ interface List {
 export function ListDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, login } = useAuth();
   const [list, setList] = useState<List | null>(null);
   const [comments, setComments] = useState<CommentData[]>([]);
@@ -70,11 +71,9 @@ export function ListDetail() {
   const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
   const [commentsTotal, setCommentsTotal] = useState(0);
 
-  // Estado para el modal de borrado
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // Estado para las respuestas/hilos
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
@@ -82,7 +81,6 @@ export function ListDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // NUEVA FUNCIÓN DE BORRADO (SIN window.confirm)
   const confirmDelete = async () => {
     try {
       setIsDeleting(true);
@@ -132,6 +130,23 @@ export function ListDetail() {
       fetchListAndComments();
     }
   }, [id]);
+
+  // LOGICA PARA HACER SCROLL Y HIGHLIGHT AL COMENTARIO
+  useEffect(() => {
+    if (!loading && comments.length > 0 && location.hash.startsWith("#comment-")) {
+      const commentId = location.hash.replace("#comment-", "");
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${commentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.classList.add("ring-2", "ring-[#51a2ff]", "bg-[#51a2ff]/10");
+          setTimeout(() => {
+            element.classList.remove("ring-2", "ring-[#51a2ff]", "bg-[#51a2ff]/10");
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [loading, comments, location.hash]);
 
   const handleLike = async () => {
     if (!user) return login();
@@ -185,7 +200,7 @@ export function ListDetail() {
       console.error(err);
       const error = err as any;
       const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
-      toast.error(`Error al comentar: ${errorMessage}`); // REEMPLAZADO ALERT NATIVO
+      toast.error(`Error al comentar: ${errorMessage}`);
     }
   };
 
@@ -320,7 +335,7 @@ export function ListDetail() {
             {user && user.id === String(list.author?._id) && (
               <button
                 type="button"
-                onClick={() => setShowDeleteModal(true)} // REEMPLAZADO window.confirm
+                onClick={() => setShowDeleteModal(true)}
                 className="inline-flex items-center gap-1.5 text-[#ff6467] text-[13px] font-medium hover:text-[#ff8a8c] transition-colors"
               >
                 <Trash2 size={16} /> Borrar lista
@@ -330,7 +345,7 @@ export function ListDetail() {
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                toast.success("¡Enlace copiado al portapapeles!"); // REEMPLAZADO alert()
+                toast.success("¡Enlace copiado al portapapeles!");
               }}
               className="inline-flex items-center gap-1.5 text-[#62748e] text-[13px] font-medium hover:text-white transition-colors"
             >
@@ -401,7 +416,11 @@ export function ListDetail() {
 
             <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-[#1d293d] scrollbar-track-transparent">
               {comments.map((comment) => (
-                <div key={comment._id} className="flex gap-3 group">
+                <div
+                  key={comment._id}
+                  id={`comment-${comment._id}`}
+                  className="flex gap-3 group transition-all duration-500 rounded-lg p-1.5 -mx-1.5"
+                >
                   <UserProfileLink
                     steamId={comment.author?.steamId || comment.author?._id}
                     username={comment.author?.username || 'Unknown'}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router"; // <-- AÑADIDO PARA LA NAVEGACIÓN
+import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Gamepad2,
@@ -157,6 +157,10 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
   );
 }
 
+// ----------------------------------------------------------------------------
+// TOAST CONTENEDOR GLOBAL
+// ----------------------------------------------------------------------------
+
 export function NotificationToasts() {
   const { pendingInvites, markRead } = useNotifications();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
@@ -199,7 +203,7 @@ function timeAgo(dateStr: string): string {
 function NotificationItem({
   n,
   onRead,
-  onClosePanel // <-- Función para cerrar el panel si se hace click y se navega
+  onClosePanel
 }: {
   n: AppNotification;
   onRead: (id: string) => void;
@@ -214,20 +218,19 @@ function NotificationItem({
     session_cancelled: "bg-red-500",
     session_updated: "bg-amber-500",
     price_alert_triggered: "bg-purple-500",
-    list_mention: "bg-[#51a2ff]", // <--- Nuevo color para menciones de listas
+    list_mention: "bg-[#51a2ff]",
   };
 
   const handleClick = () => {
-    // 1. Siempre marcar como leída
     if (isUnread) {
       onRead(n._id);
     }
 
-    // 2. Lógica de navegación basada en el tipo de notificación
     let didNavigate = false;
 
     if (n.type === "session_invite") {
-      navigate("/friends");
+      const sessionId = n.session?._id || n.data?.sessionId;
+      navigate(`/friends${sessionId ? `#session-${sessionId}` : ""}`);
       didNavigate = true;
     } else if (n.type === "price_alert_triggered") {
       if (n.data?.gameId || n.data?.steamAppId) {
@@ -235,14 +238,13 @@ function NotificationItem({
         didNavigate = true;
       }
     } else if (n.type === "list_mention") {
-      // <--- ¡AQUÍ ESTÁ LA MAGIA PARA LLEVARTE A LA LISTA!
       if (n.data?.listId) {
-        navigate(`/lists/${n.data.listId}`);
+        const commentId = n.data?.commentId;
+        navigate(`/lists/${n.data.listId}${commentId ? `#comment-${commentId}` : ""}`);
         didNavigate = true;
       }
     }
 
-    // 3. Cerrar el panel de notificaciones si navegamos a otro sitio
     if (didNavigate) {
       onClosePanel();
     }
@@ -254,7 +256,6 @@ function NotificationItem({
         }`}
       onClick={handleClick}
     >
-      {/* Avatar or icon */}
       <div className="relative shrink-0 mt-0.5">
         {n.from?.avatar ? (
           <img
@@ -273,7 +274,6 @@ function NotificationItem({
         />
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-slate-100 leading-tight">
           {n.title}
@@ -284,7 +284,6 @@ function NotificationItem({
         <p className="text-xs text-slate-500 mt-1">{timeAgo(n.createdAt)}</p>
       </div>
 
-      {/* Unread dot */}
       {isUnread && (
         <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
       )}
@@ -313,7 +312,6 @@ export function NotificationBell({
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     function handle(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
@@ -377,7 +375,6 @@ export function NotificationBell({
 
   return (
     <div ref={panelRef} className="relative">
-      {/* Bell button */}
       <button
         ref={buttonRef}
         onClick={handleOpen}
@@ -403,7 +400,6 @@ export function NotificationBell({
         )}
       </button>
 
-      {/* Dropdown panel */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -418,7 +414,6 @@ export function NotificationBell({
               transform: openUpward ? "translateY(-100%)" : "translateY(0)",
             }}
           >
-            {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
               <h3 className="font-semibold text-slate-100 text-sm">
                 Notificaciones
@@ -450,7 +445,6 @@ export function NotificationBell({
               </div>
             </div>
 
-            {/* List */}
             <div className="overflow-y-auto" style={{ maxHeight: "340px" }}>
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-slate-500">
@@ -464,7 +458,7 @@ export function NotificationBell({
                       key={n._id}
                       n={n}
                       onRead={markRead}
-                      onClosePanel={() => setOpen(false)} // Pasamos la función para cerrar
+                      onClosePanel={() => setOpen(false)}
                     />
                   ))}
                 </div>
