@@ -45,23 +45,28 @@ export function Layout() {
   const [activeNoticeIndex, setActiveNoticeIndex] = useState(0);
   const location = useLocation();
   const { user, logout } = useAuth();
+
   const isAdmin = user?.role === "admin" || user?.isAdmin === true;
   const warnedNotice = user?.notices?.find((item) => item.action === "warned");
   const silencedNotice = user?.notices?.find(
     (item) => item.action === "silenced",
   );
+
   const isWarnedUser =
     Boolean(warnedNotice) ||
     user?.status === "warned" ||
     Boolean(user?.warningReason?.trim());
   const isSilencedUser = Boolean(silencedNotice) || user?.status === "silenced";
+
   const warningTooltip =
     warnedNotice?.reason || user?.warningReason
-      ? `Has sido advertido por: \"${warnedNotice?.reason || user?.warningReason || ""}\". Respeta las normas de la comunidad para no ser baneado por un administrador.`
+      ? `Has sido advertido por: "${warnedNotice?.reason || user?.warningReason || ""}". Respeta las normas de la comunidad para no ser baneado por un administrador.`
       : "Has sido advertido por incumplir las normas de la comunidad. Respeta las normas de la comunidad para no ser baneado por un administrador.";
+
   const silencedTooltip = silencedNotice?.reason
-    ? `Has sido silenciado por: \"${silencedNotice.reason}\". No puedes publicar ni comentar hasta que un administrador levante la sanción.`
+    ? `Has sido silenciado por: "${silencedNotice.reason}". No puedes publicar ni comentar hasta que un administrador levante la sanción.`
     : "Has sido silenciado por incumplir las normas de la comunidad. No puedes publicar ni comentar hasta que un administrador levante la sanción.";
+
   const isLoginPage = location.pathname === "/login";
   const activeNotice = loginNotices[activeNoticeIndex] || null;
 
@@ -122,10 +127,10 @@ export function Layout() {
     { name: "Listas", path: "/lists", icon: ListOrdered },
     ...(user
       ? [
-          { name: "Amigos", path: "/friends", icon: Users },
-          { name: "Seguimiento", path: "/market/tracking", icon: Bell },
-          { name: "Perfil", path: "/profile", icon: UserIcon },
-        ]
+        { name: "Amigos", path: "/friends", icon: Users },
+        { name: "Seguimiento", path: "/market/tracking", icon: Bell },
+        { name: "Perfil", path: "/profile", icon: UserIcon },
+      ]
       : []),
   ];
 
@@ -243,17 +248,23 @@ export function Layout() {
       </aside>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 w-full z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between p-4">
+      <div className="md:hidden fixed top-0 w-full z-30 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between p-4 h-16">
         <h1 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
           SteaMates
         </h1>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {user && (
-            <img src={user.avatarfull} className="w-8 h-8 rounded-full" />
+            <>
+              {/* Campana integrada en la barra móvil, alineada a la izquierda del perfil */}
+              <div className="relative flex items-center justify-center">
+                <NotificationBell />
+              </div>
+              <img src={user.avatarfull} alt="Avatar" className="w-8 h-8 rounded-full border border-slate-700" />
+            </>
           )}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2 text-slate-300 hover:bg-slate-800 rounded-lg"
+            className="p-1.5 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors relative z-50 ml-1"
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -347,8 +358,8 @@ export function Layout() {
           className={cn(
             "w-full",
             location.pathname !== "/login" &&
-              location.pathname !== "/" &&
-              "mt-6",
+            location.pathname !== "/" &&
+            "mt-6",
           )}
         >
           <motion.div
@@ -361,9 +372,10 @@ export function Layout() {
           </motion.div>
         </div>
       </main>
-      {/* Floating notification bell — top right, above content area */}
+
+      {/* Floating notification bell — Only on Desktop now to prevent mobile overlap */}
       {user && (
-        <div className="fixed top-3 right-4 md:top-4 md:right-6 z-40">
+        <div className="hidden md:block fixed top-4 right-6 z-40">
           <NotificationBell variant="floating" />
         </div>
       )}
