@@ -21,9 +21,11 @@ import {
   Shield,
   Search,
   Bell,
+  HelpCircle,
+  AlertCircle
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router";
+import { Navigate, useLocation } from "react-router";
 import api, {
   getCommonGames,
   getMyGamingSessions,
@@ -168,37 +170,37 @@ const RADAR_AXES: {
   label: string;
   description: string;
 }[] = [
-  {
-    key: "volumen",
-    emoji: "📚",
-    label: "Volumen",
-    description: "Tamano de la biblioteca",
-  },
-  {
-    key: "dedicacion",
-    emoji: "⏰",
-    label: "Dedicacion",
-    description: "Horas totales jugadas",
-  },
-  {
-    key: "rentabilidad",
-    emoji: "💰",
-    label: "Rentabilidad",
-    description: "Menor coste por hora",
-  },
-  {
-    key: "perfeccionismo",
-    emoji: "🏆",
-    label: "Perfeccionismo",
-    description: "Tasa de logros completados",
-  },
-  {
-    key: "fidelidad",
-    emoji: "❤️",
-    label: "Fidelidad",
-    description: "Horas concentradas en su top 1",
-  },
-];
+    {
+      key: "volumen",
+      emoji: "📚",
+      label: "Volumen",
+      description: "Tamano de la biblioteca",
+    },
+    {
+      key: "dedicacion",
+      emoji: "⏰",
+      label: "Dedicacion",
+      description: "Horas totales jugadas",
+    },
+    {
+      key: "rentabilidad",
+      emoji: "💰",
+      label: "Rentabilidad",
+      description: "Menor coste por hora",
+    },
+    {
+      key: "perfeccionismo",
+      emoji: "🏆",
+      label: "Perfeccionismo",
+      description: "Tasa de logros completados",
+    },
+    {
+      key: "fidelidad",
+      emoji: "❤️",
+      label: "Fidelidad",
+      description: "Horas concentradas en su top 1",
+    },
+  ];
 
 function DonutChart({
   pct,
@@ -326,33 +328,33 @@ function AnalyticsPanel({
     icon: ReactNode;
     activeClass: string;
   }[] = [
-    {
-      id: "economia",
-      label: "Economía",
-      icon: <Wallet size={16} />,
-      activeClass: "bg-[#009966] shadow-[0px_10px_15px_0px_rgba(0,79,59,0.3)]",
-    },
-    {
-      id: "tiempo",
-      label: "Tiempo",
-      icon: <Clock size={16} />,
-      activeClass:
-        "bg-[#155dfc] shadow-[0px_10px_15px_0px_rgba(28,57,142,0.3)]",
-    },
-    {
-      id: "logros",
-      label: "Logros",
-      icon: <Trophy size={16} />,
-      activeClass: "bg-[#e17100] shadow-[0px_10px_15px_0px_rgba(123,51,6,0.3)]",
-    },
-    {
-      id: "radar",
-      label: "Radar",
-      icon: <Hexagon size={16} />,
-      activeClass:
-        "bg-[#005ad3] shadow-[0px_10px_15px_0px_rgba(0,90,211,0.35)]",
-    },
-  ];
+      {
+        id: "economia",
+        label: "Economía",
+        icon: <Wallet size={16} />,
+        activeClass: "bg-[#009966] shadow-[0px_10px_15px_0px_rgba(0,79,59,0.3)]",
+      },
+      {
+        id: "tiempo",
+        label: "Tiempo",
+        icon: <Clock size={16} />,
+        activeClass:
+          "bg-[#155dfc] shadow-[0px_10px_15px_0px_rgba(28,57,142,0.3)]",
+      },
+      {
+        id: "logros",
+        label: "Logros",
+        icon: <Trophy size={16} />,
+        activeClass: "bg-[#e17100] shadow-[0px_10px_15px_0px_rgba(123,51,6,0.3)]",
+      },
+      {
+        id: "radar",
+        label: "Radar",
+        icon: <Hexagon size={16} />,
+        activeClass:
+          "bg-[#005ad3] shadow-[0px_10px_15px_0px_rgba(0,90,211,0.35)]",
+      },
+    ];
 
   if (loadingStats) {
     return (
@@ -377,11 +379,10 @@ function AnalyticsPanel({
           <button
             key={t.id}
             onClick={() => setSubTab(t.id)}
-            className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-[14px] text-sm font-semibold transition-all ${
-              subTab === t.id
-                ? `${t.activeClass} text-white`
-                : "text-[#90a1b9] hover:text-white"
-            }`}
+            className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-[14px] text-sm font-semibold transition-all ${subTab === t.id
+              ? `${t.activeClass} text-white`
+              : "text-[#90a1b9] hover:text-white"
+              }`}
           >
             {t.icon}
             <span>{t.label}</span>
@@ -602,9 +603,9 @@ function AnalyticsPanel({
                       <p className="text-[#94a3b8] text-[8px]">
                         {totalValue > 0
                           ? (
-                              (libSorted[3].economy.libraryValue / totalValue) *
-                              100
-                            ).toFixed(1)
+                            (libSorted[3].economy.libraryValue / totalValue) *
+                            100
+                          ).toFixed(1)
                           : "0.0"}
                         % del total
                       </p>
@@ -795,8 +796,8 @@ function AnalyticsPanel({
                 const pct =
                   p.time.totalHours > 0
                     ? Math.round(
-                        (p.time.topGameHours / p.time.totalHours) * 100,
-                      )
+                      (p.time.topGameHours / p.time.totalHours) * 100,
+                    )
                     : 0;
 
                 return (
@@ -1020,10 +1021,10 @@ function AnalyticsPanel({
                       const perfectPct =
                         p.achievements.totalGames > 0
                           ? (
-                              (p.achievements.perfectGames /
-                                p.achievements.totalGames) *
-                              100
-                            ).toFixed(1)
+                            (p.achievements.perfectGames /
+                              p.achievements.totalGames) *
+                            100
+                          ).toFixed(1)
                           : "0.0";
 
                       return (
@@ -1458,611 +1459,6 @@ function AnalyticsPanel({
             </>
           );
         })()}
-    </div>
-  );
-}
-
-export function Friends() {
-  const { user } = useAuth();
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<Tab>("amigos");
-  const [commonGames, setCommonGames] = useState<CommonGame[]>([]);
-  const [loadingCommonGames, setLoadingCommonGames] = useState(false);
-  const [bookingGame, setBookingGame] = useState<CommonGame | null>(null);
-  const [scheduledSessions, setScheduledSessions] = useState<
-    ScheduledSession[]
-  >([]);
-  const [loadingSessions, setLoadingSessions] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [loadingNotifications, setLoadingNotifications] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  useEffect(() => {
-    if (!user?.steamid) return;
-
-    const loadFriends = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get(`/api/steam/friends/${user.steamid}`);
-        setFriends(res.data?.friends || []);
-      } catch (error) {
-        console.error("Error loading friends:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadFriends();
-  }, [user?.steamid]);
-
-  useEffect(() => {
-    const loadCommonGames = async () => {
-      if (!user?.steamid || selectedIds.size === 0) {
-        setCommonGames([]);
-        return;
-      }
-
-      const steamIds = [user.steamid, ...Array.from(selectedIds)].slice(0, 6);
-      if (steamIds.length < 2) {
-        setCommonGames([]);
-        return;
-      }
-
-      setLoadingCommonGames(true);
-      try {
-        const res = await getCommonGames(steamIds);
-        setCommonGames(res.data?.games || []);
-      } catch (error) {
-        console.error("Error loading common games:", error);
-        setCommonGames([]);
-      } finally {
-        setLoadingCommonGames(false);
-      }
-    };
-
-    loadCommonGames();
-  }, [user?.steamid, selectedIds]);
-
-  const normalizeSession = (session: SessionApiItem): ScheduledSession => {
-    const participantFriends =
-      session.participants?.map((p, index) => ({
-        steamId: p.user?.steamId || `unknown-${index}`,
-        username: p.user?.username || "Usuario",
-        avatar: p.user?.avatar || "https://via.placeholder.com/64?text=U",
-        status: p.status === "accepted" ? 1 : 0,
-        participantStatus: p.status as
-          | "invited"
-          | "accepted"
-          | "declined"
-          | undefined,
-      })) || [];
-
-    // Determine if current user is the host using the host field from the API
-    const isHost = session.host?.steamId === user?.steamid;
-
-    // Find the current user's own participant entry to show their personal status
-    const myEntry = !isHost
-      ? session.participants?.find((p) => p.user?.steamId === user?.steamid)
-      : undefined;
-    const myParticipantStatus = myEntry?.status as
-      | "invited"
-      | "accepted"
-      | "declined"
-      | undefined;
-
-    return {
-      id: session._id,
-      game: {
-        appid: session.game?.appId || session.game?.appid || 0,
-        name: session.game?.name || "Juego",
-        headerImage: session.game?.headerImage,
-      },
-      date: session.date,
-      time: session.time,
-      friends: participantFriends,
-      confirmed: session.status !== "cancelled",
-      myParticipantStatus,
-      isHost,
-    };
-  };
-
-  // Devuelve true si la sesión es futura (fecha y hora no han pasado)
-  // Devuelve true si la sesión es futura (fecha y hora no han pasado)
-  const isFutureSession = (session: ScheduledSession) => {
-    if (!session.date || !session.time) return false;
-    const [year, month, day] = session.date.split("-").map(Number);
-    const [hour, minute] = session.time.split(":").map(Number);
-    const sessionDate = new Date(year, month - 1, day, hour, minute, 0, 0);
-    const now = new Date();
-    // Solo mostrar sesiones cuya fecha y hora sean posteriores a ahora
-    return sessionDate.getTime() > now.getTime();
-  };
-
-  const loadSessions = async () => {
-    if (!user?.steamid) return;
-
-    setLoadingSessions(true);
-    try {
-      const res = await getMyGamingSessions();
-      const allSessions = (res.data?.sessions || []).map(normalizeSession);
-
-      // Show declined sessions briefly so the badge is visible, then filter them
-      // after 5s. Always hide past sessions.
-      const sessions = allSessions.filter((s) => isFutureSession(s));
-      setScheduledSessions(sessions);
-    } catch (error) {
-      console.error("Error loading sessions:", error);
-      setScheduledSessions([]);
-    } finally {
-      setLoadingSessions(false);
-    }
-  };
-
-  const loadNotifications = async () => {
-    if (!user?.steamid) return;
-
-    setLoadingNotifications(true);
-    try {
-      const res = await getNotifications({ limit: 20 });
-      setNotifications(res.data?.notifications || []);
-    } catch (error) {
-      console.error("Error loading notifications:", error);
-      setNotifications([]);
-    } finally {
-      setLoadingNotifications(false);
-    }
-  };
-
-  useEffect(() => {
-    if (activeTab === "sesiones" && user?.steamid) {
-      loadSessions();
-      loadNotifications();
-    }
-  }, [activeTab, user?.steamid]);
-
-  if (!user) return <Navigate to="/login" replace />;
-
-  const getStatusText = (friend: Friend) => {
-    if (friend.currentGame) return `playing ${friend.currentGame}`;
-    switch (friend.status) {
-      case 1:
-        return "Online";
-      case 2:
-        return "Ocupado";
-      case 3:
-        return "Ausente";
-      case 4:
-        return "Durmiendo";
-      default:
-        return "Offline";
-    }
-  };
-
-  const isOnline = (friend: Friend) =>
-    friend.status > 0 || !!friend.currentGame;
-
-  const isPlayingGame = (friend: Friend) => !!friend.currentGame;
-
-  const getStatusDot = (friend: Friend) => {
-    if (isPlayingGame(friend))
-      return "bg-[#00c950] shadow-[0px_0px_8px_0px_rgba(34,197,94,0.6)]";
-    if (isOnline(friend))
-      return "bg-[#00c950] shadow-[0px_0px_8px_0px_rgba(34,197,94,0.6)]";
-    return "bg-[#62748e]";
-  };
-
-  const getStatusTextColor = (friend: Friend) => {
-    if (isPlayingGame(friend)) return "text-[#05df72]";
-    if (isOnline(friend)) return "text-[#62748e]";
-    return "text-[#62748e]";
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
-
-  const filteredFriends = friends.filter((friend) =>
-    friend.username.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
-
-  const unreadCount = notifications.filter((n) => !n.readAt).length;
-
-  const tabs: { id: Tab; label: string; icon: ReactNode }[] = [
-    { id: "amigos", label: "Amigos", icon: <Users size={18} /> },
-    { id: "analitica", label: "Analítica", icon: <BarChart2 size={18} /> },
-    { id: "sesiones", label: "Sesiones", icon: <Gamepad2 size={18} /> },
-  ];
-
-  return (
-    <div className="flex flex-col gap-10 pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white leading-tight">
-            Centro Social
-          </h1>
-          <p className="text-[#90a1b9] text-sm sm:text-lg mt-2">
-            Gestiona tus amigos, compara estadísticas y organiza partidas.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 pr-14 sm:pr-16">
-          <div className="flex flex-wrap items-center p-[7px] gap-1 bg-[#0f172b] border border-[#1d293d] rounded-[14px] shadow-sm self-start sm:self-auto w-full sm:w-auto">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-[10px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-                  activeTab === tab.id
-                    ? "bg-[#155dfc] text-white shadow-[0px_10px_15px_0px_rgba(28,57,142,0.2),0px_4px_6px_0px_rgba(28,57,142,0.2)]"
-                    : "text-[#90a1b9] hover:text-white"
-                }`}
-              >
-                {tab.icon}
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Check size={18} className="text-[#51a2ff]" />
-              <h3 className="text-white font-bold text-[18px]">
-                Selecciona Amigos
-              </h3>
-            </div>
-            <p className="text-[#62748e] text-[12px] leading-relaxed">
-              Selecciona amigos de la lista para incluirlos en las comparativas
-              y sesiones.
-            </p>
-          </div>
-
-          <div className="relative">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#62748e]"
-            />
-            <input
-              type="text"
-              placeholder="Buscar amigos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#0f172b] border border-[#1d293d] rounded-[12px] pl-9 pr-4 py-2 text-sm text-white placeholder-[#62748e] focus:outline-none focus:border-[#155dfc]"
-            />
-          </div>
-
-          {loading ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="animate-spin text-blue-500" size={24} />
-            </div>
-          ) : filteredFriends.length === 0 ? (
-            <div className="py-8 text-center">
-              <Users size={32} className="text-[#314158] mx-auto mb-2" />
-              <p className="text-[#62748e] text-xs">
-                {friends.length === 0
-                  ? "Lista vacía o privada"
-                  : "No se encontraron amigos"}
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3 overflow-y-auto max-h-[480px] pr-1">
-              {filteredFriends.map((friend) => (
-                <button
-                  key={friend.steamId}
-                  onClick={() => toggleSelect(friend.steamId)}
-                  className={`flex items-center gap-3 p-3 rounded-[14px] border text-left transition-all w-full ${
-                    selectedIds.has(friend.steamId)
-                      ? "bg-[rgba(21,93,252,0.1)] border-[rgba(21,93,252,0.4)]"
-                      : "bg-[rgba(29,41,61,0.3)] border-[rgba(49,65,88,0.3)] hover:border-[#314158]"
-                  }`}
-                >
-                  <div className="relative shrink-0">
-                    <img
-                      src={friend.avatar}
-                      alt={friend.username}
-                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d]"
-                    />
-                    <span
-                      className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#0f172b] ${getStatusDot(friend)}`}
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <UserProfileLink
-                        steamId={friend.steamId}
-                        username={friend.username}
-                        variant="name"
-                        nameClassName="text-[#cad5e2] text-[14px] font-medium truncate"
-                      />
-                    </div>
-                    <p
-                      className={`text-[11px] truncate ${getStatusTextColor(friend)}`}
-                    >
-                      {getStatusText(friend)}
-                    </p>
-                  </div>
-
-                  {selectedIds.has(friend.steamId) && (
-                    <div className="shrink-0 w-4 h-4 rounded-full bg-[#155dfc] flex items-center justify-center">
-                      <Check size={10} className="text-white" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-
-          <div className="border-t border-[#1d293d] pt-3 text-center">
-            <p className="text-[#62748e] text-[12px] font-medium">
-              {selectedIds.size} amigo{selectedIds.size !== 1 ? "s" : ""}{" "}
-              seleccionado{selectedIds.size !== 1 ? "s" : ""}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex-1 min-w-0 w-full">
-          {activeTab === "amigos" && selectedIds.size === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="relative mb-8">
-                <div className="w-32 h-32 rounded-full bg-[rgba(15,23,43,0.4)] border border-[#1d293d] flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full bg-[rgba(43,127,255,0.1)] blur-[40px]" />
-                  <Users size={64} className="text-[#51a2ff] relative z-10" />
-                </div>
-              </div>
-
-              <h2 className="text-[24px] sm:text-[30px] font-bold text-white mb-4">
-                Gestiona tu red de amigos
-              </h2>
-              <p className="text-[#90a1b9] text-sm sm:text-lg max-w-[476px] leading-relaxed mb-12">
-                Utiliza las pestañas superiores para analizar estadísticas
-                comparativas o encontrar juegos en común para tu próxima sesión.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-[672px]">
-                <button
-                  onClick={() => setActiveTab("analitica")}
-                  className="bg-[#0f172b] border border-[#1d293d] rounded-[16px] p-8 flex flex-col items-center gap-3 hover:border-[rgba(21,93,252,0.4)] hover:bg-[rgba(21,93,252,0.05)] transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-[16px] bg-[rgba(28,57,142,0.3)] flex items-center justify-center group-hover:bg-[rgba(28,57,142,0.5)] transition-colors">
-                    <BarChart2 size={28} className="text-[#51a2ff]" />
-                  </div>
-                  <h3 className="text-white font-bold text-[20px]">
-                    Comparar Stats
-                  </h3>
-                  <p className="text-[#62748e] text-[14px] text-center leading-5">
-                    Analiza logros, tiempos de juego y bibliotecas
-                  </p>
-                </button>
-
-                <button
-                  onClick={() => setActiveTab("sesiones")}
-                  className="bg-[#0f172b] border border-[#1d293d] rounded-[16px] p-8 flex flex-col items-center gap-3 hover:border-[rgba(89,22,139,0.4)] hover:bg-[rgba(89,22,139,0.05)] transition-all group"
-                >
-                  <div className="w-14 h-14 rounded-[16px] bg-[rgba(89,22,139,0.3)] flex items-center justify-center group-hover:bg-[rgba(89,22,139,0.5)] transition-colors">
-                    <CalendarDays size={28} className="text-[#c27aff]" />
-                  </div>
-                  <h3 className="text-white font-bold text-[20px]">
-                    Planificar Sesión
-                  </h3>
-                  <p className="text-[#62748e] text-[14px] text-center leading-5">
-                    Encuentra juegos en común para jugar ahora
-                  </p>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "amigos" && selectedIds.size > 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-16 h-16 rounded-full bg-[rgba(21,93,252,0.15)] border border-[rgba(21,93,252,0.3)] flex items-center justify-center mb-4">
-                <Users size={32} className="text-[#51a2ff]" />
-              </div>
-              <h2 className="text-2xl font-bold text-white mb-2">
-                {selectedIds.size} amigo{selectedIds.size !== 1 ? "s" : ""}{" "}
-                seleccionado{selectedIds.size !== 1 ? "s" : ""}
-              </h2>
-              <p className="text-[#90a1b9] mb-6">
-                Elige una acción para continuar
-              </p>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => setActiveTab("analitica")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[#155dfc] text-white rounded-[12px] text-sm font-semibold hover:bg-[#1a6aff] transition-colors"
-                >
-                  <BarChart2 size={16} /> Comparar Stats
-                </button>
-                <button
-                  onClick={() => setActiveTab("sesiones")}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-[rgba(89,22,139,0.3)] border border-[rgba(89,22,139,0.4)] text-[#c27aff] rounded-[12px] text-sm font-semibold hover:bg-[rgba(89,22,139,0.5)] transition-colors"
-                >
-                  <CalendarDays size={16} /> Planificar Sesión
-                </button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "analitica" && (
-            <AnalyticsPanel
-              selectedFriends={friends.filter((f) =>
-                selectedIds.has(f.steamId),
-              )}
-              user={user}
-            />
-          )}
-
-          {activeTab === "sesiones" && (
-            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-purple-900/40 border border-slate-700/50 rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden mb-8 shadow-2xl">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-                <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
-
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="bg-white/10 p-3 rounded-2xl mb-4 backdrop-blur-md">
-                    <Gamepad2 className="text-white w-8 h-8" />
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4 tracking-tight">
-                    ¿A qué jugamos hoy?
-                  </h2>
-                  <p className="text-slate-200 text-sm sm:text-lg max-w-xl">
-                    {selectedIds.size > 0
-                      ? `Hemos encontrado ${commonGames.length} juegos en común entre tú y ${selectedIds.size} amigos.`
-                      : "Selecciona amigos de la barra lateral para encontrar juegos en común para vuestra sesión."}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5">
-                  <h3 className="text-white font-bold text-lg mb-4">
-                    Sesiones donde participas
-                  </h3>
-
-                  {loadingSessions ? (
-                    <div className="flex justify-center py-10">
-                      <Loader2
-                        className="animate-spin text-blue-500"
-                        size={24}
-                      />
-                    </div>
-                  ) : scheduledSessions.length === 0 ? (
-                    <p className="text-[#62748e] text-sm">
-                      No hay sesiones guardadas todavía.
-                    </p>
-                  ) : (
-                    <UpcomingSessions
-                      sessions={scheduledSessions}
-                      currentUserSteamId={user?.steamid}
-                      onRemove={async (id: string) => {
-                        try {
-                          await cancelGamingSession(id);
-                          await loadSessions();
-                          await loadNotifications();
-                        } catch (error) {
-                          console.error("Error cancelling session:", error);
-                        }
-                      }}
-                      onLeave={async (id: string) => {
-                        try {
-                          // Remove immediately from UI for instant feedback
-                          setScheduledSessions((prev) =>
-                            prev.filter((s) => s.id !== id),
-                          );
-                          await leaveGamingSession(id);
-                          // Then sync with backend
-                          await loadSessions();
-                        } catch (error) {
-                          console.error("Error leaving session:", error);
-                          // Revert on error
-                          await loadSessions();
-                        }
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {selectedIds.size === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 border border-dashed border-slate-800 rounded-3xl">
-                  <Users size={64} className="text-slate-700 mb-6" />
-                  <h3 className="text-xl font-semibold text-slate-400 mb-2">
-                    Comienza añadiendo amigos
-                  </h3>
-                  <p className="text-slate-500">
-                    Selecciona al menos un amigo en el panel lateral
-                  </p>
-                </div>
-              ) : loadingCommonGames ? (
-                <div className="flex justify-center py-16">
-                  <Loader2 className="animate-spin text-blue-500" size={28} />
-                </div>
-              ) : commonGames.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 border border-dashed border-slate-800 rounded-3xl">
-                  <Gamepad2 size={64} className="text-slate-700 mb-6" />
-                  <h3 className="text-xl font-semibold text-slate-400 mb-2">
-                    No hay juegos en común visibles
-                  </h3>
-                  <p className="text-slate-500">
-                    Puede que algún perfil sea privado o que no compartáis
-                    biblioteca.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {commonGames.map((game, i) => (
-                    <div
-                      key={game.appid}
-                      className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-2xl p-4 flex gap-5 hover:border-blue-500/50 transition-all duration-300 group hover:shadow-lg hover:shadow-blue-500/5 items-center animate-in fade-in slide-in-from-bottom-2"
-                      style={{ animationDelay: `${i * 100}ms` }}
-                    >
-                      <div className="relative w-32 h-20 rounded-xl overflow-hidden shadow-lg shrink-0">
-                        <img
-                          src={game.headerImage}
-                          alt={game.name}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              "https://via.placeholder.com/320x160?text=Game";
-                          }}
-                        />
-                      </div>
-
-                      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-                        <h4 className="font-bold text-lg text-white truncate group-hover:text-blue-400 transition-colors">
-                          {game.name}
-                        </h4>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] uppercase font-bold tracking-wider bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20">
-                            En común
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {game.owners} miembros
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() => setBookingGame(game)}
-                        className="p-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-lg shadow-blue-900/20 transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
-                        title="Reservar sesión"
-                      >
-                        <CalendarDays size={16} />
-                        <span className="text-xs font-bold hidden sm:inline">
-                          Reservar
-                        </span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {bookingGame && (
-        <SessionBooking
-          game={bookingGame}
-          selectedFriends={friends.filter((f) => selectedIds.has(f.steamId))}
-          onClose={() => setBookingGame(null)}
-          onConfirm={async () => {
-            await loadSessions();
-            await loadNotifications();
-            setBookingGame(null);
-          }}
-          existingSessions={scheduledSessions}
-        />
-      )}
     </div>
   );
 }
