@@ -642,6 +642,8 @@ export function UpcomingSessions({
   onRespond?: (id: string, status: "accepted" | "declined") => void | Promise<void>;
   currentUserSteamId?: string;
 }) {
+  const [showSessions, setShowSessions] = useState(true);
+
   if (sessions.length === 0) return null;
 
   const formatDate = (dateStr: string) => {
@@ -652,14 +654,33 @@ export function UpcomingSessions({
   };
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-3xl p-6 shadow-xl mt-8">
-      <h3 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
-        <PartyPopper className="text-amber-400" size={20} />
-        Sesiones Programadas
-      </h3>
+    <div className="mt-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+          <PartyPopper className="text-amber-500" size={16} />
+          Sesiones donde participas ({sessions.length})
+        </h3>
+        <button
+          onClick={() => setShowSessions(!showSessions)}
+          className="text-xs font-bold text-blue-500 hover:text-blue-400 flex items-center gap-1 transition-colors bg-blue-500/10 px-3 py-1.5 rounded-lg border border-blue-500/20"
+        >
+          {showSessions ? (
+            <>
+              <ChevronRight size={14} className="rotate-90 transition-transform" />
+              Ocultar lista
+            </>
+          ) : (
+            <>
+              <ChevronRight size={14} className="transition-transform" />
+              Ver lista
+            </>
+          )}
+        </button>
+      </div>
 
-      <div className="space-y-3">
-        {sessions.map((session) => (
+      {showSessions && (
+        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
+          {sessions.map((session) => (
           <div
             key={session.id}
             id={`session-${session.id}`}
@@ -780,7 +801,7 @@ export function UpcomingSessions({
                       </span>
                     ) : (
                       <span className="text-[9px] text-amber-500/70 font-bold uppercase tracking-tighter">
-                        Pte
+                        Sin Confirmar
                       </span>
                     )}
                   </div>
@@ -790,6 +811,7 @@ export function UpcomingSessions({
           </div>
         ))}
       </div>
-    </div>
+    )}
+</div>
   );
 }

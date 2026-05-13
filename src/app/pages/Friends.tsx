@@ -1970,9 +1970,7 @@ export function Friends() {
 
               <div className="mb-6">
                 <div className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5">
-                  <h3 className="text-white font-bold text-lg mb-4">
-                    Sesiones donde participas
-                  </h3>
+
 
                   {loadingSessions ? (
                     <div className="flex justify-center py-10">
