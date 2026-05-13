@@ -407,7 +407,7 @@ export function NotificationBell({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="fixed bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="fixed bg-slate-900/60 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl z-50 overflow-hidden"
             style={{
               ...panelStyle,
               maxHeight: "480px",
@@ -445,7 +445,7 @@ export function NotificationBell({
               </div>
             </div>
 
-            <div className="overflow-y-auto" style={{ maxHeight: "340px" }}>
+            <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: "340px" }}>
               {notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-slate-500">
                   <Bell size={32} className="mb-3 opacity-30" />

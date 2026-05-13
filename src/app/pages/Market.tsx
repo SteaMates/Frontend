@@ -625,8 +625,8 @@ export function Market() {
                     toggleTag(tag.id)
                   }}
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 select-none ${isActive
-                      ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
-                      : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
+                    ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
+                    : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"
                     }`}
                 >
                   {tag.name}
