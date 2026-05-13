@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Trash2,
   TrendingDown,
-  ExternalLink,
   Target
 } from "lucide-react";
 import { toast } from "sonner";
@@ -75,6 +74,11 @@ export function MarketTracking() {
   const [alerts, setAlerts] = useState<PriceAlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Estados para el Modal de Edición (Sustituye window.prompt)
+  const [editTargetModalOpen, setEditTargetModalOpen] = useState(false);
+  const [alertToEdit, setAlertToEdit] = useState<PriceAlertItem | null>(null);
+  const [newTargetInput, setNewTargetInput] = useState("");
 
   const activeAlerts = useMemo(
     () => alerts.filter((alert) => alert.enabled).length,
@@ -171,15 +175,15 @@ export function MarketTracking() {
         prev.map((entry) =>
           getActionId(entry) === identity
             ? {
-                ...entry,
-                enabled: nextEnabled,
-                triggered:
-                  nextEnabled &&
-                  typeof entry.currentPrice === "number" &&
-                  typeof entry.targetPrice === "number" &&
-                  entry.targetPrice > 0 &&
-                  entry.currentPrice <= entry.targetPrice,
-              }
+              ...entry,
+              enabled: nextEnabled,
+              triggered:
+                nextEnabled &&
+                typeof entry.currentPrice === "number" &&
+                typeof entry.targetPrice === "number" &&
+                entry.targetPrice > 0 &&
+                entry.currentPrice <= entry.targetPrice,
+            }
             : entry,
         ),
       );
@@ -189,23 +193,28 @@ export function MarketTracking() {
     }
   };
 
-  const onEditTarget = async (item: PriceAlertItem) => {
+  // NUEVA FUNCIÓN: Abre el modal en lugar de usar window.prompt
+  const openEditModal = (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
       toast.error("No se pudo identificar la alerta");
       return;
     }
-
-    const input = window.prompt(
-      `Nuevo precio objetivo para ${item.title} (USD)`,
+    setAlertToEdit(item);
+    setNewTargetInput(
       typeof item.targetPrice === "number" && item.targetPrice > 0
         ? item.targetPrice.toFixed(2)
-        : "1.00",
+        : "1.00"
     );
+    setEditTargetModalOpen(true);
+  };
 
-    if (input === null) return;
+  // NUEVA FUNCIÓN: Guarda el dato desde el modal
+  const handleSaveTarget = async () => {
+    if (!alertToEdit) return;
+    const identity = getActionId(alertToEdit);
 
-    const next = Number(input.replace(",", "."));
+    const next = Number(newTargetInput.replace(",", "."));
     if (!Number.isFinite(next) || next <= 0) {
       toast.error("Ingresa un precio objetivo válido");
       return;
@@ -217,18 +226,20 @@ export function MarketTracking() {
         prev.map((entry) =>
           getActionId(entry) === identity
             ? {
-                ...entry,
-                enabled: true,
-                targetPrice: next,
-                triggered:
-                  typeof entry.currentPrice === "number"
-                    ? entry.currentPrice <= next
-                    : false,
-              }
+              ...entry,
+              enabled: true,
+              targetPrice: next,
+              triggered:
+                typeof entry.currentPrice === "number"
+                  ? entry.currentPrice <= next
+                  : false,
+            }
             : entry,
         ),
       );
       toast.success("Precio objetivo actualizado");
+      setEditTargetModalOpen(false);
+      setAlertToEdit(null);
     } catch {
       toast.error("No se pudo actualizar el objetivo");
     }
@@ -252,7 +263,6 @@ export function MarketTracking() {
 
   return (
     <div className="space-y-8 pb-20 max-w-[1400px] mx-auto">
-      {/* HEADER SECTION */}
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pr-14 sm:pr-16">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
@@ -281,7 +291,6 @@ export function MarketTracking() {
         </button>
       </section>
 
-      {/* STATS CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-5 flex items-center gap-4">
           <div className="w-12 h-12 rounded-full bg-[rgba(251,113,133,0.1)] flex items-center justify-center shrink-0">
@@ -312,7 +321,6 @@ export function MarketTracking() {
         </div>
       </section>
 
-      {/* WISHLIST SECTION */}
       <section className="space-y-4">
         <h2 className="text-[20px] font-bold text-white flex items-center gap-2 pb-2 border-b border-[#1d293d]">
           <Heart size={20} className="text-rose-400" /> Mi Wishlist
@@ -332,7 +340,6 @@ export function MarketTracking() {
 
               return (
                 <div key={identity || `${item.title}-${item.addedAt}`} className="bg-[#0f172b] border border-[#1d293d] hover:border-[#314158] rounded-[12px] p-3 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors group">
-                  {/* Thumbnail */}
                   <Link to={`/game/${detailId}`} state={linkState} className="relative w-full sm:w-[140px] h-[64px] rounded-[8px] overflow-hidden bg-[#1d293d] shrink-0 block">
                     {item.thumb ? (
                       <img src={item.thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -346,14 +353,12 @@ export function MarketTracking() {
                     )}
                   </Link>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <Link to={`/game/${detailId}`} state={linkState} className="font-bold text-white text-[16px] truncate hover:text-[#51a2ff] transition-colors" title={item.title}>
                       {item.title}
                     </Link>
                   </div>
 
-                  {/* Pricing & Actions */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 shrink-0 border-t border-[#1d293d] sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
                     <div className="flex flex-col items-end">
                       {item.hasDiscount && item.normalPrice ? (
@@ -383,7 +388,6 @@ export function MarketTracking() {
         )}
       </section>
 
-      {/* PRICE ALERTS SECTION */}
       <section className="space-y-4">
         <h2 className="text-[20px] font-bold text-white flex items-center gap-2 pb-2 border-b border-[#1d293d]">
           <TrendingDown size={20} className="text-[#00d492]" /> Alertas de Precio
@@ -402,8 +406,7 @@ export function MarketTracking() {
 
               return (
                 <div key={identity || `alert-${item.title}`} className={`relative bg-[#0f172b] border rounded-[12px] p-3 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors group ${item.triggered ? "border-[#00d492] shadow-[0_0_20px_rgba(0,212,146,0.15)]" : "border-[#1d293d] hover:border-[#314158]"}`}>
-                  
-                  {/* Thumbnail */}
+
                   <Link to={`/game/${detailId}`} state={linkState} className="relative w-full sm:w-[140px] h-[64px] rounded-[8px] overflow-hidden bg-[#1d293d] shrink-0 block">
                     {item.thumb ? (
                       <img src={item.thumb} alt={item.title} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!item.enabled && "grayscale opacity-50"}`} />
@@ -415,7 +418,6 @@ export function MarketTracking() {
                     )}
                   </Link>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0 flex flex-col justify-center">
                     <div className="flex items-center gap-2 mb-1">
                       <Link to={`/game/${detailId}`} state={linkState} className={`font-bold text-[16px] truncate hover:text-[#51a2ff] transition-colors ${!item.enabled ? "text-[#62748e]" : "text-white"}`} title={item.title}>
@@ -429,7 +431,6 @@ export function MarketTracking() {
                     </div>
                   </div>
 
-                  {/* Pricing Dash (Current vs Target) */}
                   <div className={`flex items-center gap-4 sm:gap-6 shrink-0 bg-[rgba(2,6,24,0.5)] px-4 py-2 rounded-[8px] border ${item.triggered ? "border-[rgba(0,212,146,0.3)]" : "border-[#1d293d]"} mt-2 sm:mt-0`}>
                     <div className="flex flex-col items-center min-w-[60px]">
                       <span className="text-[10px] text-[#62748e] font-bold uppercase tracking-wider mb-0.5">Actual</span>
@@ -437,10 +438,10 @@ export function MarketTracking() {
                         {formatPrice(item.currentPrice)}
                       </span>
                     </div>
-                    
+
                     <div className="w-px h-6 bg-[#314158]" />
-                    
-                    <div onClick={() => onEditTarget(item)} className="flex flex-col items-center min-w-[60px] group/target cursor-pointer relative" title="Click para editar objetivo">
+
+                    <div onClick={() => openEditModal(item)} className="flex flex-col items-center min-w-[60px] group/target cursor-pointer relative" title="Click para editar objetivo">
                       <span className="text-[10px] text-[#62748e] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
                         Objetivo
                         <Pencil size={10} className="text-[#51a2ff] opacity-0 group-hover/target:opacity-100 transition-opacity absolute -right-4" />
@@ -451,10 +452,9 @@ export function MarketTracking() {
                     </div>
                   </div>
 
-                  {/* Actions */}
                   <div className="flex items-center justify-end gap-2 shrink-0 border-t border-[#1d293d] sm:border-t-0 pt-3 sm:pt-0 mt-2 sm:mt-0">
-                    <button 
-                      onClick={() => onToggleAlert(item)} 
+                    <button
+                      onClick={() => onToggleAlert(item)}
                       className={`h-9 px-3 flex items-center gap-1.5 rounded-[8px] text-[12px] font-bold transition-colors ${item.enabled ? "bg-[rgba(81,162,255,0.1)] text-[#51a2ff] hover:bg-[rgba(81,162,255,0.2)]" : "bg-[#1d293d] text-[#62748e] hover:text-white"}`}
                       title={item.enabled ? "Desactivar alerta" : "Activar alerta"}
                     >
@@ -470,6 +470,46 @@ export function MarketTracking() {
           </div>
         )}
       </section>
+
+      {/* MODAL DE EDICIÓN DE PRECIO OBJETIVO */}
+      {editTargetModalOpen && alertToEdit && (
+        <div className="fixed inset-0 z-50 bg-[#020617]/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setEditTargetModalOpen(false)}>
+          <div className="w-full max-w-sm bg-[#0f172b] border border-[#1d293d] rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-black text-white flex items-center gap-2 mb-2">
+              <Pencil size={20} className="text-[#51a2ff]" /> Editar Objetivo
+            </h3>
+            <p className="text-sm text-[#90a1b9] mb-4">
+              Establece el nuevo precio objetivo para <strong>{alertToEdit.title}</strong>.
+            </p>
+
+            <div className="relative mb-6">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#62748e] font-bold">$</span>
+              <input
+                type="number"
+                step="0.01"
+                value={newTargetInput}
+                onChange={e => setNewTargetInput(e.target.value)}
+                className="w-full bg-[#0b1221] border border-[#1d293d] rounded-xl py-3 pl-8 pr-4 text-white font-bold focus:outline-none focus:border-[#51a2ff] transition-colors"
+              />
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setEditTargetModalOpen(false)}
+                className="px-4 py-2 rounded-[8px] border border-[#1d293d] hover:bg-[rgba(255,255,255,0.05)] text-white text-sm font-medium transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleSaveTarget}
+                className="px-4 py-2 rounded-[8px] bg-[#155dfc] hover:bg-[#2b7fff] text-white text-sm font-bold transition-colors"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

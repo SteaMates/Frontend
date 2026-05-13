@@ -8,6 +8,7 @@ import {
   Trash2,
   Reply,
   X,
+  AlertTriangle
 } from "lucide-react";
 import { Link, Navigate, useParams, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import { ReportButton } from "../components/ReportButton";
 import { UserProfileLink } from "../components/UserProfileLink";
+import { toast } from "sonner"; // IMPORTANTE: Importamos toast para las alertas bonitas
 
 interface Game {
   appId: string | number;
@@ -36,7 +38,7 @@ interface CommentData {
     avatar: string;
   };
   createdAt: string;
-  parentId?: string; // Por si lo añades al backend en el futuro
+  parentId?: string;
 }
 
 interface List {
@@ -57,8 +59,6 @@ interface List {
   createdAt: string;
 }
 
-const MAX_COMMENT_LENGTH = 1000;
-
 export function ListDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -70,6 +70,10 @@ export function ListDetail() {
   const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
   const [commentsTotal, setCommentsTotal] = useState(0);
 
+  // Estado para el modal de borrado
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   // Estado para las respuestas/hilos
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
@@ -78,15 +82,18 @@ export function ListDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const handleDelete = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres borrar esta lista?"))
-      return;
+  // NUEVA FUNCIÓN DE BORRADO (SIN window.confirm)
+  const confirmDelete = async () => {
     try {
+      setIsDeleting(true);
       await api.delete(`/api/lists/${id}`);
+      toast.success("Lista borrada correctamente");
       navigate("/lists");
     } catch (err) {
       console.error("Error deleting list:", err);
-      alert("Hubo un error al borrar la lista");
+      toast.error("Hubo un error al borrar la lista");
+      setIsDeleting(false);
+      setShowDeleteModal(false);
     }
   };
 
@@ -95,9 +102,7 @@ export function ListDetail() {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
-          api.get(`/api/lists/${id}/comments`, {
-            params: { page: 1, limit: 20 },
-          }),
+          api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 20 } })
         ]);
         setList(listRes.data);
 
@@ -114,7 +119,7 @@ export function ListDetail() {
         setCommentsHasMore(
           commentsPagination
             ? commentsPagination.page < commentsPagination.pages
-            : false,
+            : false
         );
       } catch (err) {
         console.error("Error fetching list data:", err);
@@ -132,11 +137,7 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/like`);
-      setList((prev) =>
-        prev
-          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
-          : prev,
-      );
+      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
     } catch (err) {
       console.error(err);
     }
@@ -146,11 +147,7 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/dislike`);
-      setList((prev) =>
-        prev
-          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
-          : prev,
-      );
+      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
     } catch (err) {
       console.error(err);
     }
@@ -158,13 +155,11 @@ export function ListDetail() {
 
   const handleReplyClick = (comment: CommentData) => {
     setReplyingTo(comment);
-    // Auto-completamos con el @usuario para crear un hilo visual
     if (!newComment.includes(`@${comment.author.username}`)) {
       setNewComment(`@${comment.author.username} ` + newComment);
     }
     setTimeout(() => {
       commentInputRef.current?.focus();
-      // Movemos el cursor al final del texto
       const length = commentInputRef.current?.value.length || 0;
       commentInputRef.current?.setSelectionRange(length, length);
     }, 10);
@@ -173,16 +168,10 @@ export function ListDetail() {
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return login();
-    const trimmedComment = newComment.trim();
-    if (!trimmedComment) return;
-    if (trimmedComment.length > MAX_COMMENT_LENGTH) {
-      alert(`El comentario no puede superar ${MAX_COMMENT_LENGTH} caracteres.`);
-      return;
-    }
+    if (!newComment.trim()) return;
 
     try {
-      const payload: any = { content: trimmedComment };
-      // Si en el backend en el futuro añades parentId al modelo, esto funcionará automáticamente
+      const payload: any = { content: newComment };
       if (replyingTo) {
         payload.parentId = replyingTo._id;
       }
@@ -195,9 +184,8 @@ export function ListDetail() {
     } catch (err) {
       console.error(err);
       const error = err as any;
-      const errorMessage =
-        error?.response?.data?.error || error?.message || "Unknown error";
-      alert(`Error al comentar: ${errorMessage}`);
+      const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
+      toast.error(`Error al comentar: ${errorMessage}`); // REEMPLAZADO ALERT NATIVO
     }
   };
 
@@ -224,7 +212,7 @@ export function ListDetail() {
       setCommentsHasMore(
         responsePagination
           ? responsePagination.page < responsePagination.pages
-          : false,
+          : false
       );
     } catch (err) {
       console.error("Error loading more comments:", err);
@@ -233,20 +221,14 @@ export function ListDetail() {
     }
   };
 
-  // Helper visual para resaltar menciones como @Usuario
   const renderCommentContent = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, i) =>
-      part.startsWith("@") ? (
-        <span
-          key={i}
-          className="text-[#51a2ff] font-bold bg-[rgba(43,127,255,0.1)] px-1 rounded-[4px]"
-        >
-          {part}
-        </span>
+      part.startsWith('@') ? (
+        <span key={i} className="text-[#51a2ff] font-bold bg-[rgba(43,127,255,0.1)] px-1 rounded-[4px]">{part}</span>
       ) : (
         part
-      ),
+      )
     );
   };
 
@@ -268,13 +250,9 @@ export function ListDetail() {
       </Link>
 
       <article className="mt-6 rounded-[16px] border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-2xl">
-        {/* CABECERA (Reducida y compacta) */}
         <header className="relative h-[140px] sm:h-[180px] bg-[#1d293d]">
           <img
-            src={
-              list.coverImage ||
-              "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"
-            }
+            src={list.coverImage || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"}
             alt={list.title}
             className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
           />
@@ -283,15 +261,11 @@ export function ListDetail() {
           <div className="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                {list.categories &&
-                  list.categories.map((cat, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-[rgba(43,127,255,0.2)] border border-[rgba(43,127,255,0.3)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider"
-                    >
-                      {cat}
-                    </span>
-                  ))}
+                {list.categories && list.categories.map((cat, idx) => (
+                  <span key={idx} className="bg-[rgba(43,127,255,0.2)] border border-[rgba(43,127,255,0.3)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider">
+                    {cat}
+                  </span>
+                ))}
               </div>
               <h1 className="text-white text-[24px] sm:text-[32px] leading-tight font-bold">
                 {list.title}
@@ -299,7 +273,7 @@ export function ListDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] sm:text-[14px]">
                 <UserProfileLink
                   steamId={list.author?.steamId || list.author?._id}
-                  username={list.author?.username || "Unknown"}
+                  username={list.author?.username || 'Unknown'}
                   avatar={list.author?.avatar}
                   variant="both"
                   avatarClassName="w-6 h-6 rounded-full border border-[#45556c] bg-[#314158]"
@@ -307,26 +281,22 @@ export function ListDetail() {
                 />
                 <span className="text-[#62748e]">•</span>
                 <span className="text-[#62748e]">
-                  {formatDistanceToNow(new Date(list.createdAt), {
-                    addSuffix: true,
-                    locale: es,
-                  })}
+                  {formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es })}
                 </span>
               </div>
             </div>
 
-            {/* Votos (Compactos) */}
             <div className="h-10 rounded-[10px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.6)] backdrop-blur-md px-1.5 flex items-center gap-1 w-fit">
               <button
                 onClick={handleLike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.likes?.includes(user?.id || "") ? "text-[#00d492]" : "text-[#a3b3cb]"}`}
+                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#a3b3cb]'}`}
               >
                 <ThumbsUp size={14} /> {list.likes?.length || 0}
               </button>
               <div className="w-px h-4 bg-[#314158]" />
               <button
                 onClick={handleDislike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.dislikes?.includes(user?.id || "") ? "text-[#ff6467]" : "text-[#a3b3cb]"}`}
+                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467]' : 'text-[#a3b3cb]'}`}
               >
                 <ThumbsDown size={14} /> {list.dislikes?.length || 0}
               </button>
@@ -334,7 +304,6 @@ export function ListDetail() {
           </div>
         </header>
 
-        {/* DESCRIPCIÓN Y ACCIONES (Bajo la cabecera) */}
         <section className="px-4 sm:px-8 py-5 border-b border-[#1d293d] bg-[#0f172b]">
           <p className="text-[#cad5e2] text-[15px] leading-[26px] whitespace-pre-wrap max-w-4xl">
             {list.description}
@@ -351,7 +320,7 @@ export function ListDetail() {
             {user && user.id === String(list.author?._id) && (
               <button
                 type="button"
-                onClick={handleDelete}
+                onClick={() => setShowDeleteModal(true)} // REEMPLAZADO window.confirm
                 className="inline-flex items-center gap-1.5 text-[#ff6467] text-[13px] font-medium hover:text-[#ff8a8c] transition-colors"
               >
                 <Trash2 size={16} /> Borrar lista
@@ -361,7 +330,7 @@ export function ListDetail() {
               type="button"
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
-                alert("¡Enlace copiado al portapapeles!");
+                toast.success("¡Enlace copiado al portapapeles!"); // REEMPLAZADO alert()
               }}
               className="inline-flex items-center gap-1.5 text-[#62748e] text-[13px] font-medium hover:text-white transition-colors"
             >
@@ -370,9 +339,7 @@ export function ListDetail() {
           </div>
         </section>
 
-        {/* LAYOUT DIVIDIDO (IZQ: Juegos | DER: Chat/Comentarios) */}
         <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[#1d293d]">
-          {/* COLUMNA IZQUIERDA: JUEGOS */}
           <section className="flex-1 bg-[rgba(2,6,24,0.3)] p-4 sm:p-8">
             <div className="flex items-center gap-2 mb-6">
               <span className="w-7 h-7 rounded-[8px] bg-[#155dfc] inline-flex items-center justify-center text-white text-[12px] font-bold">
@@ -388,11 +355,7 @@ export function ListDetail() {
                 const steamCdnUrl = game.appId
                   ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`
                   : null;
-                const initialImageUrl =
-                  game.imageUrl ||
-                  game.image ||
-                  steamCdnUrl ||
-                  `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
+                const initialImageUrl = game.imageUrl || game.image || steamCdnUrl || `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
 
                 return (
                   <Link
@@ -428,9 +391,7 @@ export function ListDetail() {
             </div>
           </section>
 
-          {/* COLUMNA DERECHA: CHAT / COMENTARIOS */}
           <section className="w-full lg:w-[420px] xl:w-[480px] bg-[#0b1221] flex flex-col shrink-0 lg:h-[800px]">
-            {/* Header del Chat */}
             <div className="p-4 border-b border-[#1d293d] bg-[#0f172b] flex items-center gap-2 shrink-0">
               <MessageSquare size={18} className="text-[#51a2ff]" />
               <h2 className="text-white text-[16px] font-bold">
@@ -438,13 +399,12 @@ export function ListDetail() {
               </h2>
             </div>
 
-            {/* Feed de Comentarios */}
             <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-[#1d293d] scrollbar-track-transparent">
               {comments.map((comment) => (
                 <div key={comment._id} className="flex gap-3 group">
                   <UserProfileLink
                     steamId={comment.author?.steamId || comment.author?._id}
-                    username={comment.author?.username || "Unknown"}
+                    username={comment.author?.username || 'Unknown'}
                     avatar={comment.author?.avatar}
                     variant="avatar"
                     avatarClassName="w-8 h-8 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
@@ -454,18 +414,13 @@ export function ListDetail() {
                     <div className="rounded-[12px] rounded-tl-[4px] bg-[rgba(29,41,61,0.5)] px-3 py-2 border border-[#1d293d]">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
                         <UserProfileLink
-                          steamId={
-                            comment.author?.steamId || comment.author?._id
-                          }
-                          username={comment.author?.username || "Unknown"}
+                          steamId={comment.author?.steamId || comment.author?._id}
+                          username={comment.author?.username || 'Unknown'}
                           variant="name"
                           nameClassName="text-white text-[13px] font-bold truncate"
                         />
                         <span className="text-[#62748e] text-[10px] whitespace-nowrap">
-                          {formatDistanceToNow(new Date(comment.createdAt), {
-                            addSuffix: true,
-                            locale: es,
-                          })}
+                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
                         </span>
                       </div>
                       <p className="text-[#cad5e2] text-[13px] leading-[18px] break-words whitespace-pre-wrap">
@@ -473,7 +428,6 @@ export function ListDetail() {
                       </p>
                     </div>
 
-                    {/* Botones bajo el comentario (Responder / Reportar) */}
                     <div className="flex items-center gap-3 mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => handleReplyClick(comment)}
@@ -502,26 +456,18 @@ export function ListDetail() {
                     disabled={commentsLoadingMore}
                     className="px-4 py-2 rounded-[8px] bg-[rgba(43,127,255,0.1)] text-[#51a2ff] text-[12px] font-bold hover:bg-[rgba(43,127,255,0.2)] transition-colors disabled:opacity-50"
                   >
-                    {commentsLoadingMore
-                      ? "Cargando..."
-                      : "Cargar mensajes anteriores"}
+                    {commentsLoadingMore ? "Cargando..." : "Cargar mensajes anteriores"}
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Input de Comentarios (Fijo abajo) */}
             <div className="p-4 border-t border-[#1d293d] bg-[#0f172b] shrink-0">
               {!user ? (
                 <div className="text-center py-4 bg-[rgba(2,6,24,0.5)] rounded-[10px] border border-[#1d293d]">
                   <Lock size={20} className="text-[#62748e] mx-auto mb-2" />
-                  <p className="text-[#90a1b9] text-[13px] mb-3">
-                    Inicia sesión para chatear
-                  </p>
-                  <button
-                    onClick={login}
-                    className="h-8 px-4 rounded-[8px] bg-[#155dfc] text-white text-[12px] font-bold"
-                  >
+                  <p className="text-[#90a1b9] text-[13px] mb-3">Inicia sesión para chatear</p>
+                  <button onClick={login} className="h-8 px-4 rounded-[8px] bg-[#155dfc] text-white text-[12px] font-bold">
                     Conectar Steam
                   </button>
                 </div>
@@ -530,16 +476,9 @@ export function ListDetail() {
                   {replyingTo && (
                     <div className="mb-2 flex items-center justify-between bg-[rgba(43,127,255,0.1)] border border-[rgba(43,127,255,0.2)] rounded-[6px] px-3 py-1.5">
                       <span className="text-[12px] text-[#51a2ff] flex items-center gap-1.5">
-                        <Reply size={14} /> Respondiendo a{" "}
-                        <span className="font-bold">
-                          @{replyingTo.author.username}
-                        </span>
+                        <Reply size={14} /> Respondiendo a <span className="font-bold">@{replyingTo.author.username}</span>
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setReplyingTo(null)}
-                        className="text-[#51a2ff] hover:text-white"
-                      >
+                      <button type="button" onClick={() => setReplyingTo(null)} className="text-[#51a2ff] hover:text-white">
                         <X size={14} />
                       </button>
                     </div>
@@ -573,8 +512,39 @@ export function ListDetail() {
               )}
             </div>
           </section>
+
         </div>
       </article>
+
+      {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-[#020617]/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => !isDeleting && setShowDeleteModal(false)}>
+          <div className="w-full max-w-sm bg-[#0f172b] border border-[#1d293d] rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-xl font-black text-white flex items-center gap-2 mb-2">
+              <AlertTriangle size={24} className="text-[#ff6467]" /> Borrar Lista
+            </h3>
+            <p className="text-sm text-[#90a1b9] mb-6">
+              ¿Estás seguro de que quieres borrar esta lista? Esta acción no se puede deshacer y todos los comentarios se perderán.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-[8px] border border-[#1d293d] hover:bg-[rgba(255,255,255,0.05)] text-white text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 rounded-[8px] bg-[#ff6467] hover:bg-[#ff8a8c] text-white text-sm font-bold transition-colors disabled:opacity-50"
+              >
+                {isDeleting ? "Borrando..." : "Sí, borrar lista"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
