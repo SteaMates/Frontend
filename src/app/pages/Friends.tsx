@@ -30,6 +30,7 @@ import api, {
   getNotifications,
   cancelGamingSession,
   leaveGamingSession,
+  respondToGamingSession,
 } from "../../lib/api";
 import {
   SessionBooking,
@@ -1994,6 +1995,14 @@ export function Friends() {
                           await loadSessions();
                         } catch (error) {
                           console.error("Error leaving session:", error);
+                        }
+                      }}
+                      onRespond={async (id: string, status: "accepted" | "declined") => {
+                        try {
+                          await respondToGamingSession(id, status);
+                          await loadSessions();
+                        } catch (error) {
+                          console.error("Error responding to session:", error);
                         }
                       }}
                     />

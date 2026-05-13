@@ -375,10 +375,10 @@ export function SessionBooking({
               <div key={s} className="flex items-center gap-2">
                 <div
                   className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === s
-                      ? "bg-blue-600 text-white scale-110"
-                      : ["date", "time", "confirm"].indexOf(step) > i
-                        ? "bg-emerald-600 text-white"
-                        : "bg-slate-800 text-slate-500"
+                    ? "bg-blue-600 text-white scale-110"
+                    : ["date", "time", "confirm"].indexOf(step) > i
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-800 text-slate-500"
                     }`}
                 >
                   {["date", "time", "confirm"].indexOf(step) > i ? (
@@ -390,8 +390,8 @@ export function SessionBooking({
                 {i < 2 && (
                   <div
                     className={`w-12 h-0.5 rounded-full transition-colors ${["date", "time", "confirm"].indexOf(step) > i
-                        ? "bg-emerald-600"
-                        : "bg-slate-800"
+                      ? "bg-emerald-600"
+                      : "bg-slate-800"
                       }`}
                   />
                 )}
@@ -445,14 +445,14 @@ export function SessionBooking({
                       onClick={() => handleDateSelect(day.dateStr, day.isPast)}
                       disabled={day.isPast || saving}
                       className={`relative h-10 rounded-xl text-sm font-medium transition-all duration-200 ${isSelected
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
-                          : day.isToday
-                            ? "bg-blue-600/20 text-blue-400 border border-blue-500/40 hover:bg-blue-600/30"
-                            : day.isPast
-                              ? "text-slate-700 cursor-not-allowed"
-                              : day.isCurrentMonth
-                                ? "text-slate-300 hover:bg-slate-800 hover:text-white"
-                                : "text-slate-600 hover:bg-slate-800/50"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
+                        : day.isToday
+                          ? "bg-blue-600/20 text-blue-400 border border-blue-500/40 hover:bg-blue-600/30"
+                          : day.isPast
+                            ? "text-slate-700 cursor-not-allowed"
+                            : day.isCurrentMonth
+                              ? "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              : "text-slate-600 hover:bg-slate-800/50"
                         }`}
                     >
                       {day.date}
@@ -489,8 +489,8 @@ export function SessionBooking({
                       onClick={() => handleTimeSelect(time)}
                       disabled={saving}
                       className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isSelected
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
-                          : "bg-slate-800/60 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-slate-600"
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
+                        : "bg-slate-800/60 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-slate-600"
                         }`}
                     >
                       <Clock size={12} className="inline mr-1 opacity-50" />
@@ -561,8 +561,8 @@ export function SessionBooking({
                       </span>
                       <span
                         className={`text-[10px] px-2 py-0.5 rounded-full border ${f.status > 0
-                            ? "bg-green-500/10 text-green-400 border-green-500/20"
-                            : "bg-slate-700/50 text-slate-500 border-slate-600/30"
+                          ? "bg-green-500/10 text-green-400 border-green-500/20"
+                          : "bg-slate-700/50 text-slate-500 border-slate-600/30"
                           }`}
                       >
                         {f.status > 0 ? "Online" : "Offline"}
@@ -627,11 +627,13 @@ export function UpcomingSessions({
   sessions,
   onRemove,
   onLeave,
+  onRespond,
   currentUserSteamId,
 }: {
   sessions: ScheduledSession[];
   onRemove: (id: string) => void;
   onLeave?: (id: string) => void;
+  onRespond?: (id: string, status: "accepted" | "declined") => void | Promise<void>;
   currentUserSteamId?: string;
 }) {
   if (sessions.length === 0) return null;
@@ -655,97 +657,114 @@ export function UpcomingSessions({
           <div
             key={session.id}
             id={`session-${session.id}`}
-            className="flex items-center gap-4 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
+            className="flex flex-col gap-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
           >
-            <img
-              src={
-                session.game.headerImage ||
-                `https://cdn.cloudflare.steamstatic.com/steam/apps/${session.game.appid}/header.jpg`
-              }
-              alt={session.game.name}
-              className="w-20 h-12 rounded-lg object-cover shadow-md"
-            />
-            <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-bold text-white truncate">
-                {session.game.name}
-              </h4>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-xs text-slate-400 flex items-center gap-1">
-                  <Calendar size={11} className="text-blue-400" />
-                  {formatDate(session.date)}
-                </span>
-                <span className="text-xs text-slate-400 flex items-center gap-1">
-                  <Clock size={11} className="text-purple-400" />
-                  {session.time}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex -space-x-2 mr-2">
-              {session.friends.slice(0, 3).map((f) => (
-                <img
-                  key={f.steamId}
-                  src={f.avatar}
-                  alt={f.username}
-                  className="w-7 h-7 rounded-full border-2 border-slate-800 object-cover"
-                  title={f.username}
-                />
-              ))}
-            </div>
-
-            {/* Status badge — reflects real participant response */}
-            {session.myParticipantStatus === "declined" ? (
-              <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
-                <X size={10} className="inline mr-0.5" />
-                Rechazada
-              </span>
-            ) : session.myParticipantStatus === "accepted" ? (
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
-                <Check size={10} className="inline mr-0.5" />
-                Confirmada
-              </span>
-            ) : session.myParticipantStatus === "invited" ? (
-              <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
-                Pendiente
-              </span>
-            ) : (
-              (() => {
-                // Host view — show summary of participant responses
-                const total = session.friends?.length ?? 0;
-                const accepted =
-                  session.friends?.filter(
-                    (f) => f.participantStatus === "accepted",
-                  ).length ?? 0;
-                const declined =
-                  session.friends?.filter(
-                    (f) => f.participantStatus === "declined",
-                  ).length ?? 0;
-                if (declined === total && total > 0) {
-                  return (
-                    <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
-                      <X size={10} className="inline mr-0.5" />
-                      Todos rechazaron
-                    </span>
-                  );
+            {/* Header de la sesión */}
+            <div className="flex items-center gap-4">
+              <img
+                src={
+                  session.game.headerImage ||
+                  `https://cdn.cloudflare.steamstatic.com/steam/apps/${session.game.appid}/header.jpg`
                 }
-                if (accepted > 0) {
-                  return (
-                    <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
-                      <Check size={10} className="inline mr-0.5" />
-                      {accepted}/{total} confirmados
-                    </span>
-                  );
-                }
-                return (
-                  <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
-                    Esperando respuesta
+                alt={session.game.name}
+                className="w-20 h-12 rounded-lg object-cover shadow-md"
+              />
+              <div className="flex-1 min-w-0">
+                <h4 className="text-sm font-bold text-white truncate">
+                  {session.game.name}
+                </h4>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Calendar size={11} className="text-blue-400" />
+                    {formatDate(session.date)}
                   </span>
-                );
-              })()
-            )}
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Clock size={11} className="text-purple-400" />
+                    {session.time}
+                  </span>
+                </div>
+              </div>
 
-            {/* Eliminar botón de cancelar/abandonar para sesiones confirmadas */}
-            {/* Si quieres mostrar el botón de abandonar/cancelar en otros estados, puedes añadir lógica aquí */}
+              {/* Botones para quien es invitado */}
+              {!session.isHost && (
+                <div className="ml-auto pl-2">
+                  {session.myParticipantStatus === "invited" ? (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => onRespond?.(session.id, "accepted")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold transition-all hover:scale-105 shadow-sm"
+                        title="Aceptar invitación"
+                      >
+                        <Check size={12} /> Aceptar
+                      </button>
+                      <button
+                        onClick={() => onRespond?.(session.id, "declined")}
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold transition-all hover:scale-105 shadow-sm"
+                        title="Rechazar invitación"
+                      >
+                        <X size={12} /> Rechazar
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 group/rsvp">
+                      <span
+                        className={`text-[10px] px-2.5 py-1.5 rounded-full border font-bold flex items-center gap-1 whitespace-nowrap ${session.myParticipantStatus === "accepted"
+                          ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                          : "bg-red-500/10 text-red-400 border-red-500/20"
+                          }`}
+                      >
+                        {session.myParticipantStatus === "accepted" ? (
+                          <><Check size={12} /> Confirmada</>
+                        ) : (
+                          <><X size={12} /> Rechazada</>
+                        )}
+                      </span>
+
+                      <button
+                        onClick={() => onRespond?.(session.id, session.myParticipantStatus === "accepted" ? "declined" : "accepted")}
+                        className="opacity-0 group-hover/rsvp:opacity-100 text-[10px] text-[#51a2ff] hover:text-white underline transition-opacity whitespace-nowrap"
+                        title="Hacer clic para cambiar tu respuesta"
+                      >
+                        Cambiar a {session.myParticipantStatus === "accepted" ? "Rechazar" : "Aceptar"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Listado de participantes visible para el Host (y opcional para el resto) */}
+            {session.isHost && (
+              <div className="mt-2 pt-3 border-t border-slate-700/50">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Respuestas de los invitados
+                </p>
+                <div className="flex flex-col gap-2">
+                  {session.friends.map((f) => (
+                    <div key={f.steamId} className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
+                      <div className="flex items-center gap-2">
+                        <img src={f.avatar} alt={f.username} className="w-6 h-6 rounded-full border border-slate-700" />
+                        <span className="text-xs font-medium text-slate-300">{f.username}</span>
+                      </div>
+
+                      {f.participantStatus === "accepted" ? (
+                        <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                          <Check size={10} /> Confirmado
+                        </span>
+                      ) : f.participantStatus === "declined" ? (
+                        <span className="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                          <X size={10} /> Rechazado
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-amber-400 font-bold">
+                          Pendiente
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
