@@ -23,7 +23,7 @@ import {
   Bell,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { Navigate } from "react-router";
+import { Navigate, useLocation } from "react-router"; // <-- Añadido useLocation
 import api, {
   getCommonGames,
   getMyGamingSessions,
@@ -168,37 +168,37 @@ const RADAR_AXES: {
   label: string;
   description: string;
 }[] = [
-  {
-    key: "volumen",
-    emoji: "📚",
-    label: "Volumen",
-    description: "Tamano de la biblioteca",
-  },
-  {
-    key: "dedicacion",
-    emoji: "⏰",
-    label: "Dedicacion",
-    description: "Horas totales jugadas",
-  },
-  {
-    key: "rentabilidad",
-    emoji: "💰",
-    label: "Rentabilidad",
-    description: "Menor coste por hora",
-  },
-  {
-    key: "perfeccionismo",
-    emoji: "🏆",
-    label: "Perfeccionismo",
-    description: "Tasa de logros completados",
-  },
-  {
-    key: "fidelidad",
-    emoji: "❤️",
-    label: "Fidelidad",
-    description: "Horas concentradas en su top 1",
-  },
-];
+    {
+      key: "volumen",
+      emoji: "📚",
+      label: "Volumen",
+      description: "Tamano de la biblioteca",
+    },
+    {
+      key: "dedicacion",
+      emoji: "⏰",
+      label: "Dedicacion",
+      description: "Horas totales jugadas",
+    },
+    {
+      key: "rentabilidad",
+      emoji: "💰",
+      label: "Rentabilidad",
+      description: "Menor coste por hora",
+    },
+    {
+      key: "perfeccionismo",
+      emoji: "🏆",
+      label: "Perfeccionismo",
+      description: "Tasa de logros completados",
+    },
+    {
+      key: "fidelidad",
+      emoji: "❤️",
+      label: "Fidelidad",
+      description: "Horas concentradas en su top 1",
+    },
+  ];
 
 function DonutChart({
   pct,
@@ -326,33 +326,33 @@ function AnalyticsPanel({
     icon: ReactNode;
     activeClass: string;
   }[] = [
-    {
-      id: "economia",
-      label: "Economía",
-      icon: <Wallet size={16} />,
-      activeClass: "bg-[#009966] shadow-[0px_10px_15px_0px_rgba(0,79,59,0.3)]",
-    },
-    {
-      id: "tiempo",
-      label: "Tiempo",
-      icon: <Clock size={16} />,
-      activeClass:
-        "bg-[#155dfc] shadow-[0px_10px_15px_0px_rgba(28,57,142,0.3)]",
-    },
-    {
-      id: "logros",
-      label: "Logros",
-      icon: <Trophy size={16} />,
-      activeClass: "bg-[#e17100] shadow-[0px_10px_15px_0px_rgba(123,51,6,0.3)]",
-    },
-    {
-      id: "radar",
-      label: "Radar",
-      icon: <Hexagon size={16} />,
-      activeClass:
-        "bg-[#005ad3] shadow-[0px_10px_15px_0px_rgba(0,90,211,0.35)]",
-    },
-  ];
+      {
+        id: "economia",
+        label: "Economía",
+        icon: <Wallet size={16} />,
+        activeClass: "bg-[#009966] shadow-[0px_10px_15px_0px_rgba(0,79,59,0.3)]",
+      },
+      {
+        id: "tiempo",
+        label: "Tiempo",
+        icon: <Clock size={16} />,
+        activeClass:
+          "bg-[#155dfc] shadow-[0px_10px_15px_0px_rgba(28,57,142,0.3)]",
+      },
+      {
+        id: "logros",
+        label: "Logros",
+        icon: <Trophy size={16} />,
+        activeClass: "bg-[#e17100] shadow-[0px_10px_15px_0px_rgba(123,51,6,0.3)]",
+      },
+      {
+        id: "radar",
+        label: "Radar",
+        icon: <Hexagon size={16} />,
+        activeClass:
+          "bg-[#005ad3] shadow-[0px_10px_15px_0px_rgba(0,90,211,0.35)]",
+      },
+    ];
 
   if (loadingStats) {
     return (
@@ -377,11 +377,10 @@ function AnalyticsPanel({
           <button
             key={t.id}
             onClick={() => setSubTab(t.id)}
-            className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-[14px] text-sm font-semibold transition-all ${
-              subTab === t.id
+            className={`flex items-center gap-2 flex-1 justify-center py-2.5 rounded-[14px] text-sm font-semibold transition-all ${subTab === t.id
                 ? `${t.activeClass} text-white`
                 : "text-[#90a1b9] hover:text-white"
-            }`}
+              }`}
           >
             {t.icon}
             <span>{t.label}</span>
@@ -602,9 +601,9 @@ function AnalyticsPanel({
                       <p className="text-[#94a3b8] text-[8px]">
                         {totalValue > 0
                           ? (
-                              (libSorted[3].economy.libraryValue / totalValue) *
-                              100
-                            ).toFixed(1)
+                            (libSorted[3].economy.libraryValue / totalValue) *
+                            100
+                          ).toFixed(1)
                           : "0.0"}
                         % del total
                       </p>
@@ -795,8 +794,8 @@ function AnalyticsPanel({
                 const pct =
                   p.time.totalHours > 0
                     ? Math.round(
-                        (p.time.topGameHours / p.time.totalHours) * 100,
-                      )
+                      (p.time.topGameHours / p.time.totalHours) * 100,
+                    )
                     : 0;
 
                 return (
@@ -1020,10 +1019,10 @@ function AnalyticsPanel({
                       const perfectPct =
                         p.achievements.totalGames > 0
                           ? (
-                              (p.achievements.perfectGames /
-                                p.achievements.totalGames) *
-                              100
-                            ).toFixed(1)
+                            (p.achievements.perfectGames /
+                              p.achievements.totalGames) *
+                            100
+                          ).toFixed(1)
                           : "0.0";
 
                       return (
@@ -1464,10 +1463,15 @@ function AnalyticsPanel({
 
 export function Friends() {
   const { user } = useAuth();
+  const location = useLocation(); // <-- AÑADIDO PARA LA LECTURA DE URL
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeTab, setActiveTab] = useState<Tab>("amigos");
+
+  // <-- AUTOMATIZAR PESTAÑA SI HAY HASH EN URL
+  const initialTab: Tab = location.hash.startsWith("#session-") ? "sesiones" : "amigos";
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
   const [commonGames, setCommonGames] = useState<CommonGame[]>([]);
   const [loadingCommonGames, setLoadingCommonGames] = useState(false);
   const [bookingGame, setBookingGame] = useState<CommonGame | null>(null);
@@ -1478,6 +1482,42 @@ export function Friends() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // <-- EFECTO DE SCROLL Y HIGHLIGHT A LA SESION
+  useEffect(() => {
+    if (
+      !loadingSessions &&
+      scheduledSessions.length > 0 &&
+      location.hash.startsWith("#session-")
+    ) {
+      const sessionId = location.hash.replace("#session-", "");
+
+      // Asegurarnos de que estamos en la pestaña correcta
+      if (activeTab !== "sesiones") {
+        setActiveTab("sesiones");
+      }
+
+      // Esperamos a que el DOM se haya renderizado en la pestaña de sesiones
+      setTimeout(() => {
+        // En tu archivo original, la carta de sesión se renderiza dentro del componente UpcomingSessions.
+        // Si UpcomingSessions no le pone id={`session-${id}`} a cada div, no funcionará.
+        // Como no podemos modificar UpcomingSessions desde aquí, intentaremos buscar el contenedor o
+        // asumiendo que tienes configurado ese ID.
+        const element = document.getElementById(`session-${sessionId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          element.classList.add("ring-4", "ring-[#51a2ff]", "shadow-[0_0_20px_rgba(81,162,255,0.4)]", "bg-[#51a2ff]/10", "transition-all", "duration-500");
+
+          setTimeout(() => {
+            element.classList.remove("ring-4", "ring-[#51a2ff]", "shadow-[0_0_20px_rgba(81,162,255,0.4)]", "bg-[#51a2ff]/10");
+          }, 3500);
+        } else {
+          console.warn("No se encontró el elemento con ID session-" + sessionId + ". Asegúrate de que el componente UpcomingSessions le asigna este ID a la carta correspondiente.");
+        }
+      }, 500);
+    }
+  }, [loadingSessions, scheduledSessions, location.hash, activeTab]);
 
   useEffect(() => {
     if (!user?.steamid) return;
@@ -1568,7 +1608,6 @@ export function Friends() {
     };
   };
 
-  // Devuelve true si la sesión es futura (fecha y hora no han pasado)
   // Devuelve true si la sesión es futura (fecha y hora no han pasado)
   const isFutureSession = (session: ScheduledSession) => {
     if (!session.date || !session.time) return false;
@@ -1698,11 +1737,10 @@ export function Friends() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-[10px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${
-                  activeTab === tab.id
+                className={`flex items-center gap-2 px-3 sm:px-5 py-2 rounded-[10px] text-xs sm:text-sm font-semibold transition-all whitespace-nowrap ${activeTab === tab.id
                     ? "bg-[#155dfc] text-white shadow-[0px_10px_15px_0px_rgba(28,57,142,0.2),0px_4px_6px_0px_rgba(28,57,142,0.2)]"
                     : "text-[#90a1b9] hover:text-white"
-                }`}
+                  }`}
               >
                 {tab.icon}
                 {tab.label}
@@ -1760,11 +1798,10 @@ export function Friends() {
                 <button
                   key={friend.steamId}
                   onClick={() => toggleSelect(friend.steamId)}
-                  className={`flex items-center gap-3 p-3 rounded-[14px] border text-left transition-all w-full ${
-                    selectedIds.has(friend.steamId)
+                  className={`flex items-center gap-3 p-3 rounded-[14px] border text-left transition-all w-full ${selectedIds.has(friend.steamId)
                       ? "bg-[rgba(21,93,252,0.1)] border-[rgba(21,93,252,0.4)]"
                       : "bg-[rgba(29,41,61,0.3)] border-[rgba(49,65,88,0.3)] hover:border-[#314158]"
-                  }`}
+                    }`}
                 >
                   <div className="relative shrink-0">
                     <img
@@ -1947,24 +1984,16 @@ export function Friends() {
                         try {
                           await cancelGamingSession(id);
                           await loadSessions();
-                          await loadNotifications();
                         } catch (error) {
                           console.error("Error cancelling session:", error);
                         }
                       }}
                       onLeave={async (id: string) => {
                         try {
-                          // Remove immediately from UI for instant feedback
-                          setScheduledSessions((prev) =>
-                            prev.filter((s) => s.id !== id),
-                          );
                           await leaveGamingSession(id);
-                          // Then sync with backend
                           await loadSessions();
                         } catch (error) {
                           console.error("Error leaving session:", error);
-                          // Revert on error
-                          await loadSessions();
                         }
                       }}
                     />
@@ -2056,9 +2085,9 @@ export function Friends() {
           selectedFriends={friends.filter((f) => selectedIds.has(f.steamId))}
           onClose={() => setBookingGame(null)}
           onConfirm={async () => {
-            await loadSessions();
-            await loadNotifications();
+            await getMyGamingSessions(); // Refresh
             setBookingGame(null);
+            // Si el estado recarga por otros useEffects, no hace falta más aquí.
           }}
           existingSessions={scheduledSessions}
         />

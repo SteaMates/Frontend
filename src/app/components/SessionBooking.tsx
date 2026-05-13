@@ -267,7 +267,7 @@ export function SessionBooking({
       if (status === 409) {
         toast.error(
           msg ||
-            "Ya tienes una sesión programada a esa hora. Elige otro horario.",
+          "Ya tienes una sesión programada a esa hora. Elige otro horario.",
           { duration: 6000 },
         );
       } else {
@@ -374,13 +374,12 @@ export function SessionBooking({
             {["date", "time", "confirm"].map((s, i) => (
               <div key={s} className="flex items-center gap-2">
                 <div
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
-                    step === s
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === s
                       ? "bg-blue-600 text-white scale-110"
                       : ["date", "time", "confirm"].indexOf(step) > i
                         ? "bg-emerald-600 text-white"
                         : "bg-slate-800 text-slate-500"
-                  }`}
+                    }`}
                 >
                   {["date", "time", "confirm"].indexOf(step) > i ? (
                     <Check size={12} />
@@ -390,11 +389,10 @@ export function SessionBooking({
                 </div>
                 {i < 2 && (
                   <div
-                    className={`w-12 h-0.5 rounded-full transition-colors ${
-                      ["date", "time", "confirm"].indexOf(step) > i
+                    className={`w-12 h-0.5 rounded-full transition-colors ${["date", "time", "confirm"].indexOf(step) > i
                         ? "bg-emerald-600"
                         : "bg-slate-800"
-                    }`}
+                      }`}
                   />
                 )}
               </div>
@@ -446,8 +444,7 @@ export function SessionBooking({
                       key={i}
                       onClick={() => handleDateSelect(day.dateStr, day.isPast)}
                       disabled={day.isPast || saving}
-                      className={`relative h-10 rounded-xl text-sm font-medium transition-all duration-200 ${
-                        isSelected
+                      className={`relative h-10 rounded-xl text-sm font-medium transition-all duration-200 ${isSelected
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
                           : day.isToday
                             ? "bg-blue-600/20 text-blue-400 border border-blue-500/40 hover:bg-blue-600/30"
@@ -456,7 +453,7 @@ export function SessionBooking({
                               : day.isCurrentMonth
                                 ? "text-slate-300 hover:bg-slate-800 hover:text-white"
                                 : "text-slate-600 hover:bg-slate-800/50"
-                      }`}
+                        }`}
                     >
                       {day.date}
                       {day.isToday && (
@@ -491,11 +488,10 @@ export function SessionBooking({
                       key={time}
                       onClick={() => handleTimeSelect(time)}
                       disabled={saving}
-                      className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
-                        isSelected
+                      className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 ${isSelected
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
                           : "bg-slate-800/60 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-slate-600"
-                      }`}
+                        }`}
                     >
                       <Clock size={12} className="inline mr-1 opacity-50" />
                       {time}
@@ -564,11 +560,10 @@ export function SessionBooking({
                         {f.username}
                       </span>
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded-full border ${
-                          f.status > 0
+                        className={`text-[10px] px-2 py-0.5 rounded-full border ${f.status > 0
                             ? "bg-green-500/10 text-green-400 border-green-500/20"
                             : "bg-slate-700/50 text-slate-500 border-slate-600/30"
-                        }`}
+                          }`}
                       >
                         {f.status > 0 ? "Online" : "Offline"}
                       </span>
@@ -593,14 +588,12 @@ export function SessionBooking({
                 <button
                   onClick={() => setNotifyFriends(!notifyFriends)}
                   disabled={saving}
-                  className={`w-11 h-6 rounded-full transition-colors relative ${
-                    notifyFriends ? "bg-blue-600" : "bg-slate-700"
-                  }`}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${notifyFriends ? "bg-blue-600" : "bg-slate-700"
+                    }`}
                 >
                   <div
-                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${
-                      notifyFriends ? "left-6" : "left-1"
-                    }`}
+                    className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform ${notifyFriends ? "left-6" : "left-1"
+                      }`}
                   />
                 </button>
               </div>
@@ -661,7 +654,8 @@ export function UpcomingSessions({
         {sessions.map((session) => (
           <div
             key={session.id}
-            className="flex items-center gap-4 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50"
+            id={`session-${session.id}`}
+            className="flex items-center gap-4 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
           >
             <img
               src={
