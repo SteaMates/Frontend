@@ -830,12 +830,17 @@ function AnalyticsPanel({
                       <span className="text-[#cad5e2] text-[12px] font-semibold">
                         {p.time.topGame}
                       </span>
-                      <span
-                        className="font-black text-[12px]"
-                        style={{ color: p.color }}
-                      >
-                        {p.time.topGameHours}h
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[#94a3b8] text-[11px] font-bold">
+                          ({pct.toFixed(1)}%)
+                        </span>
+                        <span
+                          className="font-black text-[12px]"
+                          style={{ color: p.color }}
+                        >
+                          {p.time.topGameHours}h
+                        </span>
+                      </div>
                     </div>
 
                     <div className="w-full h-3 bg-[#314158] rounded-full overflow-hidden mb-1.5">
@@ -854,7 +859,7 @@ function AnalyticsPanel({
                         className="font-bold text-[10px]"
                         style={{ color: p.color }}
                       >
-                        % del total
+                        {pct.toFixed(1)}% del total
                       </span>
                       <span className="text-[#45556c] text-[10px]">100%</span>
                     </div>
