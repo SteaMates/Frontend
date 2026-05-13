@@ -22,7 +22,8 @@ export interface AppNotification {
     | "session_response"
     | "session_cancelled"
     | "session_updated"
-    | "price_alert_triggered";
+    | "price_alert_triggered"
+    | "list_mention";
   title: string;
   message: string;
   readAt: string | null;
