@@ -1760,7 +1760,7 @@ export function Friends() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6 items-start">
-        <div className="w-full lg:w-[261px] shrink-0 bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[24px] p-5 flex flex-col gap-4">
+        <div className="w-full lg:w-[280px] shrink-0 bg-[#0f172b]/40 backdrop-blur-xl border border-white/5 rounded-[24px] p-5 flex flex-col gap-4 sticky top-6">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Check size={18} className="text-[#51a2ff]" />
@@ -1802,7 +1802,7 @@ export function Friends() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-3 overflow-y-auto max-h-[480px] pr-1">
+            <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[680px] pr-2 custom-scrollbar">
               {filteredFriends.map((friend) => (
                 <button
                   key={friend.steamId}
