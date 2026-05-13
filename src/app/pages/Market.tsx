@@ -151,8 +151,8 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         <div
           ref={scrollRef}
           {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab custom-scrollbar ${isDragging ? "cursor-grabbing" : ""}`}
+
         >
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse pointer-events-none" />
@@ -174,8 +174,8 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         <div
           ref={scrollRef}
           {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab scrollbar-none ${isDragging ? "cursor-grabbing" : ""}`}
-          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab custom-scrollbar ${isDragging ? "cursor-grabbing" : ""}`}
+
         >
           {deals.map(deal => (
             <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group ${isDragging ? "pointer-events-none" : ""}`}>
@@ -609,8 +609,7 @@ export function Market() {
           <div
             ref={categoriesScrollRef}
             {...categoriesScrollEvents}
-            className={`flex overflow-x-auto pb-2 -mx-2 px-2 gap-2 cursor-grab scrollbar-none ${isCategoriesDragging ? "cursor-grabbing" : ""}`}
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className={`flex overflow-x-auto pb-4 -mx-2 px-2 gap-2 cursor-grab custom-scrollbar ${isCategoriesDragging ? "cursor-grabbing" : ""}`}
           >
             {GLOBAL_TAGS.map(tag => {
               const isActive = selectedTags.includes(tag.id);
