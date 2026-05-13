@@ -166,6 +166,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   // - Haven't been responded/dismissed in this session
   // readAt is set by the backend when the user responds, so it's the
   // reliable source of truth across reloads.
+  // pendingInvites: usado por los toasts flotantes — excluye los ya mostrados
+  // en esta sesión para evitar que reaparezcan al hacer polling.
   const pendingInvites = notifications.filter(
     (n) =>
       n.type === "session_invite" &&

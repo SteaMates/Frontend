@@ -1628,6 +1628,26 @@ export function Friends() {
     return sessionDate.getTime() > now.getTime();
   };
 
+  // Sessions the user has explicitly hidden from their list (kept in localStorage).
+  const getHiddenSessions = (): Set<string> => {
+    try {
+      const raw = localStorage.getItem(`hiddenSessions:${user?.steamid}`);
+      return raw ? new Set(JSON.parse(raw)) : new Set();
+    } catch {
+      return new Set();
+    }
+  };
+
+  const hideSession = (id: string) => {
+    if (!user?.steamid) return;
+    const hidden = getHiddenSessions();
+    hidden.add(id);
+    localStorage.setItem(
+      `hiddenSessions:${user.steamid}`,
+      JSON.stringify([...hidden]),
+    );
+  };
+
   const loadSessions = async () => {
     if (!user?.steamid) return;
 
@@ -1635,10 +1655,12 @@ export function Friends() {
     try {
       const res = await getMyGamingSessions();
       const allSessions = (res.data?.sessions || []).map(normalizeSession);
+      const hidden = getHiddenSessions();
 
-      // Show declined sessions briefly so the badge is visible, then filter them
-      // after 5s. Always hide past sessions.
-      const sessions = allSessions.filter((s) => isFutureSession(s));
+      // Hide past sessions and user-hidden ones.
+      const sessions = allSessions.filter(
+        (s) => isFutureSession(s) && !hidden.has(s.id),
+      );
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);
@@ -1996,8 +2018,13 @@ export function Friends() {
                         }
                       }}
                       onLeave={async (id: string) => {
+                        const session = scheduledSessions.find((s) => s.id === id);
                         try {
-                          await leaveGamingSession(id);
+                          // If already declined, just hide locally. Otherwise call leave.
+                          if (session?.myParticipantStatus !== "declined") {
+                            await leaveGamingSession(id);
+                          }
+                          hideSession(id);
                           await loadSessions();
                         } catch (error) {
                           console.error("Error leaving session:", error);

@@ -210,7 +210,27 @@ function NotificationItem({
   onClosePanel: () => void;
 }) {
   const navigate = useNavigate();
+  const { respondInvite } = useNotifications();
   const isUnread = !n.readAt;
+  const [responding, setResponding] = useState<"accepted" | "declined" | null>(null);
+
+  // Check if this is a pending invite that still needs a response
+  const sessionId = n.session?._id ?? (n.data?.sessionId as string | undefined);
+  const isPendingInvite =
+    n.type === "session_invite" &&
+    !n.readAt &&
+    !!sessionId;
+
+  const handleRespond = async (e: React.MouseEvent, response: "accepted" | "declined") => {
+    e.stopPropagation();
+    if (!sessionId || responding) return;
+    setResponding(response);
+    try {
+      await respondInvite(n._id, sessionId, response);
+    } catch {
+      setResponding(null);
+    }
+  };
 
   const typeColors: Record<string, string> = {
     session_invite: "bg-blue-500",
@@ -252,10 +272,12 @@ function NotificationItem({
 
   return (
     <div
-      className={`px-4 py-3 flex gap-3 items-start transition-colors hover:bg-slate-800/60 cursor-pointer ${isUnread ? "bg-slate-800/30" : ""
-        }`}
-      onClick={handleClick}
+      className={`px-4 py-3 transition-colors hover:bg-slate-800/60 ${isUnread ? "bg-slate-800/30" : ""}`}
     >
+      <div
+        className="flex gap-3 items-start cursor-pointer"
+        onClick={handleClick}
+      >
       <div className="relative shrink-0 mt-0.5">
         {n.from?.avatar ? (
           <img
@@ -284,8 +306,28 @@ function NotificationItem({
         <p className="text-xs text-slate-500 mt-1">{timeAgo(n.createdAt)}</p>
       </div>
 
-      {isUnread && (
-        <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
+        {isUnread && !isPendingInvite && (
+          <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
+        )}
+      </div>
+
+      {isPendingInvite && (
+        <div className="flex gap-2 mt-2 pl-11">
+          <button
+            onClick={(e) => handleRespond(e, "accepted")}
+            disabled={!!responding}
+            className="flex-1 px-2 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 disabled:opacity-50 transition-colors"
+          >
+            {responding === "accepted" ? "..." : "Aceptar"}
+          </button>
+          <button
+            onClick={(e) => handleRespond(e, "declined")}
+            disabled={!!responding}
+            className="flex-1 px-2 py-1.5 text-xs font-semibold rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/30 disabled:opacity-50 transition-colors"
+          >
+            {responding === "declined" ? "..." : "Rechazar"}
+          </button>
+        </div>
       )}
     </div>
   );

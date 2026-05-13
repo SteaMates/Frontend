@@ -14,6 +14,9 @@ import {
   Loader2,
   RotateCcw,
   User,
+  Trash2,
+  Ban,
+  LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createGamingSession } from "../../lib/api";
@@ -684,8 +687,30 @@ export function UpcomingSessions({
           <div
             key={session.id}
             id={`session-${session.id}`}
-            className="flex flex-col gap-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
+            className="relative flex flex-col gap-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
           >
+            {/* Botón eliminar / abandonar / cancelar, contextual */}
+            <button
+              onClick={() => {
+                if (session.isHost) {
+                  if (window.confirm(`¿Cancelar la sesión de ${session.game.name}? Se notificará a todos los participantes.`)) {
+                    onRemove(session.id);
+                  }
+                } else {
+                  const msg = session.myParticipantStatus === "declined"
+                    ? `¿Eliminar esta sesión de tu lista?`
+                    : `¿Abandonar la sesión de ${session.game.name}?`;
+                  if (window.confirm(msg) && onLeave) {
+                    onLeave(session.id);
+                  }
+                }
+              }}
+              className="absolute top-2 right-2 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all z-10"
+              title={session.isHost ? "Cancelar sesión" : session.myParticipantStatus === "declined" ? "Eliminar de mi lista" : "Abandonar sesión"}
+            >
+              {session.isHost ? <Ban size={14} /> : session.myParticipantStatus === "declined" ? <Trash2 size={14} /> : <LogOut size={14} />}
+            </button>
+
             {/* Header de la sesión */}
             <div className="flex items-start gap-4">
               <img

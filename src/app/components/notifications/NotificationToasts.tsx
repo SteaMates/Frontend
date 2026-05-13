@@ -144,16 +144,17 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
  * Place this once inside Layout — it reads from NotificationsContext.
  */
 export function NotificationToasts() {
-  const { pendingInvites, markRead, respondInvite: ctxRespondInvite } = useNotifications();
+  const { pendingInvites } = useNotifications();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  // Visible = pending invites not yet dismissed locally
+  // Visible = pending invites not yet dismissed locally in this tab
   const visible = pendingInvites.filter((n) => !dismissed.has(n._id));
 
-  // Dismiss without responding (X button) — just hides the toast and marks read
+  // Dismiss without responding (X button) — hide locally only.
+  // We DO NOT mark as read, so the invite stays pending and the user can
+  // still accept/decline it from the bell panel.
   const dismiss = (id: string) => {
     setDismissed((prev) => new Set(prev).add(id));
-    markRead(id);
   };
 
   return (
