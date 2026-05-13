@@ -21,7 +21,7 @@ export interface SessionFriend {
   username: string;
   avatar: string;
   status: number;
-  participantStatus?: 'invited' | 'accepted' | 'declined';
+  participantStatus?: "invited" | "accepted" | "declined";
 }
 
 export interface SessionGame {
@@ -37,7 +37,7 @@ export interface ScheduledSession {
   time: string;
   friends: SessionFriend[];
   confirmed: boolean;
-  myParticipantStatus?: 'invited' | 'accepted' | 'declined';
+  myParticipantStatus?: "invited" | "accepted" | "declined";
   isHost?: boolean;
 }
 
@@ -142,7 +142,8 @@ export function SessionBooking({
       const dateObj = new Date(currentYear, currentMonth, d);
       const isToday = dateObj.toDateString() === today.toDateString();
       const isPast =
-        dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        dateObj <
+        new Date(today.getFullYear(), today.getMonth(), today.getDate());
       const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
       days.push({
         date: d,
@@ -207,9 +208,23 @@ export function SessionBooking({
   };
 
   const handleConfirm = async () => {
-    if (!selectedDate || !selectedTime) return;
+    if (!selectedDate || !selectedTime) {
+      toast.error("Selecciona una fecha y hora para continuar.");
+      return;
+    }
     if (selectedFriends.length === 0) {
       toast.error("Selecciona al menos un amigo para crear la sesión.");
+      return;
+    }
+
+    const scheduledAt = buildScheduledAt(selectedDate, selectedTime);
+    const scheduledDate = new Date(scheduledAt);
+    if (Number.isNaN(scheduledDate.getTime())) {
+      toast.error("La fecha u hora seleccionada no es valida.");
+      return;
+    }
+    if (scheduledDate.getTime() < Date.now() - 5 * 60 * 1000) {
+      toast.error("Selecciona una fecha y hora futuras.");
       return;
     }
 
@@ -226,7 +241,7 @@ export function SessionBooking({
         },
         date: selectedDate,
         time: selectedTime,
-        scheduledAt: buildScheduledAt(selectedDate, selectedTime),
+        scheduledAt,
         participants: selectedFriends.map((friend) => ({
           steamId: friend.steamId,
           username: friend.username,
@@ -247,9 +262,17 @@ export function SessionBooking({
       onClose();
     } catch (error: any) {
       console.error("Error creating gaming session:", error);
-      toast.error(
-        error?.response?.data?.error || "No se pudo crear la sesión.",
-      );
+      const status = error?.response?.status;
+      const msg = error?.response?.data?.error;
+      if (status === 409) {
+        toast.error(
+          msg ||
+            "Ya tienes una sesión programada a esa hora. Elige otro horario.",
+          { duration: 6000 },
+        );
+      } else {
+        toast.error(msg || "No se pudo crear la sesión.");
+      }
     } finally {
       setSaving(false);
     }
@@ -260,11 +283,6 @@ export function SessionBooking({
     const date = new Date(y, m - 1, d);
     const dayName = DAYS_ES[(date.getDay() + 6) % 7];
     return `${dayName} ${d} de ${MONTHS_ES[m - 1]}`;
-  };
-
-  const isPopularHour = (time: string) => {
-    const hour = parseInt(time.split(":")[0]);
-    return hour >= 18 && hour <= 23;
   };
 
   const gameImage =
@@ -325,7 +343,9 @@ export function SessionBooking({
               }}
             />
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-bold text-white truncate">{game.name}</h3>
+              <h3 className="text-sm font-bold text-white truncate">
+                {game.name}
+              </h3>
               <div className="flex items-center gap-1 text-[10px] text-slate-500">
                 <Users size={10} />
                 <span>Tú + {selectedFriends.length} amigos</span>
@@ -455,12 +475,15 @@ export function SessionBooking({
           {step === "time" && selectedDate && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <p className="text-sm text-slate-400 mb-4">
-                📅 <span className="text-white font-medium">{formatDateDisplay(selectedDate)}</span> — ¿A qué hora?
+                📅{" "}
+                <span className="text-white font-medium">
+                  {formatDateDisplay(selectedDate)}
+                </span>{" "}
+                — ¿A qué hora?
               </p>
 
               <div className="grid grid-cols-4 gap-2">
                 {HOURS.map((time) => {
-                  const popular = isPopularHour(time);
                   const isSelected = selectedTime === time;
 
                   return (
@@ -468,7 +491,7 @@ export function SessionBooking({
                       key={time}
                       onClick={() => handleTimeSelect(time)}
                       disabled={saving}
-                      className={`relative py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      className={`py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
                         isSelected
                           ? "bg-blue-600 text-white shadow-lg shadow-blue-900/30 scale-105"
                           : "bg-slate-800/60 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50 hover:border-slate-600"
@@ -476,11 +499,6 @@ export function SessionBooking({
                     >
                       <Clock size={12} className="inline mr-1 opacity-50" />
                       {time}
-                      {popular && !isSelected && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-500 flex items-center justify-center">
-                          <span className="text-[6px] text-black font-bold">🔥</span>
-                        </div>
-                      )}
                     </button>
                   );
                 })}
@@ -498,7 +516,9 @@ export function SessionBooking({
                     className="w-24 h-14 rounded-xl object-cover shadow-lg"
                   />
                   <div className="flex-1">
-                    <h3 className="text-base font-bold text-white">{game.name}</h3>
+                    <h3 className="text-base font-bold text-white">
+                      {game.name}
+                    </h3>
                     <div className="flex flex-col gap-1 mt-2">
                       <span className="text-sm text-slate-300 flex items-center gap-2">
                         <Calendar size={14} className="text-blue-400" />
@@ -522,7 +542,9 @@ export function SessionBooking({
                     <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
                       Yo
                     </div>
-                    <span className="text-sm text-white font-medium flex-1">Tú</span>
+                    <span className="text-sm text-white font-medium flex-1">
+                      Tú
+                    </span>
                     <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/20">
                       Organizador
                     </span>
@@ -559,7 +581,9 @@ export function SessionBooking({
                 <div className="flex items-center gap-3">
                   <Bell size={16} className="text-amber-400" />
                   <div>
-                    <p className="text-sm text-white font-medium">Notificar amigos</p>
+                    <p className="text-sm text-white font-medium">
+                      Notificar amigos
+                    </p>
                     <p className="text-[10px] text-slate-500">
                       Envía una invitación visual a todos los participantes
                     </p>
@@ -676,26 +700,54 @@ export function UpcomingSessions({
             </div>
 
             {/* Status badge — reflects real participant response */}
-            {session.myParticipantStatus === 'declined' ? (
+            {session.myParticipantStatus === "declined" ? (
               <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
                 <X size={10} className="inline mr-0.5" />
                 Rechazada
               </span>
-            ) : session.myParticipantStatus === 'accepted' ? (
+            ) : session.myParticipantStatus === "accepted" ? (
               <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
                 <Check size={10} className="inline mr-0.5" />
                 Confirmada
               </span>
-            ) : session.myParticipantStatus === 'invited' ? (
+            ) : session.myParticipantStatus === "invited" ? (
               <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
                 Pendiente
               </span>
             ) : (
-              // Host view — show overall session status
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
-                <Check size={10} className="inline mr-0.5" />
-                Programada
-              </span>
+              (() => {
+                // Host view — show summary of participant responses
+                const total = session.friends?.length ?? 0;
+                const accepted =
+                  session.friends?.filter(
+                    (f) => f.participantStatus === "accepted",
+                  ).length ?? 0;
+                const declined =
+                  session.friends?.filter(
+                    (f) => f.participantStatus === "declined",
+                  ).length ?? 0;
+                if (declined === total && total > 0) {
+                  return (
+                    <span className="text-[10px] bg-red-500/10 text-red-400 px-2.5 py-1 rounded-full border border-red-500/20 font-bold whitespace-nowrap">
+                      <X size={10} className="inline mr-0.5" />
+                      Todos rechazaron
+                    </span>
+                  );
+                }
+                if (accepted > 0) {
+                  return (
+                    <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full border border-emerald-500/20 font-bold whitespace-nowrap">
+                      <Check size={10} className="inline mr-0.5" />
+                      {accepted}/{total} confirmados
+                    </span>
+                  );
+                }
+                return (
+                  <span className="text-[10px] bg-amber-500/10 text-amber-400 px-2.5 py-1 rounded-full border border-amber-500/20 font-bold whitespace-nowrap">
+                    Esperando respuesta
+                  </span>
+                );
+              })()
             )}
 
             {/* Eliminar botón de cancelar/abandonar para sesiones confirmadas */}

@@ -7,7 +7,7 @@ import {
   ThumbsUp,
   Trash2,
   Reply,
-  X
+  X,
 } from "lucide-react";
 import { Link, Navigate, useParams, useNavigate } from "react-router";
 import { useAuth } from "../context/AuthContext";
@@ -57,6 +57,8 @@ interface List {
   createdAt: string;
 }
 
+const MAX_COMMENT_LENGTH = 1000;
+
 export function ListDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,7 +69,7 @@ export function ListDetail() {
   const [commentsHasMore, setCommentsHasMore] = useState(false);
   const [commentsLoadingMore, setCommentsLoadingMore] = useState(false);
   const [commentsTotal, setCommentsTotal] = useState(0);
-  
+
   // Estado para las respuestas/hilos
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<CommentData | null>(null);
@@ -77,7 +79,8 @@ export function ListDetail() {
   const [error, setError] = useState(false);
 
   const handleDelete = async () => {
-    if (!window.confirm("¿Estás seguro de que quieres borrar esta lista?")) return;
+    if (!window.confirm("¿Estás seguro de que quieres borrar esta lista?"))
+      return;
     try {
       await api.delete(`/api/lists/${id}`);
       navigate("/lists");
@@ -92,24 +95,26 @@ export function ListDetail() {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
-          api.get(`/api/lists/${id}/comments`, { params: { page: 1, limit: 20 } })
+          api.get(`/api/lists/${id}/comments`, {
+            params: { page: 1, limit: 20 },
+          }),
         ]);
         setList(listRes.data);
-        
+
         const commentsList = Array.isArray(commentsRes.data)
           ? commentsRes.data
           : commentsRes.data?.comments || [];
         const commentsPagination = Array.isArray(commentsRes.data)
           ? null
           : commentsRes.data?.pagination || null;
-        
+
         setComments(commentsList);
         setCommentsPage(commentsPagination?.page || 1);
         setCommentsTotal(commentsPagination?.total || commentsList.length);
         setCommentsHasMore(
           commentsPagination
             ? commentsPagination.page < commentsPagination.pages
-            : false
+            : false,
         );
       } catch (err) {
         console.error("Error fetching list data:", err);
@@ -127,7 +132,11 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/like`);
-      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
+      setList((prev) =>
+        prev
+          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
+          : prev,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -137,7 +146,11 @@ export function ListDetail() {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/dislike`);
-      setList(prev => prev ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes } : prev);
+      setList((prev) =>
+        prev
+          ? { ...prev, likes: res.data.likes, dislikes: res.data.dislikes }
+          : prev,
+      );
     } catch (err) {
       console.error(err);
     }
@@ -160,13 +173,18 @@ export function ListDetail() {
   const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return login();
-    if (!newComment.trim()) return;
+    const trimmedComment = newComment.trim();
+    if (!trimmedComment) return;
+    if (trimmedComment.length > MAX_COMMENT_LENGTH) {
+      alert(`El comentario no puede superar ${MAX_COMMENT_LENGTH} caracteres.`);
+      return;
+    }
 
     try {
-      const payload: any = { content: newComment };
+      const payload: any = { content: trimmedComment };
       // Si en el backend en el futuro añades parentId al modelo, esto funcionará automáticamente
       if (replyingTo) {
-        payload.parentId = replyingTo._id; 
+        payload.parentId = replyingTo._id;
       }
 
       const res = await api.post(`/api/lists/${id}/comments`, payload);
@@ -177,7 +195,8 @@ export function ListDetail() {
     } catch (err) {
       console.error(err);
       const error = err as any;
-      const errorMessage = error?.response?.data?.error || error?.message || "Unknown error";
+      const errorMessage =
+        error?.response?.data?.error || error?.message || "Unknown error";
       alert(`Error al comentar: ${errorMessage}`);
     }
   };
@@ -205,7 +224,7 @@ export function ListDetail() {
       setCommentsHasMore(
         responsePagination
           ? responsePagination.page < responsePagination.pages
-          : false
+          : false,
       );
     } catch (err) {
       console.error("Error loading more comments:", err);
@@ -217,12 +236,17 @@ export function ListDetail() {
   // Helper visual para resaltar menciones como @Usuario
   const renderCommentContent = (text: string) => {
     const parts = text.split(/(@\w+)/g);
-    return parts.map((part, i) => 
-      part.startsWith('@') ? (
-        <span key={i} className="text-[#51a2ff] font-bold bg-[rgba(43,127,255,0.1)] px-1 rounded-[4px]">{part}</span>
+    return parts.map((part, i) =>
+      part.startsWith("@") ? (
+        <span
+          key={i}
+          className="text-[#51a2ff] font-bold bg-[rgba(43,127,255,0.1)] px-1 rounded-[4px]"
+        >
+          {part}
+        </span>
       ) : (
         part
-      )
+      ),
     );
   };
 
@@ -244,11 +268,13 @@ export function ListDetail() {
       </Link>
 
       <article className="mt-6 rounded-[16px] border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-2xl">
-        
         {/* CABECERA (Reducida y compacta) */}
         <header className="relative h-[140px] sm:h-[180px] bg-[#1d293d]">
           <img
-            src={list.coverImage || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"}
+            src={
+              list.coverImage ||
+              "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"
+            }
             alt={list.title}
             className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
           />
@@ -257,11 +283,15 @@ export function ListDetail() {
           <div className="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                {list.categories && list.categories.map((cat, idx) => (
-                  <span key={idx} className="bg-[rgba(43,127,255,0.2)] border border-[rgba(43,127,255,0.3)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider">
-                    {cat}
-                  </span>
-                ))}
+                {list.categories &&
+                  list.categories.map((cat, idx) => (
+                    <span
+                      key={idx}
+                      className="bg-[rgba(43,127,255,0.2)] border border-[rgba(43,127,255,0.3)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider"
+                    >
+                      {cat}
+                    </span>
+                  ))}
               </div>
               <h1 className="text-white text-[24px] sm:text-[32px] leading-tight font-bold">
                 {list.title}
@@ -269,7 +299,7 @@ export function ListDetail() {
               <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] sm:text-[14px]">
                 <UserProfileLink
                   steamId={list.author?.steamId || list.author?._id}
-                  username={list.author?.username || 'Unknown'}
+                  username={list.author?.username || "Unknown"}
                   avatar={list.author?.avatar}
                   variant="both"
                   avatarClassName="w-6 h-6 rounded-full border border-[#45556c] bg-[#314158]"
@@ -277,23 +307,26 @@ export function ListDetail() {
                 />
                 <span className="text-[#62748e]">•</span>
                 <span className="text-[#62748e]">
-                  {formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es })}
+                  {formatDistanceToNow(new Date(list.createdAt), {
+                    addSuffix: true,
+                    locale: es,
+                  })}
                 </span>
               </div>
             </div>
 
             {/* Votos (Compactos) */}
             <div className="h-10 rounded-[10px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.6)] backdrop-blur-md px-1.5 flex items-center gap-1 w-fit">
-              <button 
+              <button
                 onClick={handleLike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#a3b3cb]'}`}
+                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.likes?.includes(user?.id || "") ? "text-[#00d492]" : "text-[#a3b3cb]"}`}
               >
                 <ThumbsUp size={14} /> {list.likes?.length || 0}
               </button>
               <div className="w-px h-4 bg-[#314158]" />
-              <button 
+              <button
                 onClick={handleDislike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467]' : 'text-[#a3b3cb]'}`}
+                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.dislikes?.includes(user?.id || "") ? "text-[#ff6467]" : "text-[#a3b3cb]"}`}
               >
                 <ThumbsDown size={14} /> {list.dislikes?.length || 0}
               </button>
@@ -339,7 +372,6 @@ export function ListDetail() {
 
         {/* LAYOUT DIVIDIDO (IZQ: Juegos | DER: Chat/Comentarios) */}
         <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[#1d293d]">
-          
           {/* COLUMNA IZQUIERDA: JUEGOS */}
           <section className="flex-1 bg-[rgba(2,6,24,0.3)] p-4 sm:p-8">
             <div className="flex items-center gap-2 mb-6">
@@ -353,10 +385,14 @@ export function ListDetail() {
 
             <div className="space-y-3">
               {list.games.map((game, index) => {
-                const steamCdnUrl = game.appId 
+                const steamCdnUrl = game.appId
                   ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`
                   : null;
-                const initialImageUrl = game.imageUrl || game.image || steamCdnUrl || `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
+                const initialImageUrl =
+                  game.imageUrl ||
+                  game.image ||
+                  steamCdnUrl ||
+                  `https://placehold.co/200x100/1d293d/94a3b8?text=${encodeURIComponent(game.name || "?")}`;
 
                 return (
                   <Link
@@ -408,7 +444,7 @@ export function ListDetail() {
                 <div key={comment._id} className="flex gap-3 group">
                   <UserProfileLink
                     steamId={comment.author?.steamId || comment.author?._id}
-                    username={comment.author?.username || 'Unknown'}
+                    username={comment.author?.username || "Unknown"}
                     avatar={comment.author?.avatar}
                     variant="avatar"
                     avatarClassName="w-8 h-8 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
@@ -418,23 +454,28 @@ export function ListDetail() {
                     <div className="rounded-[12px] rounded-tl-[4px] bg-[rgba(29,41,61,0.5)] px-3 py-2 border border-[#1d293d]">
                       <div className="flex items-center justify-between gap-2 mb-0.5">
                         <UserProfileLink
-                          steamId={comment.author?.steamId || comment.author?._id}
-                          username={comment.author?.username || 'Unknown'}
+                          steamId={
+                            comment.author?.steamId || comment.author?._id
+                          }
+                          username={comment.author?.username || "Unknown"}
                           variant="name"
                           nameClassName="text-white text-[13px] font-bold truncate"
                         />
                         <span className="text-[#62748e] text-[10px] whitespace-nowrap">
-                          {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
+                          {formatDistanceToNow(new Date(comment.createdAt), {
+                            addSuffix: true,
+                            locale: es,
+                          })}
                         </span>
                       </div>
                       <p className="text-[#cad5e2] text-[13px] leading-[18px] break-words whitespace-pre-wrap">
                         {renderCommentContent(comment.content)}
                       </p>
                     </div>
-                    
+
                     {/* Botones bajo el comentario (Responder / Reportar) */}
                     <div className="flex items-center gap-3 mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => handleReplyClick(comment)}
                         className="text-[11px] text-[#62748e] hover:text-[#51a2ff] font-medium flex items-center gap-1"
                       >
@@ -461,7 +502,9 @@ export function ListDetail() {
                     disabled={commentsLoadingMore}
                     className="px-4 py-2 rounded-[8px] bg-[rgba(43,127,255,0.1)] text-[#51a2ff] text-[12px] font-bold hover:bg-[rgba(43,127,255,0.2)] transition-colors disabled:opacity-50"
                   >
-                    {commentsLoadingMore ? "Cargando..." : "Cargar mensajes anteriores"}
+                    {commentsLoadingMore
+                      ? "Cargando..."
+                      : "Cargar mensajes anteriores"}
                   </button>
                 </div>
               )}
@@ -472,8 +515,13 @@ export function ListDetail() {
               {!user ? (
                 <div className="text-center py-4 bg-[rgba(2,6,24,0.5)] rounded-[10px] border border-[#1d293d]">
                   <Lock size={20} className="text-[#62748e] mx-auto mb-2" />
-                  <p className="text-[#90a1b9] text-[13px] mb-3">Inicia sesión para chatear</p>
-                  <button onClick={login} className="h-8 px-4 rounded-[8px] bg-[#155dfc] text-white text-[12px] font-bold">
+                  <p className="text-[#90a1b9] text-[13px] mb-3">
+                    Inicia sesión para chatear
+                  </p>
+                  <button
+                    onClick={login}
+                    className="h-8 px-4 rounded-[8px] bg-[#155dfc] text-white text-[12px] font-bold"
+                  >
                     Conectar Steam
                   </button>
                 </div>
@@ -482,9 +530,16 @@ export function ListDetail() {
                   {replyingTo && (
                     <div className="mb-2 flex items-center justify-between bg-[rgba(43,127,255,0.1)] border border-[rgba(43,127,255,0.2)] rounded-[6px] px-3 py-1.5">
                       <span className="text-[12px] text-[#51a2ff] flex items-center gap-1.5">
-                        <Reply size={14} /> Respondiendo a <span className="font-bold">@{replyingTo.author.username}</span>
+                        <Reply size={14} /> Respondiendo a{" "}
+                        <span className="font-bold">
+                          @{replyingTo.author.username}
+                        </span>
                       </span>
-                      <button type="button" onClick={() => setReplyingTo(null)} className="text-[#51a2ff] hover:text-white">
+                      <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        className="text-[#51a2ff] hover:text-white"
+                      >
                         <X size={14} />
                       </button>
                     </div>
@@ -518,7 +573,6 @@ export function ListDetail() {
               )}
             </div>
           </section>
-
         </div>
       </article>
     </div>

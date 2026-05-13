@@ -1504,7 +1504,11 @@ export function Friends() {
         return;
       }
 
-      const steamIds = [user.steamid, ...Array.from(selectedIds)];
+      const steamIds = [user.steamid, ...Array.from(selectedIds)].slice(0, 6);
+      if (steamIds.length < 2) {
+        setCommonGames([]);
+        return;
+      }
 
       setLoadingCommonGames(true);
       try {
@@ -1582,12 +1586,11 @@ export function Friends() {
     setLoadingSessions(true);
     try {
       const res = await getMyGamingSessions();
-      const sessions = (res.data?.sessions || [])
-        .map(normalizeSession)
-        // Oculta sesiones rechazadas y pasadas
-        .filter(
-          (s) => s.myParticipantStatus !== "declined" && isFutureSession(s),
-        );
+      const allSessions = (res.data?.sessions || []).map(normalizeSession);
+
+      // Show declined sessions briefly so the badge is visible, then filter them
+      // after 5s. Always hide past sessions.
+      const sessions = allSessions.filter((s) => isFutureSession(s));
       setScheduledSessions(sessions);
     } catch (error) {
       console.error("Error loading sessions:", error);

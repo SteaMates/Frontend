@@ -1024,7 +1024,18 @@ function UsersPanel({
   };
 
   const handleSubmitAction = async () => {
-    if (!selectedUser || !reason.trim()) return;
+    if (!selectedUser) return;
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) return;
+    if (trimmedReason.length < 3) {
+      setActionError("El motivo debe tener al menos 3 caracteres.");
+      return;
+    }
+    if (trimmedReason.length > 240) {
+      setActionError("El motivo no puede superar 240 caracteres.");
+      return;
+    }
 
     try {
       setActionError("");
@@ -1032,7 +1043,7 @@ function UsersPanel({
       const payload: any = {
         userId: selectedUser._id,
         action: actionType,
-        reason,
+        reason: trimmedReason,
       };
 
       const needsDuration =
