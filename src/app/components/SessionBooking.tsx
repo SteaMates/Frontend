@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   PartyPopper,
   Loader2,
+  RotateCcw,
+  User,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createGamingSession } from "../../lib/api";
@@ -39,6 +41,10 @@ export interface ScheduledSession {
   confirmed: boolean;
   myParticipantStatus?: "invited" | "accepted" | "declined";
   isHost?: boolean;
+  host?: {
+    username: string;
+    avatar: string;
+  };
 }
 
 interface Props {
@@ -660,55 +666,67 @@ export function UpcomingSessions({
             className="flex flex-col gap-3 bg-slate-800/50 rounded-2xl p-4 border border-slate-700/50 transition-all duration-700"
           >
             {/* Header de la sesión */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
               <img
                 src={
                   session.game.headerImage ||
                   `https://cdn.cloudflare.steamstatic.com/steam/apps/${session.game.appid}/header.jpg`
                 }
                 alt={session.game.name}
-                className="w-20 h-12 rounded-lg object-cover shadow-md"
+                className="w-20 h-12 rounded-lg object-cover shadow-md mt-1"
               />
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-bold text-white truncate">
                   {session.game.name}
                 </h4>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
-                    <Calendar size={11} className="text-blue-400" />
-                    {formatDate(session.date)}
-                  </span>
-                  <span className="text-xs text-slate-400 flex items-center gap-1">
-                    <Clock size={11} className="text-purple-400" />
-                    {session.time}
-                  </span>
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <div className="flex items-center gap-3">
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Calendar size={11} className="text-blue-400" />
+                      {formatDate(session.date)}
+                    </span>
+                    <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                      <Clock size={11} className="text-purple-400" />
+                      {session.time}
+                    </span>
+                  </div>
+
+                  {!session.isHost && session.host && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tight">Host:</span>
+                      <div className="flex items-center gap-1 bg-slate-900/40 px-1.5 py-0.5 rounded-full border border-slate-700/30">
+                        <img src={session.host.avatar} className="w-3.5 h-3.5 rounded-full" />
+                        <span className="text-[10px] text-slate-300 font-medium">{session.host.username}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Botones para quien es invitado */}
               {!session.isHost && (
-                <div className="ml-auto pl-2">
+                <div className="shrink-0 flex flex-col items-end gap-2">
                   {session.myParticipantStatus === "invited" ? (
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => onRespond?.(session.id, "accepted")}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-[10px] font-bold transition-all hover:scale-105 shadow-sm"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold transition-all hover:scale-105 shadow-lg shadow-emerald-900/20"
                         title="Aceptar invitación"
                       >
                         <Check size={12} /> Aceptar
                       </button>
                       <button
                         onClick={() => onRespond?.(session.id, "declined")}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-lg text-[10px] font-bold transition-all hover:scale-105 shadow-sm"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-slate-700 hover:bg-red-600 text-white rounded-lg text-[10px] font-bold transition-all hover:scale-105"
                         title="Rechazar invitación"
                       >
                         <X size={12} /> Rechazar
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 group/rsvp">
-                      <span
-                        className={`text-[10px] px-2.5 py-1.5 rounded-full border font-bold flex items-center gap-1 whitespace-nowrap ${session.myParticipantStatus === "accepted"
+                    <div className="flex flex-col items-end gap-2 group/rsvp">
+                      <div
+                        className={`text-[10px] px-2.5 py-1.5 rounded-full border font-bold flex items-center gap-1 whitespace-nowrap shadow-sm ${session.myParticipantStatus === "accepted"
                           ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                           : "bg-red-500/10 text-red-400 border-red-500/20"
                           }`}
@@ -718,14 +736,15 @@ export function UpcomingSessions({
                         ) : (
                           <><X size={12} /> Rechazada</>
                         )}
-                      </span>
+                      </div>
 
                       <button
                         onClick={() => onRespond?.(session.id, session.myParticipantStatus === "accepted" ? "declined" : "accepted")}
-                        className="opacity-0 group-hover/rsvp:opacity-100 text-[10px] text-[#51a2ff] hover:text-white underline transition-opacity whitespace-nowrap"
+                        className="opacity-0 group-hover/rsvp:opacity-100 flex items-center gap-1 px-2 py-1 bg-slate-700/80 hover:bg-slate-600 text-[10px] text-slate-200 hover:text-white rounded-md border border-slate-600/50 transition-all whitespace-nowrap"
                         title="Hacer clic para cambiar tu respuesta"
                       >
-                        Cambiar a {session.myParticipantStatus === "accepted" ? "Rechazar" : "Aceptar"}
+                        <RotateCcw size={10} />
+                        <span>Cambiar a {session.myParticipantStatus === "accepted" ? "Rechazar" : "Aceptar"}</span>
                       </button>
                     </div>
                   )}
@@ -733,38 +752,41 @@ export function UpcomingSessions({
               )}
             </div>
 
-            {/* Listado de participantes visible para el Host (y opcional para el resto) */}
-            {session.isHost && (
-              <div className="mt-2 pt-3 border-t border-slate-700/50">
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                  Respuestas de los invitados
+            {/* Listado de participantes visible para todos */}
+            <div className="mt-2 pt-3 border-t border-slate-700/50">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Participantes ({session.friends.length})
                 </p>
-                <div className="flex flex-col gap-2">
-                  {session.friends.map((f) => (
-                    <div key={f.steamId} className="flex items-center justify-between bg-slate-900/50 rounded-lg p-2">
-                      <div className="flex items-center gap-2">
-                        <img src={f.avatar} alt={f.username} className="w-6 h-6 rounded-full border border-slate-700" />
-                        <span className="text-xs font-medium text-slate-300">{f.username}</span>
-                      </div>
-
-                      {f.participantStatus === "accepted" ? (
-                        <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
-                          <Check size={10} /> Confirmado
-                        </span>
-                      ) : f.participantStatus === "declined" ? (
-                        <span className="text-[10px] text-red-400 font-bold flex items-center gap-1">
-                          <X size={10} /> Rechazado
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-amber-400 font-bold">
-                          Pendiente
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                {!session.isHost && (
+                  <span className="text-[9px] text-slate-600 font-medium">Host: {session.host?.username}</span>
+                )}
               </div>
-            )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {session.friends.map((f) => (
+                  <div key={f.steamId} className="flex items-center justify-between bg-slate-900/30 rounded-lg p-2 border border-slate-800/30">
+                    <div className="flex items-center gap-2">
+                      <img src={f.avatar} alt={f.username} className="w-5 h-5 rounded-full border border-slate-700" />
+                      <span className="text-[11px] font-medium text-slate-300 truncate max-w-[80px]">{f.username}</span>
+                    </div>
+
+                    {f.participantStatus === "accepted" ? (
+                      <span className="text-[10px] text-emerald-500 font-bold flex items-center gap-1">
+                        <Check size={10} />
+                      </span>
+                    ) : f.participantStatus === "declined" ? (
+                      <span className="text-[10px] text-red-500 font-bold flex items-center gap-1">
+                        <X size={10} />
+                      </span>
+                    ) : (
+                      <span className="text-[9px] text-amber-500/70 font-bold uppercase tracking-tighter">
+                        Pte
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>

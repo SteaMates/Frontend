@@ -1606,6 +1606,14 @@ export function Friends() {
       confirmed: session.status !== "cancelled",
       myParticipantStatus,
       isHost,
+      host: session.host
+        ? {
+            username: session.host.username || "Host",
+            avatar:
+              session.host.avatar ||
+              "https://via.placeholder.com/64?text=H",
+          }
+        : undefined,
     };
   };
 
