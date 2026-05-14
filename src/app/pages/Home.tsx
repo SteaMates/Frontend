@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Home.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { Link } from "react-router";
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useMemo, useState } from "react";
@@ -49,10 +54,22 @@ interface FriendActivity {
 const HERO_BG =
   "https://www.figma.com/api/mcp/asset/4bcb57fe-a3d3-4f67-a3eb-a29bbb4eeacb";
 
+/**
+ * Función: genreTag
+ * Descripción: Función auxiliar de propósito general especializada en genre tag. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function genreTag(genre: string) {
   return genre;
 }
 
+/**
+ * Función: formatListCategoryLabel
+ * Descripción: Función auxiliar de propósito general especializada en format list category
+ * label. Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function formatListCategoryLabel(categories?: string[]) {
   const cleaned = (categories || [])
     .map((category) => category.trim())
@@ -69,6 +86,13 @@ function formatListCategoryLabel(categories?: string[]) {
   return `${cleaned[0]} +${cleaned.length - 1}`;
 }
 
+/**
+ * Función: Home
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Home. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Home() {
   const { user } = useAuth();
   const [trending, setTrending] = useState<TrendingDeal[]>([]);
@@ -84,7 +108,14 @@ export function Home() {
   });
 
   useEffect(() => {
-    const fetchTrending = async () => {
+    /**
+                         * Función: fetchTrending
+             * Descripción: Operación asíncrona dedicada a recuperar la información de trending
+             * desde el servidor o API remota. Gestiona la petición HTTP, maneja los
+             * posibles errores de red y retorna los datos obtenidos tras su
+             * procesamiento.
+                         */
+      const fetchTrending = async () => {
       try {
         const res = await axios.get(
           "https://www.cheapshark.com/api/1.0/deals",
@@ -101,7 +132,14 @@ export function Home() {
   }, []);
 
   useEffect(() => {
-    const updateVisibleTrendingCount = () => {
+    /**
+                         * Función: updateVisibleTrendingCount
+             * Descripción: Servicio encargado de actualizar los datos de visible trending count.
+             * Recibe la información modificada, aplica la lógica de negocio
+             * correspondiente y sincroniza estos cambios con el almacenamiento
+             * persistente o el estado global.
+                         */
+      const updateVisibleTrendingCount = () => {
       setVisibleTrendingCount(window.innerWidth < 768 ? 4 : 8);
     };
 
@@ -112,7 +150,14 @@ export function Home() {
   }, []);
 
   useEffect(() => {
-    const fetchPopularLists = async () => {
+    /**
+                         * Función: fetchPopularLists
+             * Descripción: Operación asíncrona dedicada a recuperar la información de popular
+             * lists desde el servidor o API remota. Gestiona la petición HTTP, maneja
+             * los posibles errores de red y retorna los datos obtenidos tras su
+             * procesamiento.
+                         */
+      const fetchPopularLists = async () => {
       try {
         setLoadingPopularLists(true);
         const res = await api.get("/api/lists");
@@ -137,7 +182,14 @@ export function Home() {
   useEffect(() => {
     if (!user) return;
 
-    const fetchUserData = async () => {
+    /**
+                         * Función: fetchUserData
+             * Descripción: Operación asíncrona dedicada a recuperar la información de user data
+             * desde el servidor o API remota. Gestiona la petición HTTP, maneja los
+             * posibles errores de red y retorna los datos obtenidos tras su
+             * procesamiento.
+                         */
+      const fetchUserData = async () => {
       try {
         const [gamesRes, friendsRes] = await Promise.all([
           api

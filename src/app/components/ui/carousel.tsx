@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: carousel.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -32,6 +37,13 @@ type CarouselContextProps = {
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null);
 
+/**
+ * Función: useCarousel
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * carousel. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 function useCarousel() {
   const context = React.useContext(CarouselContext);
 
@@ -42,6 +54,13 @@ function useCarousel() {
   return context;
 }
 
+/**
+ * Función: Carousel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Carousel. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Carousel({
   orientation = "horizontal",
   opts,
@@ -132,6 +151,13 @@ function Carousel({
   );
 }
 
+/**
+ * Función: CarouselContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CarouselContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   const { carouselRef, orientation } = useCarousel();
 
@@ -153,6 +179,13 @@ function CarouselContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CarouselItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CarouselItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
   const { orientation } = useCarousel();
 
@@ -171,6 +204,13 @@ function CarouselItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CarouselPrevious
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CarouselPrevious. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CarouselPrevious({
   className,
   variant = "outline",
@@ -201,6 +241,13 @@ function CarouselPrevious({
   );
 }
 
+/**
+ * Función: CarouselNext
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CarouselNext. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CarouselNext({
   className,
   variant = "outline",

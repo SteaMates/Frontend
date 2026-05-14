@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: NotificationsContext.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   createContext,
   useContext,
@@ -64,6 +69,13 @@ const NotificationsContext = createContext<
 
 const POLL_INTERVAL_MS = 15_000; // 15 seconds
 
+/**
+ * Función: NotificationsProvider
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NotificationsProvider. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 export function NotificationsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -194,6 +206,13 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Función: useNotifications
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * notifications. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 export function useNotifications() {
   const ctx = useContext(NotificationsContext);
   if (!ctx)

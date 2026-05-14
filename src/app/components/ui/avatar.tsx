@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: avatar.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -5,6 +10,13 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Avatar
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Avatar. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Avatar({
   className,
   ...props
@@ -21,6 +33,13 @@ function Avatar({
   );
 }
 
+/**
+ * Función: AvatarImage
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AvatarImage. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AvatarImage({
   className,
   ...props
@@ -34,6 +53,13 @@ function AvatarImage({
   );
 }
 
+/**
+ * Función: AvatarFallback
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AvatarFallback. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AvatarFallback({
   className,
   ...props

@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: GameDetail.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useParams, Link } from "react-router";
 import {
@@ -36,12 +41,30 @@ type PricePoint = { date: Date; price: number; label: string; isSale?: boolean; 
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
+/**
+ * Función: toNum
+ * Descripción: Función auxiliar de propósito general especializada en to num. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function toNum(v?: string | number | null) {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? 0));
   return isFinite(n) ? n : 0;
 }
+/**
+ * Función: fmt
+ * Descripción: Función auxiliar de propósito general especializada en fmt. Contiene lógica
+ * específica para transformar datos, realizar cálculos o conectar diferentes
+ * partes del sistema según los requisitos del módulo.
+ */
 function fmt(v: number) { return `$${v.toFixed(2)}`; }
 
+/**
+ * Función: makeDateLabel
+ * Descripción: Función auxiliar de propósito general especializada en make date label.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function makeDateLabel(d: Date): string {
   return d.toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
 }
@@ -155,6 +178,12 @@ function buildHistoryFromPoints(
   return result;
 }
 
+/**
+ * Función: buildHistory
+ * Descripción: Función auxiliar de propósito general especializada en build history.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function buildHistory(deals: CheapDeal[], allTimeMin: number, current: number, normal: number, launchDate?: Date | null, cheapestEver?: { price: string; date: number }): PricePoint[] {
   const pointsInput = [...deals]
     .filter(d => d.lastChange && toNum(d.salePrice) >= 0)
@@ -189,6 +218,13 @@ interface TooltipPayloadItem {
   payload: PricePoint;
 }
 
+/**
+ * Función: PriceTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PriceTooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function PriceTooltip({ active, payload, label, normal }: {
   active?: boolean;
   payload?: TooltipPayloadItem[];
@@ -213,6 +249,13 @@ function PriceTooltip({ active, payload, label, normal }: {
   );
 }
 
+/**
+ * Función: PriceChart
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PriceChart. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function PriceChart({ points, current, atl, normal }: {
   points:  PricePoint[];
   current: number;
@@ -342,6 +385,13 @@ function PriceChart({ points, current, atl, normal }: {
 
 // ── main GameDetail ───────────────────────────────────────────────────────────
 
+/**
+ * Función: GameDetail
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * GameDetail. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function GameDetail() {
   const { user, login } = useAuth();
   const { id }           = useParams<{ id: string }>();
@@ -608,7 +658,14 @@ export function GameDetail() {
     };
   }, [user, marketIdentity]);
 
-  const handleWishlist = async () => {
+  /**
+                 * Función: handleWishlist
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * wishlist. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleWishlist = async () => {
     if (!user) {
       toast.info("Inicia sesión para usar tu wishlist");
       login();
@@ -644,7 +701,14 @@ export function GameDetail() {
     }
   };
 
-  const handlePriceAlert = async () => {
+  /**
+                 * Función: handlePriceAlert
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * price alert. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handlePriceAlert = async () => {
     if (!user) {
       toast.info("Inicia sesión para crear alertas de precio");
       login();
@@ -680,13 +744,26 @@ export function GameDetail() {
     setShowAlertModal(true);
   };
 
-  const closeAlertModal = () => {
+  /**
+                 * Función: closeAlertModal
+         * Descripción: Función auxiliar de propósito general especializada en close alert modal.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const closeAlertModal = () => {
     if (alertBusy) return;
     setShowAlertModal(false);
     setAlertInputError("");
   };
 
-  const handleCreateAlert = async () => {
+  /**
+                 * Función: handleCreateAlert
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * create alert. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleCreateAlert = async () => {
     const targetPrice = Number(targetPriceInput.replace(",", "."));
     if (!Number.isFinite(targetPrice) || targetPrice <= 0) {
       setAlertInputError("Ingresa un precio objetivo válido");
@@ -720,7 +797,14 @@ export function GameDetail() {
   useEffect(() => {
     if (!showAlertModal) return;
 
-    const onKeyDown = (event: KeyboardEvent) => {
+    /**
+                         * Función: onKeyDown
+             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+             * key down. Captura la interacción del usuario o del sistema, valida el
+             * contexto de ejecución y dispara las actualizaciones de estado
+             * necesarias en la aplicación.
+                         */
+      const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !alertBusy) {
         setShowAlertModal(false);
         setAlertInputError("");

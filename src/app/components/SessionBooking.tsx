@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: SessionBooking.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState, useMemo } from "react";
 import {
   Calendar,
@@ -19,6 +24,16 @@ import {
   LogOut,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
 import { createGamingSession } from "../../lib/api";
 
 export interface SessionFriend {
@@ -93,6 +108,12 @@ const MONTHS_ES = [
   "Diciembre",
 ];
 
+/**
+ * Función: buildScheduledAt
+ * Descripción: Función auxiliar de propósito general especializada en build scheduled at.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function buildScheduledAt(dateStr: string, timeStr: string) {
   const [year, month, day] = dateStr.split("-").map(Number);
   const [hours, minutes] = timeStr.split(":").map(Number);
@@ -100,6 +121,13 @@ function buildScheduledAt(dateStr: string, timeStr: string) {
   return localDate.toISOString();
 }
 
+/**
+ * Función: SessionBooking
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SessionBooking. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function SessionBooking({
   game,
   selectedFriends,
@@ -183,11 +211,23 @@ export function SessionBooking({
     return days;
   }, [currentMonth, currentYear]);
 
-  const hasSessionOnDate = (dateStr: string) => {
+  /**
+                 * Función: hasSessionOnDate
+         * Descripción: Función de validación o comprobación booleana sobre session on date.
+         * Evalúa las condiciones de negocio actuales y devuelve verdadero o falso
+         * dependiendo del estado de la entidad solicitada.
+                 */
+    const hasSessionOnDate = (dateStr: string) => {
     return existingSessions.some((s) => s.date === dateStr);
   };
 
-  const prevMonth = () => {
+  /**
+                 * Función: prevMonth
+         * Descripción: Función auxiliar de propósito general especializada en prev month.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const prevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
       setCurrentYear(currentYear - 1);
@@ -196,7 +236,13 @@ export function SessionBooking({
     }
   };
 
-  const nextMonth = () => {
+  /**
+                 * Función: nextMonth
+         * Descripción: Función auxiliar de propósito general especializada en next month.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const nextMonth = () => {
     if (currentMonth === 11) {
       setCurrentMonth(0);
       setCurrentYear(currentYear + 1);
@@ -205,18 +251,39 @@ export function SessionBooking({
     }
   };
 
-  const handleDateSelect = (dateStr: string, isPast: boolean) => {
+  /**
+                 * Función: handleDateSelect
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * date select. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleDateSelect = (dateStr: string, isPast: boolean) => {
     if (isPast) return;
     setSelectedDate(dateStr);
     setStep("time");
   };
 
-  const handleTimeSelect = (time: string) => {
+  /**
+                 * Función: handleTimeSelect
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * time select. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
     setStep("confirm");
   };
 
-  const handleConfirm = async () => {
+  /**
+                 * Función: handleConfirm
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * confirm. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleConfirm = async () => {
     if (!selectedDate || !selectedTime) {
       toast.error("Selecciona una fecha y hora para continuar.");
       return;
@@ -287,7 +354,14 @@ export function SessionBooking({
     }
   };
 
-  const formatDateDisplay = (dateStr: string) => {
+  /**
+                 * Función: formatDateDisplay
+         * Descripción: Función auxiliar de propósito general especializada en format date
+         * display. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const formatDateDisplay = (dateStr: string) => {
     const [y, m, d] = dateStr.split("-").map(Number);
     const date = new Date(y, m - 1, d);
     const dayName = DAYS_ES[(date.getDay() + 6) % 7];
@@ -632,6 +706,13 @@ export function SessionBooking({
   );
 }
 
+/**
+ * Función: UpcomingSessions
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * UpcomingSessions. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function UpcomingSessions({
   sessions,
   onRemove,
@@ -646,10 +727,21 @@ export function UpcomingSessions({
   currentUserSteamId?: string;
 }) {
   const [showSessions, setShowSessions] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{isOpen: boolean, message: string, onConfirm: () => void}>({
+    isOpen: false,
+    message: "",
+    onConfirm: () => {},
+  });
 
   if (sessions.length === 0) return null;
 
-  const formatDate = (dateStr: string) => {
+  /**
+                 * Función: formatDate
+         * Descripción: Función auxiliar de propósito general especializada en format date.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const formatDate = (dateStr: string) => {
     const [y, m, d] = dateStr.split("-").map(Number);
     const date = new Date(y, m - 1, d);
     const dayName = DAYS_ES[(date.getDay() + 6) % 7];
@@ -693,16 +785,20 @@ export function UpcomingSessions({
             <button
               onClick={() => {
                 if (session.isHost) {
-                  if (window.confirm(`¿Cancelar la sesión de ${session.game.name}? Se notificará a todos los participantes.`)) {
-                    onRemove(session.id);
-                  }
+                  setConfirmDialog({
+                    isOpen: true,
+                    message: `¿Cancelar la sesión de ${session.game.name}? Se notificará a todos los participantes.`,
+                    onConfirm: () => onRemove(session.id)
+                  });
                 } else {
                   const msg = session.myParticipantStatus === "declined"
                     ? `¿Eliminar esta sesión de tu lista?`
                     : `¿Abandonar la sesión de ${session.game.name}?`;
-                  if (window.confirm(msg) && onLeave) {
-                    onLeave(session.id);
-                  }
+                  setConfirmDialog({
+                    isOpen: true,
+                    message: msg,
+                    onConfirm: () => { if (onLeave) onLeave(session.id); }
+                  });
                 }
               }}
               className="absolute top-2 right-2 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all z-10"
@@ -837,6 +933,29 @@ export function UpcomingSessions({
         ))}
       </div>
     )}
-</div>
+
+      <AlertDialog
+        open={confirmDialog.isOpen}
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, isOpen: open }))}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar acción</AlertDialogTitle>
+            <AlertDialogDescription>{confirmDialog.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={() => {
+              confirmDialog.onConfirm();
+              setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
+            }}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
   );
 }

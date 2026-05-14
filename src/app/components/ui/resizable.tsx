@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: resizable.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,6 +11,13 @@ import * as ResizablePrimitive from "react-resizable-panels";
 
 import { cn } from "./utils";
 
+/**
+ * Función: ResizablePanelGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ResizablePanelGroup. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ResizablePanelGroup({
   className,
   ...props
@@ -22,12 +34,26 @@ function ResizablePanelGroup({
   );
 }
 
+/**
+ * Función: ResizablePanel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ResizablePanel. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ResizablePanel({
   ...props
 }: React.ComponentProps<typeof ResizablePrimitive.Panel>) {
   return <ResizablePrimitive.Panel data-slot="resizable-panel" {...props} />;
 }
 
+/**
+ * Función: ResizableHandle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ResizableHandle. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ResizableHandle({
   withHandle,
   className,

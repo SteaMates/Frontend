@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Lists.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowBigDown,
@@ -20,6 +25,15 @@ import {
   X,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 import { CATEGORY_CHIPS, FEED_TABS, FeedTab } from "../data/communityLists";
 import api from "../../lib/api";
 import { formatDistanceToNow } from "date-fns";
@@ -41,6 +55,13 @@ const MAX_LIST_DESCRIPTION = 1000;
 const MAX_LIST_CATEGORIES = 10;
 const MAX_LIST_GAMES = 50;
 
+/**
+ * Función: Lists
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Lists. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Lists() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
@@ -80,7 +101,13 @@ export function Lists() {
     CreateGameOption[]
   >([]);
 
-  const fetchLists = async (page = 1, append = false) => {
+  /**
+                 * Función: fetchLists
+         * Descripción: Operación asíncrona dedicada a recuperar la información de lists desde el
+         * servidor o API remota. Gestiona la petición HTTP, maneja los posibles
+         * errores de red y retorna los datos obtenidos tras su procesamiento.
+                 */
+    const fetchLists = async (page = 1, append = false) => {
     try {
       if (append) {
         setLoadingMoreLists(true);
@@ -133,13 +160,26 @@ export function Lists() {
     fetchLists(1, false);
   }, []);
 
-  const loadMoreLists = () => {
+  /**
+                 * Función: loadMoreLists
+         * Descripción: Rutina de carga responsable de volcar los datos de more lists a la
+         * memoria. Se utiliza típicamente durante las fases de inicialización para
+         * preparar el entorno antes de la interacción del usuario.
+                 */
+    const loadMoreLists = () => {
     if (loadingMoreLists || loadingLists || !listsHasMore) return;
     fetchLists(listsPage + 1, true);
   };
 
   // LÓGICA DE VOTOS
-  const handleVote = async (
+  /**
+                 * Función: handleVote
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * vote. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleVote = async (
     e: React.MouseEvent,
     listId: string,
     action: "like" | "dislike",
@@ -246,7 +286,14 @@ export function Lists() {
     createCover.length > 0;
   const canContinueGames = createSelectedGames.length > 0;
 
-  const closeCreateModal = () => {
+  /**
+                 * Función: closeCreateModal
+         * Descripción: Función auxiliar de propósito general especializada en close create
+         * modal. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const closeCreateModal = () => {
     setIsCreateModalOpen(false);
     setCreateStep(1);
     setCreateGameQuery("");
@@ -254,7 +301,14 @@ export function Lists() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const validateListDraft = () => {
+  /**
+                 * Función: validateListDraft
+         * Descripción: Función auxiliar de propósito general especializada en validate list
+         * draft. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const validateListDraft = () => {
     const title = createTitle.trim();
     const description = createDescription.trim();
 
@@ -282,10 +336,16 @@ export function Lists() {
     return "";
   };
 
-  const submitList = async () => {
+  /**
+                 * Función: submitList
+         * Descripción: Función auxiliar de propósito general especializada en submit list.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const submitList = async () => {
     const validationError = validateListDraft();
     if (validationError) {
-      alert(validationError);
+      setErrorDialog({ isOpen: true, message: validationError });
       return;
     }
 
@@ -316,13 +376,20 @@ export function Lists() {
       console.error("Error creating list:", err);
       const errorMessage =
         err.response?.data?.error || err.message || "Unknown error";
-      alert(`Error creating list: ${errorMessage}`);
+      setErrorDialog({ isOpen: true, message: `Error creating list: ${errorMessage}` });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const addGameToSelection = (game: CreateGameOption) => {
+  /**
+                 * Función: addGameToSelection
+         * Descripción: Función que inicializa o registra un nuevo elemento para game to
+         * selection. Recibe los datos base, ejecuta las validaciones de integridad
+         * y persiste la nueva entidad en la base de datos o estructura
+         * correspondiente.
+                 */
+    const addGameToSelection = (game: CreateGameOption) => {
     setCreateSelectedGames((prev) => {
       if (prev.some((item) => item.id === game.id)) {
         return prev;
@@ -331,7 +398,13 @@ export function Lists() {
     });
   };
 
-  const removeGameFromSelection = (gameId: string) => {
+  /**
+                 * Función: removeGameFromSelection
+         * Descripción: Proceso destructivo para eliminar o descartar de forma segura game from
+         * selection. Verifica los permisos y dependencias antes de proceder a la
+         * eliminación física o lógica del recurso en el sistema.
+                 */
+    const removeGameFromSelection = (gameId: string) => {
     setCreateSelectedGames((prev) => prev.filter((game) => game.id !== gameId));
   };
 
@@ -350,7 +423,14 @@ export function Lists() {
     if (!isCreateModalOpen) {
       return;
     }
-    const onKeyDown = (event: KeyboardEvent) => {
+    /**
+                         * Función: onKeyDown
+             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+             * key down. Captura la interacción del usuario o del sistema, valida el
+             * contexto de ejecución y dispara las actualizaciones de estado
+             * necesarias en la aplicación.
+                         */
+      const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeCreateModal();
       }

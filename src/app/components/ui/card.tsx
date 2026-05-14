@@ -1,7 +1,19 @@
+/**
+ * Nombre del fichero: card.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Card
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Card. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -15,6 +27,13 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardHeader. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -28,6 +47,13 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardTitle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <h4
@@ -38,6 +64,13 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardDescription. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <p
@@ -48,6 +81,13 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardAction
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardAction. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -61,6 +101,13 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardContent. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -71,6 +118,13 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: CardFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CardFooter. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

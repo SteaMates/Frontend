@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: select.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -10,24 +15,52 @@ import {
 
 import { cn } from "./utils";
 
+/**
+ * Función: Select
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Select. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
 }
 
+/**
+ * Función: SelectGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectGroup. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectGroup({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Group>) {
   return <SelectPrimitive.Group data-slot="select-group" {...props} />;
 }
 
+/**
+ * Función: SelectValue
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectValue. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectValue({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Value>) {
   return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
 
+/**
+ * Función: SelectTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectTrigger. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectTrigger({
   className,
   size = "default",
@@ -54,6 +87,13 @@ function SelectTrigger({
   );
 }
 
+/**
+ * Función: SelectContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectContent. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectContent({
   className,
   children,
@@ -89,6 +129,13 @@ function SelectContent({
   );
 }
 
+/**
+ * Función: SelectLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectLabel. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectLabel({
   className,
   ...props
@@ -102,6 +149,13 @@ function SelectLabel({
   );
 }
 
+/**
+ * Función: SelectItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectItem({
   className,
   children,
@@ -126,6 +180,13 @@ function SelectItem({
   );
 }
 
+/**
+ * Función: SelectSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectSeparator. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SelectSeparator({
   className,
   ...props
@@ -139,6 +200,13 @@ function SelectSeparator({
   );
 }
 
+/**
+ * Función: SelectScrollUpButton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectScrollUpButton. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -157,6 +225,13 @@ function SelectScrollUpButton({
   );
 }
 
+/**
+ * Función: SelectScrollDownButton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SelectScrollDownButton. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SelectScrollDownButton({
   className,
   ...props

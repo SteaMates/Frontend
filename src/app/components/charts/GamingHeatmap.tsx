@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: GamingHeatmap.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState, useMemo } from 'react';
 import { Flame } from 'lucide-react';
 
@@ -12,6 +17,12 @@ interface Props {
 
 const MONTHS = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+/**
+ * Función: getColor
+ * Descripción: Función encargada de consultar y obtener los datos de color. Procesa los
+ * parámetros de entrada requeridos, realiza la llamada pertinente y devuelve la
+ * información estructurada para que la aplicación pueda utilizarla.
+ */
 function getColor(hours: number): string {
   if (hours === 0) return '#1e293b';
   if (hours < 1) return '#0f3d2e';
@@ -20,6 +31,13 @@ function getColor(hours: number): string {
   return '#6ee7b7';
 }
 
+/**
+ * Función: GamingHeatmap
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * GamingHeatmap. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function GamingHeatmap({ data }: Props) {
   const [hoveredDay, setHoveredDay] = useState<{ date: string; hours: number; x: number; y: number } | null>(null);
 

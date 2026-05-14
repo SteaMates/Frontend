@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: alert-dialog.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,12 +11,26 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import { cn } from "./utils";
 import { buttonVariants } from "./button";
 
+/**
+ * Función: AlertDialog
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialog. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
   return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />;
 }
 
+/**
+ * Función: AlertDialogTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogTrigger({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Trigger>) {
@@ -20,6 +39,13 @@ function AlertDialogTrigger({
   );
 }
 
+/**
+ * Función: AlertDialogPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogPortal. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogPortal({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Portal>) {
@@ -28,6 +54,13 @@ function AlertDialogPortal({
   );
 }
 
+/**
+ * Función: AlertDialogOverlay
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogOverlay. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogOverlay({
   className,
   ...props
@@ -44,6 +77,13 @@ function AlertDialogOverlay({
   );
 }
 
+/**
+ * Función: AlertDialogContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogContent({
   className,
   ...props
@@ -63,6 +103,13 @@ function AlertDialogContent({
   );
 }
 
+/**
+ * Función: AlertDialogHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogHeader. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogHeader({
   className,
   ...props
@@ -76,6 +123,13 @@ function AlertDialogHeader({
   );
 }
 
+/**
+ * Función: AlertDialogFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogFooter. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogFooter({
   className,
   ...props
@@ -92,6 +146,13 @@ function AlertDialogFooter({
   );
 }
 
+/**
+ * Función: AlertDialogTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogTitle. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AlertDialogTitle({
   className,
   ...props
@@ -105,6 +166,13 @@ function AlertDialogTitle({
   );
 }
 
+/**
+ * Función: AlertDialogDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogDescription. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogDescription({
   className,
   ...props
@@ -118,6 +186,13 @@ function AlertDialogDescription({
   );
 }
 
+/**
+ * Función: AlertDialogAction
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogAction. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogAction({
   className,
   ...props
@@ -130,6 +205,13 @@ function AlertDialogAction({
   );
 }
 
+/**
+ * Función: AlertDialogCancel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDialogCancel. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AlertDialogCancel({
   className,
   ...props

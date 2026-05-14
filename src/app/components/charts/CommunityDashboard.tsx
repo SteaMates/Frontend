@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: CommunityDashboard.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -145,6 +150,13 @@ const ACTIVITY_DATA = {
 };
 
 // Mini sparkline component
+/**
+ * Función: MiniSparkline
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MiniSparkline. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MiniSparkline({ data, color, positive }: { data: number[]; color: string; positive: boolean }) {
   const points = data.map((v, i) => ({ x: i, y: v }));
   return (
@@ -172,6 +184,13 @@ function MiniSparkline({ data, color, positive }: { data: number[]; color: strin
   );
 }
 
+/**
+ * Función: ActivityTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ActivityTooltip. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const ActivityTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
@@ -187,6 +206,13 @@ const ActivityTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+/**
+ * Función: CommunityDashboard
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommunityDashboard. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 export function CommunityDashboard() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('week');
@@ -198,7 +224,14 @@ export function CommunityDashboard() {
   const currentActivityData = ACTIVITY_DATA[activityPeriod];
   const maxCount = Math.max(...currentCategories.map(c => c.count));
 
-  const getPeriodLabel = (period: TimePeriod) => {
+  /**
+                 * Función: getPeriodLabel
+         * Descripción: Función encargada de consultar y obtener los datos de period label.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getPeriodLabel = (period: TimePeriod) => {
     switch (period) {
       case 'day': return 'Hoy';
       case 'week': return 'Esta Semana';
@@ -208,7 +241,14 @@ export function CommunityDashboard() {
     }
   };
 
-  const getPeriodSpan = (period: TimePeriod) => {
+  /**
+                 * Función: getPeriodSpan
+         * Descripción: Función encargada de consultar y obtener los datos de period span.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getPeriodSpan = (period: TimePeriod) => {
     switch (period) {
       case 'day': return '24h';
       case 'week': return '7 días';
@@ -218,7 +258,14 @@ export function CommunityDashboard() {
     }
   };
 
-  const getActivityDescription = (period: TimePeriod) => {
+  /**
+                 * Función: getActivityDescription
+         * Descripción: Función encargada de consultar y obtener los datos de activity
+         * description. Procesa los parámetros de entrada requeridos, realiza la
+         * llamada pertinente y devuelve la información estructurada para que la
+         * aplicación pueda utilizarla.
+                 */
+    const getActivityDescription = (period: TimePeriod) => {
     switch (period) {
       case 'day': return 'Actividad de las últimas 24 horas por tramo horario.';
       case 'week': return 'Nuevas listas creadas, votos emitidos y comentarios publicados por día.';
@@ -289,7 +336,14 @@ export function CommunityDashboard() {
 
             {currentData.map((list) => {
               // Medal colors for top 3
-              const getMedalColor = (rank: number) => {
+              /**
+                                                                 * Función: getMedalColor
+                                 * Descripción: Función encargada de consultar y obtener los datos de medal
+                                 * color. Procesa los parámetros de entrada requeridos, realiza
+                                 * la llamada pertinente y devuelve la información estructurada
+                                 * para que la aplicación pueda utilizarla.
+                                                                 */
+                const getMedalColor = (rank: number) => {
                 if (rank === 1) return 'text-amber-400'; // Gold
                 if (rank === 2) return 'text-slate-300'; // Silver
                 if (rank === 3) return 'text-orange-600'; // Bronze

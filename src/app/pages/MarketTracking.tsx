@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: MarketTracking.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router";
 import {
@@ -51,6 +56,12 @@ type PriceAlertItem = WishlistItem & {
   triggered?: boolean;
 };
 
+/**
+ * Función: getActionId
+ * Descripción: Función encargada de consultar y obtener los datos de action id. Procesa los
+ * parámetros de entrada requeridos, realiza la llamada pertinente y devuelve la
+ * información estructurada para que la aplicación pueda utilizarla.
+ */
 function getActionId(item: {
   id?: string;
   steamAppId?: string;
@@ -59,15 +70,34 @@ function getActionId(item: {
   return String(item.id || item.steamAppId || item.gameId || "").trim();
 }
 
+/**
+ * Función: getDetailId
+ * Descripción: Función encargada de consultar y obtener los datos de detail id. Procesa los
+ * parámetros de entrada requeridos, realiza la llamada pertinente y devuelve la
+ * información estructurada para que la aplicación pueda utilizarla.
+ */
 function getDetailId(item: { steamAppId?: string; gameId?: string }) {
   return String(item.steamAppId || item.gameId || "").trim();
 }
 
+/**
+ * Función: formatPrice
+ * Descripción: Función auxiliar de propósito general especializada en format price. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function formatPrice(value?: number | null) {
   if (typeof value !== "number" || Number.isNaN(value)) return "Sin precio";
   return `$${value.toFixed(2)}`;
 }
 
+/**
+ * Función: MarketTracking
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MarketTracking. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function MarketTracking() {
   const { user } = useAuth();
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
@@ -90,7 +120,13 @@ export function MarketTracking() {
     [alerts],
   );
 
-  const loadData = async (silent = false) => {
+  /**
+                 * Función: loadData
+         * Descripción: Rutina de carga responsable de volcar los datos de data a la memoria. Se
+         * utiliza típicamente durante las fases de inicialización para preparar el
+         * entorno antes de la interacción del usuario.
+                 */
+    const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
 
@@ -125,7 +161,14 @@ export function MarketTracking() {
     return <Navigate to="/login" replace />;
   }
 
-  const onRemoveWishlist = async (item: WishlistItem) => {
+  /**
+                 * Función: onRemoveWishlist
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * remove wishlist. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const onRemoveWishlist = async (item: WishlistItem) => {
     const identity = getActionId(item);
     if (!identity) {
       toast.error("No se pudo identificar el juego");
@@ -143,7 +186,14 @@ export function MarketTracking() {
     }
   };
 
-  const onDeleteAlert = async (item: PriceAlertItem) => {
+  /**
+                 * Función: onDeleteAlert
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * delete alert. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const onDeleteAlert = async (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
       toast.error("No se pudo identificar la alerta");
@@ -161,7 +211,14 @@ export function MarketTracking() {
     }
   };
 
-  const onToggleAlert = async (item: PriceAlertItem) => {
+  /**
+                 * Función: onToggleAlert
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * toggle alert. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const onToggleAlert = async (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
       toast.error("No se pudo identificar la alerta");
@@ -194,7 +251,13 @@ export function MarketTracking() {
   };
 
   // NUEVA FUNCIÓN: Abre el modal en lugar de usar window.prompt
-  const openEditModal = (item: PriceAlertItem) => {
+  /**
+                 * Función: openEditModal
+         * Descripción: Función auxiliar de propósito general especializada en open edit modal.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const openEditModal = (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
       toast.error("No se pudo identificar la alerta");
@@ -210,7 +273,14 @@ export function MarketTracking() {
   };
 
   // NUEVA FUNCIÓN: Guarda el dato desde el modal
-  const handleSaveTarget = async () => {
+  /**
+                 * Función: handleSaveTarget
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * save target. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleSaveTarget = async () => {
     if (!alertToEdit) return;
     const identity = getActionId(alertToEdit);
 

@@ -1,13 +1,32 @@
+/**
+ * Nombre del fichero: breadcrumb.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { ChevronRight, MoreHorizontal } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Breadcrumb
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Breadcrumb. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Breadcrumb({ ...props }: React.ComponentProps<"nav">) {
   return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />;
 }
 
+/**
+ * Función: BreadcrumbList
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbList. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   return (
     <ol
@@ -21,6 +40,13 @@ function BreadcrumbList({ className, ...props }: React.ComponentProps<"ol">) {
   );
 }
 
+/**
+ * Función: BreadcrumbItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -31,6 +57,13 @@ function BreadcrumbItem({ className, ...props }: React.ComponentProps<"li">) {
   );
 }
 
+/**
+ * Función: BreadcrumbLink
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbLink. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function BreadcrumbLink({
   asChild,
   className,
@@ -49,6 +82,13 @@ function BreadcrumbLink({
   );
 }
 
+/**
+ * Función: BreadcrumbPage
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbPage. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   return (
     <span
@@ -62,6 +102,13 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
   );
 }
 
+/**
+ * Función: BreadcrumbSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbSeparator. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function BreadcrumbSeparator({
   children,
   className,
@@ -80,6 +127,13 @@ function BreadcrumbSeparator({
   );
 }
 
+/**
+ * Función: BreadcrumbEllipsis
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * BreadcrumbEllipsis. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function BreadcrumbEllipsis({
   className,
   ...props

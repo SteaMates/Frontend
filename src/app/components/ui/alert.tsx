@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: alert.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
@@ -19,6 +24,13 @@ const alertVariants = cva(
   },
 );
 
+/**
+ * Función: Alert
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Alert. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Alert({
   className,
   variant,
@@ -34,6 +46,13 @@ function Alert({
   );
 }
 
+/**
+ * Función: AlertTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertTitle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -47,6 +66,13 @@ function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: AlertDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AlertDescription. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AlertDescription({
   className,
   ...props

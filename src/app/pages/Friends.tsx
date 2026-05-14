@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Friends.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useState, type ReactNode } from "react";
 import {
   Users,
@@ -201,6 +206,13 @@ const RADAR_AXES: {
     },
   ];
 
+/**
+ * Función: DonutChart
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DonutChart. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DonutChart({
   pct,
   color,
@@ -247,6 +259,13 @@ function DonutChart({
 
 type AnalyticsSubTab = "economia" | "tiempo" | "logros" | "radar";
 
+/**
+ * Función: AnalyticsPanel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AnalyticsPanel. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AnalyticsPanel({
   selectedFriends,
   user,
@@ -259,7 +278,13 @@ function AnalyticsPanel({
   const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
-    const loadCompareStats = async () => {
+    /**
+                         * Función: loadCompareStats
+             * Descripción: Rutina de carga responsable de volcar los datos de compare stats a la
+             * memoria. Se utiliza típicamente durante las fases de inicialización
+             * para preparar el entorno antes de la interacción del usuario.
+                         */
+      const loadCompareStats = async () => {
       if (!user?.steamid) return;
 
       const steamIds = [user.steamid, ...selectedFriends.map((f) => f.steamId)];
@@ -883,7 +908,14 @@ function AnalyticsPanel({
             (a, b) => b.achievements.perfectGames - a.achievements.perfectGames,
           );
 
-          const medalBadge = (rank: number) => {
+          /**
+                                                         * Función: medalBadge
+                             * Descripción: Función auxiliar de propósito general especializada en medal
+                             * badge. Contiene lógica específica para transformar datos,
+                             * realizar cálculos o conectar diferentes partes del sistema
+                             * según los requisitos del módulo.
+                                                         */
+              const medalBadge = (rank: number) => {
             if (rank === 0)
               return (
                 <div
@@ -1198,7 +1230,14 @@ function AnalyticsPanel({
             };
           });
 
-          const ringPolygon = (ring: number) => {
+          /**
+                                                         * Función: ringPolygon
+                             * Descripción: Función auxiliar de propósito general especializada en ring
+                             * polygon. Contiene lógica específica para transformar datos,
+                             * realizar cálculos o conectar diferentes partes del sistema
+                             * según los requisitos del módulo.
+                                                         */
+              const ringPolygon = (ring: number) => {
             const factor = ring / rings;
             return axisPoints
               .map(
@@ -1208,7 +1247,14 @@ function AnalyticsPanel({
               .join(" ");
           };
 
-          const seriesPolygon = (scores: Record<RadarAxisKey, number>) =>
+          /**
+                                                         * Función: seriesPolygon
+                             * Descripción: Función auxiliar de propósito general especializada en series
+                             * polygon. Contiene lógica específica para transformar datos,
+                             * realizar cálculos o conectar diferentes partes del sistema
+                             * según los requisitos del módulo.
+                                                         */
+              const seriesPolygon = (scores: Record<RadarAxisKey, number>) =>
             axisPoints
               .map((p) => {
                 const value = Math.max(0, Math.min(10, scores[p.key]));
@@ -1467,6 +1513,13 @@ function AnalyticsPanel({
   );
 }
 
+/**
+ * Función: Friends
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Friends. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function Friends() {
   const { user } = useAuth();
   const location = useLocation(); // <-- AÑADIDO PARA LA LECTURA DE URL
@@ -1528,7 +1581,13 @@ export function Friends() {
   useEffect(() => {
     if (!user?.steamid) return;
 
-    const loadFriends = async () => {
+    /**
+                         * Función: loadFriends
+             * Descripción: Rutina de carga responsable de volcar los datos de friends a la
+             * memoria. Se utiliza típicamente durante las fases de inicialización
+             * para preparar el entorno antes de la interacción del usuario.
+                         */
+      const loadFriends = async () => {
       setLoading(true);
       try {
         const res = await api.get(`/api/steam/friends/${user.steamid}`);
@@ -1544,7 +1603,13 @@ export function Friends() {
   }, [user?.steamid]);
 
   useEffect(() => {
-    const loadCommonGames = async () => {
+    /**
+                         * Función: loadCommonGames
+             * Descripción: Rutina de carga responsable de volcar los datos de common games a la
+             * memoria. Se utiliza típicamente durante las fases de inicialización
+             * para preparar el entorno antes de la interacción del usuario.
+                         */
+      const loadCommonGames = async () => {
       if (!user?.steamid || selectedIds.size === 0) {
         setCommonGames([]);
         return;
@@ -1571,7 +1636,13 @@ export function Friends() {
     loadCommonGames();
   }, [user?.steamid, selectedIds]);
 
-  const normalizeSession = (session: SessionApiItem): ScheduledSession => {
+  /**
+                 * Función: normalizeSession
+         * Descripción: Función auxiliar de propósito general especializada en normalize session.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const normalizeSession = (session: SessionApiItem): ScheduledSession => {
     const participantFriends =
       session.participants?.map((p, index) => ({
         steamId: p.user?.steamId || `unknown-${index}`,
@@ -1623,7 +1694,13 @@ export function Friends() {
   };
 
   // Devuelve true si la sesión es futura (fecha y hora no han pasado)
-  const isFutureSession = (session: ScheduledSession) => {
+  /**
+                 * Función: isFutureSession
+         * Descripción: Función de validación o comprobación booleana sobre future session.
+         * Evalúa las condiciones de negocio actuales y devuelve verdadero o falso
+         * dependiendo del estado de la entidad solicitada.
+                 */
+    const isFutureSession = (session: ScheduledSession) => {
     if (!session.date || !session.time) return false;
     const [year, month, day] = session.date.split("-").map(Number);
     const [hour, minute] = session.time.split(":").map(Number);
@@ -1634,7 +1711,14 @@ export function Friends() {
   };
 
   // Sessions the user has explicitly hidden from their list (kept in localStorage).
-  const getHiddenSessions = (): Set<string> => {
+  /**
+                 * Función: getHiddenSessions
+         * Descripción: Función encargada de consultar y obtener los datos de hidden sessions.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getHiddenSessions = (): Set<string> => {
     try {
       const raw = localStorage.getItem(`hiddenSessions:${user?.steamid}`);
       return raw ? new Set(JSON.parse(raw)) : new Set();
@@ -1643,7 +1727,13 @@ export function Friends() {
     }
   };
 
-  const hideSession = (id: string) => {
+  /**
+                 * Función: hideSession
+         * Descripción: Función auxiliar de propósito general especializada en hide session.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const hideSession = (id: string) => {
     if (!user?.steamid) return;
     const hidden = getHiddenSessions();
     hidden.add(id);
@@ -1653,7 +1743,13 @@ export function Friends() {
     );
   };
 
-  const loadSessions = async () => {
+  /**
+                 * Función: loadSessions
+         * Descripción: Rutina de carga responsable de volcar los datos de sessions a la memoria.
+         * Se utiliza típicamente durante las fases de inicialización para preparar
+         * el entorno antes de la interacción del usuario.
+                 */
+    const loadSessions = async () => {
     if (!user?.steamid) return;
 
     setLoadingSessions(true);
@@ -1675,7 +1771,13 @@ export function Friends() {
     }
   };
 
-  const loadNotifications = async () => {
+  /**
+                 * Función: loadNotifications
+         * Descripción: Rutina de carga responsable de volcar los datos de notifications a la
+         * memoria. Se utiliza típicamente durante las fases de inicialización para
+         * preparar el entorno antes de la interacción del usuario.
+                 */
+    const loadNotifications = async () => {
     if (!user?.steamid) return;
 
     setLoadingNotifications(true);
@@ -1699,7 +1801,14 @@ export function Friends() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const getStatusText = (friend: Friend) => {
+  /**
+                 * Función: getStatusText
+         * Descripción: Función encargada de consultar y obtener los datos de status text.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getStatusText = (friend: Friend) => {
     if (friend.currentGame) return `playing ${friend.currentGame}`;
     switch (friend.status) {
       case 1:
@@ -1715,12 +1824,31 @@ export function Friends() {
     }
   };
 
-  const isOnline = (friend: Friend) =>
+  /**
+                 * Función: isOnline
+         * Descripción: Función de validación o comprobación booleana sobre online. Evalúa las
+         * condiciones de negocio actuales y devuelve verdadero o falso dependiendo
+         * del estado de la entidad solicitada.
+                 */
+    const isOnline = (friend: Friend) =>
     friend.status > 0 || !!friend.currentGame;
 
-  const isPlayingGame = (friend: Friend) => !!friend.currentGame;
+  /**
+                 * Función: isPlayingGame
+         * Descripción: Función de validación o comprobación booleana sobre playing game. Evalúa
+         * las condiciones de negocio actuales y devuelve verdadero o falso
+         * dependiendo del estado de la entidad solicitada.
+                 */
+    const isPlayingGame = (friend: Friend) => !!friend.currentGame;
 
-  const getStatusDot = (friend: Friend) => {
+  /**
+                 * Función: getStatusDot
+         * Descripción: Función encargada de consultar y obtener los datos de status dot. Procesa
+         * los parámetros de entrada requeridos, realiza la llamada pertinente y
+         * devuelve la información estructurada para que la aplicación pueda
+         * utilizarla.
+                 */
+    const getStatusDot = (friend: Friend) => {
     if (isPlayingGame(friend))
       return "bg-[#00c950] shadow-[0px_0px_8px_0px_rgba(34,197,94,0.6)]";
     if (isOnline(friend))
@@ -1728,13 +1856,26 @@ export function Friends() {
     return "bg-[#62748e]";
   };
 
-  const getStatusTextColor = (friend: Friend) => {
+  /**
+                 * Función: getStatusTextColor
+         * Descripción: Función encargada de consultar y obtener los datos de status text color.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getStatusTextColor = (friend: Friend) => {
     if (isPlayingGame(friend)) return "text-[#05df72]";
     if (isOnline(friend)) return "text-[#62748e]";
     return "text-[#62748e]";
   };
 
-  const toggleSelect = (id: string) => {
+  /**
+                 * Función: toggleSelect
+         * Descripción: Función auxiliar de propósito general especializada en toggle select.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);

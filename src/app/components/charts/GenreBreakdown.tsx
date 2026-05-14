@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: GenreBreakdown.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import { Gamepad2 } from 'lucide-react';
@@ -13,6 +18,12 @@ interface Props {
   data?: GenreData[];
 }
 
+/**
+ * Función: renderActiveShape
+ * Descripción: Función auxiliar de propósito general especializada en render active shape.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent } = props;
   return (
@@ -50,6 +61,13 @@ const renderActiveShape = (props: any) => {
   );
 };
 
+/**
+ * Función: GenreBreakdown
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * GenreBreakdown. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function GenreBreakdown({ data }: Props) {
   const [activeIndex, setActiveIndex] = useState(0);
 

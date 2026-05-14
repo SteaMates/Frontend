@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Layout.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { Link, Outlet, useLocation } from "react-router";
 import {
   ShoppingBag,
@@ -33,10 +38,23 @@ import {
   AlertDialogTitle,
 } from "../ui/alert-dialog";
 
+/**
+ * Función: cn
+ * Descripción: Función auxiliar de propósito general especializada en cn. Contiene lógica
+ * específica para transformar datos, realizar cálculos o conectar diferentes
+ * partes del sistema según los requisitos del módulo.
+ */
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Función: Layout
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Layout. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Layout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loginNotices, setLoginNotices] = useState<
@@ -111,7 +129,14 @@ export function Layout() {
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [location.pathname]);
 
-  const closeActiveNotice = () => {
+  /**
+                 * Función: closeActiveNotice
+         * Descripción: Función auxiliar de propósito general especializada en close active
+         * notice. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const closeActiveNotice = () => {
     if (activeNoticeIndex < loginNotices.length - 1) {
       setActiveNoticeIndex((current) => current + 1);
       return;

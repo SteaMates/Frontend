@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: AffinityDoughnut.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -46,8 +51,21 @@ const DEFAULT_USER_B = {
   ],
 };
 
+/**
+ * Función: getColor
+ * Descripción: Función encargada de consultar y obtener los datos de color. Procesa los
+ * parámetros de entrada requeridos, realiza la llamada pertinente y devuelve la
+ * información estructurada para que la aplicación pueda utilizarla.
+ */
 const getColor = (name: string) => GENRE_COLORS[name] || '#64748b';
 
+/**
+ * Función: CustomTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CustomTooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0];
@@ -62,6 +80,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   );
 };
 
+/**
+ * Función: AffinityDoughnut
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AffinityDoughnut. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function AffinityDoughnut({ userA = DEFAULT_USER_A, userB = DEFAULT_USER_B }: Props) {
   const [activeRing, setActiveRing] = useState<'inner' | 'outer' | null>(null);
 

@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: command.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -13,6 +18,13 @@ import {
   DialogTitle,
 } from "./dialog";
 
+/**
+ * Función: Command
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Command. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Command({
   className,
   ...props
@@ -29,6 +41,13 @@ function Command({
   );
 }
 
+/**
+ * Función: CommandDialog
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandDialog. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandDialog({
   title = "Command Palette",
   description = "Search for a command to run...",
@@ -53,6 +72,13 @@ function CommandDialog({
   );
 }
 
+/**
+ * Función: CommandInput
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandInput. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandInput({
   className,
   ...props
@@ -75,6 +101,13 @@ function CommandInput({
   );
 }
 
+/**
+ * Función: CommandList
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandList. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandList({
   className,
   ...props
@@ -91,6 +124,13 @@ function CommandList({
   );
 }
 
+/**
+ * Función: CommandEmpty
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandEmpty. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandEmpty({
   ...props
 }: React.ComponentProps<typeof CommandPrimitive.Empty>) {
@@ -103,6 +143,13 @@ function CommandEmpty({
   );
 }
 
+/**
+ * Función: CommandGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandGroup. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandGroup({
   className,
   ...props
@@ -119,6 +166,13 @@ function CommandGroup({
   );
 }
 
+/**
+ * Función: CommandSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandSeparator. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandSeparator({
   className,
   ...props
@@ -132,6 +186,13 @@ function CommandSeparator({
   );
 }
 
+/**
+ * Función: CommandItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandItem({
   className,
   ...props
@@ -148,6 +209,13 @@ function CommandItem({
   );
 }
 
+/**
+ * Función: CommandShortcut
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CommandShortcut. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function CommandShortcut({
   className,
   ...props

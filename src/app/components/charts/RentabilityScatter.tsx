@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: RentabilityScatter.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, ReferenceLine, Cell
@@ -35,6 +40,12 @@ const DEFAULT_DATA: GamePoint[] = [
   { name: 'Marvel\'s Avengers', pricePaid: 49.99, hoursPlayed: 5 },
 ].map(g => ({ ...g, costPerHour: g.hoursPlayed > 0 ? +(g.pricePaid / g.hoursPlayed).toFixed(2) : 0 }));
 
+/**
+ * Función: getPointColor
+ * Descripción: Función encargada de consultar y obtener los datos de point color. Procesa
+ * los parámetros de entrada requeridos, realiza la llamada pertinente y
+ * devuelve la información estructurada para que la aplicación pueda utilizarla.
+ */
 const getPointColor = (pricePaid: number, hoursPlayed: number) => {
   if (pricePaid === 0) return '#10b981'; // Free
   const ratio = hoursPlayed / Math.max(pricePaid, 1);
@@ -44,6 +55,13 @@ const getPointColor = (pricePaid: number, hoursPlayed: number) => {
   return '#ef4444';                   // Poor value
 };
 
+/**
+ * Función: CustomTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CustomTooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
@@ -73,6 +91,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   );
 };
 
+/**
+ * Función: RentabilityScatter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * RentabilityScatter. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 export function RentabilityScatter({ data = DEFAULT_DATA }: Props) {
   return (
     <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-3xl p-6 shadow-xl">

@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: menubar.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,6 +11,13 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Menubar
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Menubar. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Menubar({
   className,
   ...props
@@ -22,24 +34,52 @@ function Menubar({
   );
 }
 
+/**
+ * Función: MenubarMenu
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarMenu. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarMenu({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Menu>) {
   return <MenubarPrimitive.Menu data-slot="menubar-menu" {...props} />;
 }
 
+/**
+ * Función: MenubarGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarGroup. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Group>) {
   return <MenubarPrimitive.Group data-slot="menubar-group" {...props} />;
 }
 
+/**
+ * Función: MenubarPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarPortal. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarPortal({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Portal>) {
   return <MenubarPrimitive.Portal data-slot="menubar-portal" {...props} />;
 }
 
+/**
+ * Función: MenubarRadioGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarRadioGroup. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function MenubarRadioGroup({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>) {
@@ -48,6 +88,13 @@ function MenubarRadioGroup({
   );
 }
 
+/**
+ * Función: MenubarTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarTrigger. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarTrigger({
   className,
   ...props
@@ -64,6 +111,13 @@ function MenubarTrigger({
   );
 }
 
+/**
+ * Función: MenubarContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarContent({
   className,
   align = "start",
@@ -88,6 +142,13 @@ function MenubarContent({
   );
 }
 
+/**
+ * Función: MenubarItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarItem({
   className,
   inset,
@@ -111,6 +172,13 @@ function MenubarItem({
   );
 }
 
+/**
+ * Función: MenubarCheckboxItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarCheckboxItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function MenubarCheckboxItem({
   className,
   children,
@@ -137,6 +205,13 @@ function MenubarCheckboxItem({
   );
 }
 
+/**
+ * Función: MenubarRadioItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarRadioItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarRadioItem({
   className,
   children,
@@ -161,6 +236,13 @@ function MenubarRadioItem({
   );
 }
 
+/**
+ * Función: MenubarLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarLabel. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarLabel({
   className,
   inset,
@@ -181,6 +263,13 @@ function MenubarLabel({
   );
 }
 
+/**
+ * Función: MenubarSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarSeparator. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarSeparator({
   className,
   ...props
@@ -194,6 +283,13 @@ function MenubarSeparator({
   );
 }
 
+/**
+ * Función: MenubarShortcut
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarShortcut. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarShortcut({
   className,
   ...props
@@ -210,12 +306,26 @@ function MenubarShortcut({
   );
 }
 
+/**
+ * Función: MenubarSub
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarSub. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function MenubarSub({
   ...props
 }: React.ComponentProps<typeof MenubarPrimitive.Sub>) {
   return <MenubarPrimitive.Sub data-slot="menubar-sub" {...props} />;
 }
 
+/**
+ * Función: MenubarSubTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarSubTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function MenubarSubTrigger({
   className,
   inset,
@@ -240,6 +350,13 @@ function MenubarSubTrigger({
   );
 }
 
+/**
+ * Función: MenubarSubContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * MenubarSubContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function MenubarSubContent({
   className,
   ...props

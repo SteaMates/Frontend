@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: form.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -29,6 +34,13 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
 );
 
+/**
+ * Función: FormField
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormField. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -42,6 +54,13 @@ const FormField = <
   );
 };
 
+/**
+ * Función: useFormField
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * form field. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
@@ -73,6 +92,13 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 );
 
+/**
+ * Función: FormItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   const id = React.useId();
 
@@ -87,6 +113,13 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: FormLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormLabel. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function FormLabel({
   className,
   ...props
@@ -104,6 +137,13 @@ function FormLabel({
   );
 }
 
+/**
+ * Función: FormControl
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormControl. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   const { error, formItemId, formDescriptionId, formMessageId } =
     useFormField();
@@ -123,6 +163,13 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   );
 }
 
+/**
+ * Función: FormDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormDescription. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   const { formDescriptionId } = useFormField();
 
@@ -136,6 +183,13 @@ function FormDescription({ className, ...props }: React.ComponentProps<"p">) {
   );
 }
 
+/**
+ * Función: FormMessage
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * FormMessage. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   const { error, formMessageId } = useFormField();
   const body = error ? String(error?.message ?? "") : props.children;

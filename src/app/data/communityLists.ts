@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: communityLists.ts
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 export type FeedTab = "trending" | "top" | "new" | "mine";
 
 export type ListGame = {
@@ -67,6 +72,12 @@ export const CATEGORY_CHIPS = [
 
 // Mockup data removed — lists are now fetched from backend (/api/lists)
 
+/**
+ * Función: getCommunityListById
+ * Descripción: Función encargada de consultar y obtener los datos de community list by id.
+ * Procesa los parámetros de entrada requeridos, realiza la llamada pertinente y
+ * devuelve la información estructurada para que la aplicación pueda utilizarla.
+ */
 export function getCommunityListById(id?: string) {
   if (!id) {
     return undefined;

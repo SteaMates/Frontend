@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: navigation-menu.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
 import { cva } from "class-variance-authority";
@@ -5,6 +10,13 @@ import { ChevronDownIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: NavigationMenu
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenu. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function NavigationMenu({
   className,
   children,
@@ -29,6 +41,13 @@ function NavigationMenu({
   );
 }
 
+/**
+ * Función: NavigationMenuList
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuList. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuList({
   className,
   ...props
@@ -45,6 +64,13 @@ function NavigationMenuList({
   );
 }
 
+/**
+ * Función: NavigationMenuItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuItem({
   className,
   ...props
@@ -62,6 +88,13 @@ const navigationMenuTriggerStyle = cva(
   "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 data-[state=open]:hover:bg-accent data-[state=open]:text-accent-foreground data-[state=open]:focus:bg-accent data-[state=open]:bg-accent/50 focus-visible:ring-ring/50 outline-none transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1",
 );
 
+/**
+ * Función: NavigationMenuTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuTrigger({
   className,
   children,
@@ -82,6 +115,13 @@ function NavigationMenuTrigger({
   );
 }
 
+/**
+ * Función: NavigationMenuContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuContent({
   className,
   ...props
@@ -99,6 +139,13 @@ function NavigationMenuContent({
   );
 }
 
+/**
+ * Función: NavigationMenuViewport
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuViewport. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuViewport({
   className,
   ...props
@@ -121,6 +168,13 @@ function NavigationMenuViewport({
   );
 }
 
+/**
+ * Función: NavigationMenuLink
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuLink. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuLink({
   className,
   ...props
@@ -137,6 +191,13 @@ function NavigationMenuLink({
   );
 }
 
+/**
+ * Función: NavigationMenuIndicator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NavigationMenuIndicator. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function NavigationMenuIndicator({
   className,
   ...props

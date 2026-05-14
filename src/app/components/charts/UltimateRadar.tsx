@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: UltimateRadar.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer, Tooltip, Legend
@@ -44,6 +49,12 @@ const AXIS_LABELS: Record<string, { label: string; description: string; icon: st
   'Fidelidad': { label: 'Fidelidad', description: 'Horas concentradas en su top 1', icon: '❤️' },
 };
 
+/**
+ * Función: getArchetype
+ * Descripción: Función encargada de consultar y obtener los datos de archetype. Procesa los
+ * parámetros de entrada requeridos, realiza la llamada pertinente y devuelve la
+ * información estructurada para que la aplicación pueda utilizarla.
+ */
 function getArchetype(player: PlayerRadar): { name: string; emoji: string; description: string } {
   const scores = {
     volume: player.volume,
@@ -71,6 +82,13 @@ function getArchetype(player: PlayerRadar): { name: string; emoji: string; descr
   }
 }
 
+/**
+ * Función: UltimateRadar
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * UltimateRadar. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function UltimateRadar({ players }: Props) {
   const [highlightedPlayer, setHighlightedPlayer] = useState<string | null>(null);
 

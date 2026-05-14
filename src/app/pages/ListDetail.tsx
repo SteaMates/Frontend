@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: ListDetail.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   ArrowLeft,
   Lock,
@@ -59,6 +64,13 @@ interface List {
   createdAt: string;
 }
 
+/**
+ * Función: ListDetail
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ListDetail. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function ListDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -81,7 +93,13 @@ export function ListDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  const confirmDelete = async () => {
+  /**
+                 * Función: confirmDelete
+         * Descripción: Función auxiliar de propósito general especializada en confirm delete.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const confirmDelete = async () => {
     try {
       setIsDeleting(true);
       await api.delete(`/api/lists/${id}`);
@@ -96,7 +114,14 @@ export function ListDetail() {
   };
 
   useEffect(() => {
-    const fetchListAndComments = async () => {
+    /**
+                         * Función: fetchListAndComments
+             * Descripción: Operación asíncrona dedicada a recuperar la información de list and
+             * comments desde el servidor o API remota. Gestiona la petición HTTP,
+             * maneja los posibles errores de red y retorna los datos obtenidos tras
+             * su procesamiento.
+                         */
+      const fetchListAndComments = async () => {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
@@ -148,7 +173,14 @@ export function ListDetail() {
     }
   }, [loading, comments, location.hash]);
 
-  const handleLike = async () => {
+  /**
+                 * Función: handleLike
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * like. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleLike = async () => {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/like`);
@@ -158,7 +190,14 @@ export function ListDetail() {
     }
   };
 
-  const handleDislike = async () => {
+  /**
+                 * Función: handleDislike
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * dislike. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleDislike = async () => {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/dislike`);
@@ -168,7 +207,14 @@ export function ListDetail() {
     }
   };
 
-  const handleReplyClick = (comment: CommentData) => {
+  /**
+                 * Función: handleReplyClick
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * reply click. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleReplyClick = (comment: CommentData) => {
     setReplyingTo(comment);
     if (!newComment.includes(`@${comment.author.username}`)) {
       setNewComment(`@${comment.author.username} ` + newComment);
@@ -180,7 +226,14 @@ export function ListDetail() {
     }, 10);
   };
 
-  const handlePostComment = async (e: React.FormEvent) => {
+  /**
+                 * Función: handlePostComment
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * post comment. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return login();
     if (!newComment.trim()) return;
@@ -204,7 +257,13 @@ export function ListDetail() {
     }
   };
 
-  const loadMoreComments = async () => {
+  /**
+                 * Función: loadMoreComments
+         * Descripción: Rutina de carga responsable de volcar los datos de more comments a la
+         * memoria. Se utiliza típicamente durante las fases de inicialización para
+         * preparar el entorno antes de la interacción del usuario.
+                 */
+    const loadMoreComments = async () => {
     if (!id || commentsLoadingMore || loading || !commentsHasMore) return;
 
     try {
@@ -236,7 +295,14 @@ export function ListDetail() {
     }
   };
 
-  const renderCommentContent = (text: string) => {
+  /**
+                 * Función: renderCommentContent
+         * Descripción: Función auxiliar de propósito general especializada en render comment
+         * content. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const renderCommentContent = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, i) =>
       part.startsWith('@') ? (

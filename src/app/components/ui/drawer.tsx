@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: drawer.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -5,30 +10,65 @@ import { Drawer as DrawerPrimitive } from "vaul";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Drawer
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Drawer. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Drawer({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
   return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
 }
 
+/**
+ * Función: DrawerTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerTrigger. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerTrigger({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
   return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
+/**
+ * Función: DrawerPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerPortal. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerPortal({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Portal>) {
   return <DrawerPrimitive.Portal data-slot="drawer-portal" {...props} />;
 }
 
+/**
+ * Función: DrawerClose
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerClose. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerClose({
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Close>) {
   return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />;
 }
 
+/**
+ * Función: DrawerOverlay
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerOverlay. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerOverlay({
   className,
   ...props
@@ -45,6 +85,13 @@ function DrawerOverlay({
   );
 }
 
+/**
+ * Función: DrawerContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerContent. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerContent({
   className,
   children,
@@ -72,6 +119,13 @@ function DrawerContent({
   );
 }
 
+/**
+ * Función: DrawerHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerHeader. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -82,6 +136,13 @@ function DrawerHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: DrawerFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerFooter. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -92,6 +153,13 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: DrawerTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerTitle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DrawerTitle({
   className,
   ...props
@@ -105,6 +173,13 @@ function DrawerTitle({
   );
 }
 
+/**
+ * Función: DrawerDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DrawerDescription. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DrawerDescription({
   className,
   ...props

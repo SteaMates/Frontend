@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: TimeCharts.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Cell, AreaChart, Area
@@ -30,6 +35,13 @@ interface Props {
 
 const DAY_LABELS = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15'];
 
+/**
+ * Función: TimeCharts
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * TimeCharts. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function TimeCharts({ players }: Props) {
   // Sort by total hours
   const noLifeData = [...players].sort((a, b) => b.totalHours - a.totalHours);

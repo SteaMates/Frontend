@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: TractionChart.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend
@@ -24,6 +29,13 @@ const DEFAULT_DATA: TractionData[] = [
   { day: 'Dom', views: 195, interactions: 85 },
 ];
 
+/**
+ * Función: CustomTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CustomTooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   const views = payload.find((p: any) => p.dataKey === 'views')?.value || 0;
@@ -41,6 +53,13 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   );
 };
 
+/**
+ * Función: TractionChart
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * TractionChart. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function TractionChart({ data = DEFAULT_DATA, listName = 'Top RPGs de 2024' }: Props) {
   const totalViews = data.reduce((sum, d) => sum + d.views, 0);
   const totalInteractions = data.reduce((sum, d) => sum + d.interactions, 0);

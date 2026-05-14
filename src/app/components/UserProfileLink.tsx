@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: UserProfileLink.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useNavigate } from 'react-router';
 
 interface UserProfileLinkProps {
@@ -12,6 +17,13 @@ interface UserProfileLinkProps {
   onProfileOpen?: () => void;
 }
 
+/**
+ * Función: UserProfileLink
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * UserProfileLink. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function UserProfileLink({
   steamId,
   username,
@@ -25,7 +37,14 @@ export function UserProfileLink({
 }: UserProfileLinkProps) {
   const navigate = useNavigate();
 
-  const handleClick = (e: React.MouseEvent) => {
+  /**
+                 * Función: handleClick
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * click. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleClick = (e: React.MouseEvent) => {
     if (disabled) return;
     e.preventDefault();
     e.stopPropagation();

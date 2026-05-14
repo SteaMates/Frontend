@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: tooltip.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -5,6 +10,13 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 
 import { cn } from "./utils";
 
+/**
+ * Función: TooltipProvider
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * TooltipProvider. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function TooltipProvider({
   delayDuration = 0,
   ...props
@@ -18,6 +30,13 @@ function TooltipProvider({
   );
 }
 
+/**
+ * Función: Tooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Tooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Tooltip({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Root>) {
@@ -28,12 +47,26 @@ function Tooltip({
   );
 }
 
+/**
+ * Función: TooltipTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * TooltipTrigger. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function TooltipTrigger({
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
   return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
 }
 
+/**
+ * Función: TooltipContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * TooltipContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function TooltipContent({
   className,
   sideOffset = 0,

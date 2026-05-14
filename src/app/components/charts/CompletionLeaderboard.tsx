@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: CompletionLeaderboard.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
@@ -25,6 +30,13 @@ const DEFAULT_DATA: LeaderboardEntry[] = [
 
 const BAR_COLORS = ['#8b5cf6', '#a78bfa', '#3b82f6', '#60a5fa', '#ec4899', '#f472b6'];
 
+/**
+ * Función: CustomTooltip
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CustomTooltip. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
   const d = payload[0]?.payload;
@@ -44,6 +56,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   );
 };
 
+/**
+ * Función: CompletionLeaderboard
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * CompletionLeaderboard. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 export function CompletionLeaderboard({ data = DEFAULT_DATA }: Props) {
   return (
     <div className="bg-slate-900/80 backdrop-blur border border-slate-800 rounded-3xl p-6 shadow-xl">

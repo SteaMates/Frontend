@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: radio-group.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,6 +11,13 @@ import { CircleIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: RadioGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * RadioGroup. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function RadioGroup({
   className,
   ...props
@@ -19,6 +31,13 @@ function RadioGroup({
   );
 }
 
+/**
+ * Función: RadioGroupItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * RadioGroupItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function RadioGroupItem({
   className,
   ...props

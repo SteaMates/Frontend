@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: context-menu.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,12 +11,26 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: ContextMenu
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenu. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ContextMenu({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Root>) {
   return <ContextMenuPrimitive.Root data-slot="context-menu" {...props} />;
 }
 
+/**
+ * Función: ContextMenuTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuTrigger({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Trigger>) {
@@ -20,6 +39,13 @@ function ContextMenuTrigger({
   );
 }
 
+/**
+ * Función: ContextMenuGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuGroup. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ContextMenuGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Group>) {
@@ -28,6 +54,13 @@ function ContextMenuGroup({
   );
 }
 
+/**
+ * Función: ContextMenuPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuPortal. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuPortal({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Portal>) {
@@ -36,12 +69,26 @@ function ContextMenuPortal({
   );
 }
 
+/**
+ * Función: ContextMenuSub
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuSub. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ContextMenuSub({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.Sub>) {
   return <ContextMenuPrimitive.Sub data-slot="context-menu-sub" {...props} />;
 }
 
+/**
+ * Función: ContextMenuRadioGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuRadioGroup. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof ContextMenuPrimitive.RadioGroup>) {
@@ -53,6 +100,13 @@ function ContextMenuRadioGroup({
   );
 }
 
+/**
+ * Función: ContextMenuSubTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuSubTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuSubTrigger({
   className,
   inset,
@@ -77,6 +131,13 @@ function ContextMenuSubTrigger({
   );
 }
 
+/**
+ * Función: ContextMenuSubContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuSubContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuSubContent({
   className,
   ...props
@@ -93,6 +154,13 @@ function ContextMenuSubContent({
   );
 }
 
+/**
+ * Función: ContextMenuContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuContent({
   className,
   ...props
@@ -111,6 +179,13 @@ function ContextMenuContent({
   );
 }
 
+/**
+ * Función: ContextMenuItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ContextMenuItem({
   className,
   inset,
@@ -134,6 +209,13 @@ function ContextMenuItem({
   );
 }
 
+/**
+ * Función: ContextMenuCheckboxItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuCheckboxItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuCheckboxItem({
   className,
   children,
@@ -160,6 +242,13 @@ function ContextMenuCheckboxItem({
   );
 }
 
+/**
+ * Función: ContextMenuRadioItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuRadioItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuRadioItem({
   className,
   children,
@@ -184,6 +273,13 @@ function ContextMenuRadioItem({
   );
 }
 
+/**
+ * Función: ContextMenuLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuLabel. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ContextMenuLabel({
   className,
   inset,
@@ -204,6 +300,13 @@ function ContextMenuLabel({
   );
 }
 
+/**
+ * Función: ContextMenuSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuSeparator. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuSeparator({
   className,
   ...props
@@ -217,6 +320,13 @@ function ContextMenuSeparator({
   );
 }
 
+/**
+ * Función: ContextMenuShortcut
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ContextMenuShortcut. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ContextMenuShortcut({
   className,
   ...props

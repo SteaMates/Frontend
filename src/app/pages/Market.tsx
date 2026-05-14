@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Market.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState, useEffect, useRef, useCallback } from "react";
 import axios from "axios";
 import { Link } from "react-router";
@@ -11,6 +16,13 @@ import api from "../../lib/api";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Función: useDraggableScroll
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * draggable scroll. Este hook maneja los efectos secundarios, centraliza el
+ * estado necesario y expone las propiedades y métodos esenciales para los
+ * componentes que lo consuman.
+ */
 function useDraggableScroll() {
   const ref = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -98,6 +110,13 @@ interface RecommendedDeal extends Deal {
   reason?: string;
 }
 
+/**
+ * Función: AIRecommendations
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AIRecommendations. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function AIRecommendations({ steamId }: { steamId: string }) {
   const [deals, setDeals] = useState<RecommendedDeal[]>([]);
   const [loading, setLoading] = useState(false);
@@ -197,6 +216,13 @@ function AIRecommendations({ steamId }: { steamId: string }) {
 
 // ── locked recommendations placeholder ───────────────────────────────────────
 
+/**
+ * Función: LockedRecs
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * LockedRecs. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function LockedRecs({ onLogin }: { onLogin: () => void }) {
   return (
     <section className="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/50">
@@ -240,6 +266,13 @@ interface SteamGame {
   steamAppID: string;
 }
 
+/**
+ * Función: SteamGameCard
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SteamGameCard. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SteamGameCard({ game }: { game: SteamGame }) {
   const saleP = game.price === "Gratis" ? "0.00" : game.price.replace("$", "");
   const normP = game.originalPrice
@@ -330,6 +363,13 @@ function SteamGameCard({ game }: { game: SteamGame }) {
 
 // ── main Market component ─────────────────────────────────────────────────────
 
+/**
+ * Función: Market
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Market. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Market() {
   const { user, login } = useAuth();
 
@@ -383,7 +423,13 @@ export function Market() {
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const toggleTag = (tagId: string) => {
+  /**
+                 * Función: toggleTag
+         * Descripción: Función auxiliar de propósito general especializada en toggle tag.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const toggleTag = (tagId: string) => {
     setSelectedTags(prev => prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]);
   };
 
@@ -487,7 +533,13 @@ export function Market() {
     return () => clearTimeout(id);
   }, [search, sortBy, minPrice, maxPrice, selectedTags, fetchDeals]);
 
-  const loadMore = () => {
+  /**
+                 * Función: loadMore
+         * Descripción: Rutina de carga responsable de volcar los datos de more a la memoria. Se
+         * utiliza típicamente durante las fases de inicialización para preparar el
+         * entorno antes de la interacción del usuario.
+                 */
+    const loadMore = () => {
     const next = page + 1;
     setPage(next);
     fetchDeals(next, true);

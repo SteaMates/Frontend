@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Login.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, useLocation } from "react-router";
@@ -26,6 +31,13 @@ const heroImage =
 const steamLogo =
   "https://store.akamai.steamstatic.com/public/shared/images/header/logo_steam.svg";
 
+/**
+ * Función: Login
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Login. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Login() {
   const { user, login } = useAuth();
   const location = useLocation();
@@ -50,7 +62,14 @@ export function Login() {
 
   useEffect(() => {
     let mounted = true;
-    const fetchStats = async () => {
+    /**
+                         * Función: fetchStats
+             * Descripción: Operación asíncrona dedicada a recuperar la información de stats desde
+             * el servidor o API remota. Gestiona la petición HTTP, maneja los
+             * posibles errores de red y retorna los datos obtenidos tras su
+             * procesamiento.
+                         */
+      const fetchStats = async () => {
       try {
         const res = await api.get("/api/site/stats");
         const data = res.data || {};

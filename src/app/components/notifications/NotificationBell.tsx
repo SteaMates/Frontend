@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: NotificationBell.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
@@ -22,6 +27,13 @@ import { toast } from "sonner";
 // COMPONENTES DE TOASTS FLOTANTES (INVITACIONES A SESIONES, ETC)
 // ============================================================================
 
+/**
+ * Función: InviteToast
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * InviteToast. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => void }) {
   const { respondInvite } = useNotifications();
   const [responding, setResponding] = useState<"accepted" | "declined" | null>(null);
@@ -32,7 +44,14 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
   const date = n.session?.date ?? (n.data?.date as string | undefined);
   const time = n.session?.time ?? (n.data?.time as string | undefined);
 
-  const handleRespond = async (response: "accepted" | "declined") => {
+  /**
+                 * Función: handleRespond
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * respond. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleRespond = async (response: "accepted" | "declined") => {
     if (!sessionId || responding) return;
     setResponding(response);
     try {
@@ -161,13 +180,26 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
 // TOAST CONTENEDOR GLOBAL
 // ----------------------------------------------------------------------------
 
+/**
+ * Función: NotificationToasts
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NotificationToasts. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 export function NotificationToasts() {
   const { pendingInvites, markRead } = useNotifications();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   const visible = pendingInvites.filter((n) => !dismissed.has(n._id));
 
-  const dismiss = (id: string) => {
+  /**
+                 * Función: dismiss
+         * Descripción: Función auxiliar de propósito general especializada en dismiss. Contiene
+         * lógica específica para transformar datos, realizar cálculos o conectar
+         * diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const dismiss = (id: string) => {
     setDismissed((prev) => new Set(prev).add(id));
     markRead(id);
   };
@@ -189,6 +221,12 @@ export function NotificationToasts() {
 // COMPONENTES DE LA CAMPANA (DROPDOWN Y ELEMENTOS DE LISTA)
 // ============================================================================
 
+/**
+ * Función: timeAgo
+ * Descripción: Función auxiliar de propósito general especializada en time ago. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60_000);
@@ -200,6 +238,13 @@ function timeAgo(dateStr: string): string {
   return `hace ${days}d`;
 }
 
+/**
+ * Función: NotificationItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NotificationItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function NotificationItem({
   n,
   onRead,
@@ -221,7 +266,14 @@ function NotificationItem({
     !n.readAt &&
     !!sessionId;
 
-  const handleRespond = async (e: React.MouseEvent, response: "accepted" | "declined") => {
+  /**
+                 * Función: handleRespond
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * respond. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleRespond = async (e: React.MouseEvent, response: "accepted" | "declined") => {
     e.stopPropagation();
     if (!sessionId || responding) return;
     setResponding(response);
@@ -241,7 +293,14 @@ function NotificationItem({
     list_mention: "bg-[#51a2ff]",
   };
 
-  const handleClick = () => {
+  /**
+                 * Función: handleClick
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * click. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleClick = () => {
     if (isUnread) {
       onRead(n._id);
     }
@@ -333,6 +392,13 @@ function NotificationItem({
   );
 }
 
+/**
+ * Función: NotificationBell
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * NotificationBell. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function NotificationBell({
   variant = "floating",
   buttonClassName,
@@ -355,7 +421,14 @@ export function NotificationBell({
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    function handle(e: MouseEvent) {
+    /**
+                         * Función: handle
+             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de .
+             * Captura la interacción del usuario o del sistema, valida el contexto de
+             * ejecución y dispara las actualizaciones de estado necesarias en la
+             * aplicación.
+                         */
+      function handle(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
@@ -364,7 +437,13 @@ export function NotificationBell({
     return () => document.removeEventListener("mousedown", handle);
   }, [open]);
 
-  const positionPanel = () => {
+  /**
+                 * Función: positionPanel
+         * Descripción: Función auxiliar de propósito general especializada en position panel.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const positionPanel = () => {
     if (!buttonRef.current) return;
 
     const rect = buttonRef.current.getBoundingClientRect();
@@ -395,7 +474,14 @@ export function NotificationBell({
     });
   };
 
-  const handleOpen = () => {
+  /**
+                 * Función: handleOpen
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * open. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleOpen = () => {
     if (!open) {
       positionPanel();
       refresh();
@@ -406,7 +492,14 @@ export function NotificationBell({
   useEffect(() => {
     if (!open) return;
 
-    const handleResize = () => positionPanel();
+    /**
+                         * Función: handleResize
+             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+             * resize. Captura la interacción del usuario o del sistema, valida el
+             * contexto de ejecución y dispara las actualizaciones de estado
+             * necesarias en la aplicación.
+                         */
+      const handleResize = () => positionPanel();
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleResize, true);
     return () => {

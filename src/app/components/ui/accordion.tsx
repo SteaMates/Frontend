@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: accordion.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,12 +11,26 @@ import { ChevronDownIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Accordion
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Accordion. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Accordion({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Root>) {
   return <AccordionPrimitive.Root data-slot="accordion" {...props} />;
 }
 
+/**
+ * Función: AccordionItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AccordionItem. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AccordionItem({
   className,
   ...props
@@ -25,6 +44,13 @@ function AccordionItem({
   );
 }
 
+/**
+ * Función: AccordionTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AccordionTrigger. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AccordionTrigger({
   className,
   children,
@@ -47,6 +73,13 @@ function AccordionTrigger({
   );
 }
 
+/**
+ * Función: AccordionContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AccordionContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function AccordionContent({
   className,
   children,

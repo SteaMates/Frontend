@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: sheet.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,28 +11,63 @@ import { XIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Sheet
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Sheet. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
+/**
+ * Función: SheetTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetTrigger. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetTrigger({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Trigger>) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
+/**
+ * Función: SheetClose
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetClose. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetClose({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Close>) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
+/**
+ * Función: SheetPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetPortal. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetPortal({
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Portal>) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
+/**
+ * Función: SheetOverlay
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetOverlay. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetOverlay({
   className,
   ...props
@@ -44,6 +84,13 @@ function SheetOverlay({
   );
 }
 
+/**
+ * Función: SheetContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetContent. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetContent({
   className,
   children,
@@ -81,6 +128,13 @@ function SheetContent({
   );
 }
 
+/**
+ * Función: SheetHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetHeader. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -91,6 +145,13 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SheetFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetFooter. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -101,6 +162,13 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SheetTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetTitle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetTitle({
   className,
   ...props
@@ -114,6 +182,13 @@ function SheetTitle({
   );
 }
 
+/**
+ * Función: SheetDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SheetDescription. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SheetDescription({
   className,
   ...props

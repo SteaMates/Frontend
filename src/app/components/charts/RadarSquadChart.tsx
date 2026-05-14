@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: RadarSquadChart.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import {
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ResponsiveContainer, Tooltip, Legend
@@ -23,6 +28,13 @@ const DEFAULT_FRIENDS: FriendGenreData[] = [
   { name: 'LunaStar', color: '#10b981', data: { RPG: 50, FPS: 10, Supervivencia: 65, Roguelike: 40, Cooperativo: 95, Estrategia: 30, Indie: 95 } },
 ];
 
+/**
+ * Función: RadarSquadChart
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * RadarSquadChart. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function RadarSquadChart({ friends = DEFAULT_FRIENDS }: Props) {
   // Transform data for recharts format
   const radarData = GENRE_AXES.map(genre => {

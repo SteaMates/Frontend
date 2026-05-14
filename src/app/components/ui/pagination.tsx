@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: pagination.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 import {
   ChevronLeftIcon,
@@ -8,6 +13,13 @@ import {
 import { cn } from "./utils";
 import { Button, buttonVariants } from "./button";
 
+/**
+ * Función: Pagination
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Pagination. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   return (
     <nav
@@ -20,6 +32,13 @@ function Pagination({ className, ...props }: React.ComponentProps<"nav">) {
   );
 }
 
+/**
+ * Función: PaginationContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function PaginationContent({
   className,
   ...props
@@ -33,6 +52,13 @@ function PaginationContent({
   );
 }
 
+/**
+ * Función: PaginationItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function PaginationItem({ ...props }: React.ComponentProps<"li">) {
   return <li data-slot="pagination-item" {...props} />;
 }
@@ -42,6 +68,13 @@ type PaginationLinkProps = {
 } & Pick<React.ComponentProps<typeof Button>, "size"> &
   React.ComponentProps<"a">;
 
+/**
+ * Función: PaginationLink
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationLink. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function PaginationLink({
   className,
   isActive,
@@ -65,6 +98,13 @@ function PaginationLink({
   );
 }
 
+/**
+ * Función: PaginationPrevious
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationPrevious. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function PaginationPrevious({
   className,
   ...props
@@ -82,6 +122,13 @@ function PaginationPrevious({
   );
 }
 
+/**
+ * Función: PaginationNext
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationNext. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function PaginationNext({
   className,
   ...props
@@ -99,6 +146,13 @@ function PaginationNext({
   );
 }
 
+/**
+ * Función: PaginationEllipsis
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationEllipsis. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function PaginationEllipsis({
   className,
   ...props

@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: hover-card.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -5,12 +10,26 @@ import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 
 import { cn } from "./utils";
 
+/**
+ * Función: HoverCard
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * HoverCard. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function HoverCard({
   ...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Root>) {
   return <HoverCardPrimitive.Root data-slot="hover-card" {...props} />;
 }
 
+/**
+ * Función: HoverCardTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * HoverCardTrigger. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function HoverCardTrigger({
   ...props
 }: React.ComponentProps<typeof HoverCardPrimitive.Trigger>) {
@@ -19,6 +38,13 @@ function HoverCardTrigger({
   );
 }
 
+/**
+ * Función: HoverCardContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * HoverCardContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function HoverCardContent({
   className,
   align = "center",

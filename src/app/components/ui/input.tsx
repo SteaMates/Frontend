@@ -1,7 +1,19 @@
+/**
+ * Nombre del fichero: input.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import * as React from "react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Input
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Input. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <input

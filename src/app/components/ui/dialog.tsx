@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: dialog.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,30 +11,65 @@ import { XIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: Dialog
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Dialog. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
+/**
+ * Función: DialogTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogTrigger. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
+/**
+ * Función: DialogPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogPortal. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogPortal({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
 
+/**
+ * Función: DialogClose
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogClose. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogClose({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Close>) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
+/**
+ * Función: DialogOverlay
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogOverlay. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogOverlay({
   className,
   ...props
@@ -46,6 +86,13 @@ function DialogOverlay({
   );
 }
 
+/**
+ * Función: DialogContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogContent. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogContent({
   className,
   children,
@@ -72,6 +119,13 @@ function DialogContent({
   );
 }
 
+/**
+ * Función: DialogHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogHeader. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -82,6 +136,13 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: DialogFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogFooter. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -95,6 +156,13 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: DialogTitle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogTitle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DialogTitle({
   className,
   ...props
@@ -108,6 +176,13 @@ function DialogTitle({
   );
 }
 
+/**
+ * Función: DialogDescription
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DialogDescription. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DialogDescription({
   className,
   ...props

@@ -1,8 +1,31 @@
+/**
+ * Nombre del fichero: AssistantModal.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Bot, X, Send, Sparkles, Eye, Maximize2, Minimize2, Monitor, Image as ImageIcon, XCircle } from "lucide-react";
 import api from "../../../lib/api";
 import { useAuth } from "../../context/AuthContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 
 interface Message {
   id: string;
@@ -12,6 +35,13 @@ interface Message {
   image?: string;
 }
 
+/**
+ * Función: AssistantModal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AssistantModal. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function AssistantModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -25,10 +55,17 @@ export function AssistantModal() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
+  const [errorDialog, setErrorDialog] = useState({ isOpen: false, message: "" });
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
+  /**
+                 * Función: scrollToBottom
+         * Descripción: Función auxiliar de propósito general especializada en scroll to bottom.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -37,7 +74,14 @@ export function AssistantModal() {
   }, [messages, isOpen, loading]);
 
   // Capture screen context as text - UNIVERSAL para TODAS las páginas de la app
-  const captureScreenContext = (): string => {
+  /**
+                 * Función: captureScreenContext
+         * Descripción: Función auxiliar de propósito general especializada en capture screen
+         * context. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const captureScreenContext = (): string => {
     const context: string[] = [];
     const path = window.location.pathname;
 
@@ -273,11 +317,25 @@ export function AssistantModal() {
     return context.join('\n');
   };
 
-  const handleToggleScreenContext = () => {
+  /**
+                 * Función: handleToggleScreenContext
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * toggle screen context. Captura la interacción del usuario o del sistema,
+         * valida el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleToggleScreenContext = () => {
     setHasScreenContext(!hasScreenContext);
   };
 
-  const handleSend = async () => {
+  /**
+                 * Función: handleSend
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * send. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleSend = async () => {
     if (!input.trim() || loading) return;
 
     const userText = input.trim();
@@ -337,7 +395,14 @@ export function AssistantModal() {
     }
   };
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+                 * Función: handleImageUpload
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * image upload. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -349,7 +414,14 @@ export function AssistantModal() {
   };
 
   // Capture screen/window/tab
-  const handleCaptureScreen = async () => {
+  /**
+                 * Función: handleCaptureScreen
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * capture screen. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleCaptureScreen = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         video: { mediaSource: 'screen' } as any
@@ -386,16 +458,23 @@ export function AssistantModal() {
 
   const [isDragging, setIsDragging] = useState(false);
 
-  const processImageFile = (file: File) => {
+  /**
+                 * Función: processImageFile
+         * Descripción: Función auxiliar de propósito general especializada en process image
+         * file. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const processImageFile = (file: File) => {
     // Check if it's an image
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona una imagen válida');
+      setErrorDialog({ isOpen: true, message: 'Por favor selecciona una imagen válida' });
       return;
     }
 
     // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen es muy grande. Máximo 5MB');
+      setErrorDialog({ isOpen: true, message: 'La imagen es muy grande. Máximo 5MB' });
       return;
     }
 
@@ -407,24 +486,52 @@ export function AssistantModal() {
     reader.readAsDataURL(file);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+                 * Función: handleFileChange
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * file change. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       processImageFile(file);
     }
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  /**
+                 * Función: handleDragOver
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * drag over. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  /**
+                 * Función: handleDragLeave
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * drag leave. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  /**
+                 * Función: handleDrop
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * drop. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const file = e.dataTransfer.files?.[0];
@@ -433,7 +540,14 @@ export function AssistantModal() {
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  /**
+                 * Función: handlePaste
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * paste. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handlePaste = (e: React.ClipboardEvent) => {
     const items = e.clipboardData?.items;
     if (!items) return;
 
@@ -448,11 +562,25 @@ export function AssistantModal() {
     }
   };
 
-  const handleAttachImage = () => {
+  /**
+                 * Función: handleAttachImage
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * attach image. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleAttachImage = () => {
     fileInputRef.current?.click();
   };
 
-  const handleRemoveImage = () => {
+  /**
+                 * Función: handleRemoveImage
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * remove image. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleRemoveImage = () => {
     setAttachedImage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -654,6 +782,18 @@ export function AssistantModal() {
           </>
         )}
       </AnimatePresence>
+
+      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{errorDialog.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

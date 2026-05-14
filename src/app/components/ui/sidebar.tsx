@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: sidebar.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -44,6 +49,13 @@ type SidebarContextProps = {
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
+/**
+ * Función: useSidebar
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * sidebar. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 function useSidebar() {
   const context = React.useContext(SidebarContext);
   if (!context) {
@@ -53,6 +65,13 @@ function useSidebar() {
   return context;
 }
 
+/**
+ * Función: SidebarProvider
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarProvider. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarProvider({
   defaultOpen = true,
   open: openProp,
@@ -95,7 +114,14 @@ function SidebarProvider({
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    /**
+                         * Función: handleKeyDown
+             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+             * key down. Captura la interacción del usuario o del sistema, valida el
+             * contexto de ejecución y dispara las actualizaciones de estado
+             * necesarias en la aplicación.
+                         */
+      const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
         (event.metaKey || event.ctrlKey)
@@ -151,6 +177,13 @@ function SidebarProvider({
   );
 }
 
+/**
+ * Función: Sidebar
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Sidebar. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function Sidebar({
   side = "left",
   variant = "sidebar",
@@ -253,6 +286,13 @@ function Sidebar({
   );
 }
 
+/**
+ * Función: SidebarTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarTrigger. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarTrigger({
   className,
   onClick,
@@ -279,6 +319,13 @@ function SidebarTrigger({
   );
 }
 
+/**
+ * Función: SidebarRail
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarRail. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   const { toggleSidebar } = useSidebar();
 
@@ -304,6 +351,13 @@ function SidebarRail({ className, ...props }: React.ComponentProps<"button">) {
   );
 }
 
+/**
+ * Función: SidebarInset
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarInset. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main
@@ -318,6 +372,13 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   );
 }
 
+/**
+ * Función: SidebarInput
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarInput. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarInput({
   className,
   ...props
@@ -332,6 +393,13 @@ function SidebarInput({
   );
 }
 
+/**
+ * Función: SidebarHeader
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarHeader. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -343,6 +411,13 @@ function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SidebarFooter
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarFooter. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -354,6 +429,13 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SidebarSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarSeparator. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarSeparator({
   className,
   ...props
@@ -368,6 +450,13 @@ function SidebarSeparator({
   );
 }
 
+/**
+ * Función: SidebarContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarContent. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -382,6 +471,13 @@ function SidebarContent({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SidebarGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarGroup. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -393,6 +489,13 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
+/**
+ * Función: SidebarGroupLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarGroupLabel. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarGroupLabel({
   className,
   asChild = false,
@@ -414,6 +517,13 @@ function SidebarGroupLabel({
   );
 }
 
+/**
+ * Función: SidebarGroupAction
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarGroupAction. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarGroupAction({
   className,
   asChild = false,
@@ -437,6 +547,13 @@ function SidebarGroupAction({
   );
 }
 
+/**
+ * Función: SidebarGroupContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarGroupContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarGroupContent({
   className,
   ...props
@@ -451,6 +568,13 @@ function SidebarGroupContent({
   );
 }
 
+/**
+ * Función: SidebarMenu
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenu. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -462,6 +586,13 @@ function SidebarMenu({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/**
+ * Función: SidebarMenuItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarMenuItem({ className, ...props }: React.ComponentProps<"li">) {
   return (
     <li
@@ -495,6 +626,13 @@ const sidebarMenuButtonVariants = cva(
   },
 );
 
+/**
+ * Función: SidebarMenuButton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuButton. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarMenuButton({
   asChild = false,
   isActive = false,
@@ -545,6 +683,13 @@ function SidebarMenuButton({
   );
 }
 
+/**
+ * Función: SidebarMenuAction
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuAction. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarMenuAction({
   className,
   asChild = false,
@@ -577,6 +722,13 @@ function SidebarMenuAction({
   );
 }
 
+/**
+ * Función: SidebarMenuBadge
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuBadge. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarMenuBadge({
   className,
   ...props
@@ -599,6 +751,13 @@ function SidebarMenuBadge({
   );
 }
 
+/**
+ * Función: SidebarMenuSkeleton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuSkeleton. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarMenuSkeleton({
   className,
   showIcon = false,
@@ -637,6 +796,13 @@ function SidebarMenuSkeleton({
   );
 }
 
+/**
+ * Función: SidebarMenuSub
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuSub. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   return (
     <ul
@@ -652,6 +818,13 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<"ul">) {
   );
 }
 
+/**
+ * Función: SidebarMenuSubItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuSubItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarMenuSubItem({
   className,
   ...props
@@ -666,6 +839,13 @@ function SidebarMenuSubItem({
   );
 }
 
+/**
+ * Función: SidebarMenuSubButton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * SidebarMenuSubButton. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function SidebarMenuSubButton({
   asChild = false,
   size = "md",

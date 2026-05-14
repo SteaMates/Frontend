@@ -1,9 +1,21 @@
+/**
+ * Nombre del fichero: NotificationToasts.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Gamepad2, Check, X, Clock, User } from "lucide-react";
 import { useNotifications, AppNotification } from "../../context/NotificationsContext";
 import { toast } from "sonner";
 
+/**
+ * Función: InviteToast
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * InviteToast. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => void }) {
   const { respondInvite } = useNotifications();
   const [responding, setResponding] = useState<"accepted" | "declined" | null>(null);
@@ -14,7 +26,14 @@ function InviteToast({ n, onDismiss }: { n: AppNotification; onDismiss: () => vo
   const date = n.session?.date ?? (n.data?.date as string | undefined);
   const time = n.session?.time ?? (n.data?.time as string | undefined);
 
-  const handleRespond = async (response: "accepted" | "declined") => {
+  /**
+                 * Función: handleRespond
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * respond. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleRespond = async (response: "accepted" | "declined") => {
     if (!sessionId || responding) return;
     setResponding(response);
     try {
@@ -153,7 +172,13 @@ export function NotificationToasts() {
   // Dismiss without responding (X button) — hide locally only.
   // We DO NOT mark as read, so the invite stays pending and the user can
   // still accept/decline it from the bell panel.
-  const dismiss = (id: string) => {
+  /**
+                 * Función: dismiss
+         * Descripción: Función auxiliar de propósito general especializada en dismiss. Contiene
+         * lógica específica para transformar datos, realizar cálculos o conectar
+         * diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const dismiss = (id: string) => {
     setDismissed((prev) => new Set(prev).add(id));
   };
 

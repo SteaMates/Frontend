@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: chart.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -24,6 +29,13 @@ type ChartContextProps = {
 
 const ChartContext = React.createContext<ChartContextProps | null>(null);
 
+/**
+ * Función: useChart
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * chart. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 function useChart() {
   const context = React.useContext(ChartContext);
 
@@ -34,6 +46,13 @@ function useChart() {
   return context;
 }
 
+/**
+ * Función: ChartContainer
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ChartContainer. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ChartContainer({
   id,
   className,
@@ -69,6 +88,13 @@ function ChartContainer({
   );
 }
 
+/**
+ * Función: ChartStyle
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ChartStyle. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color,
@@ -104,6 +130,13 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+/**
+ * Función: ChartTooltipContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ChartTooltipContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ChartTooltipContent({
   active,
   payload,
@@ -250,6 +283,13 @@ function ChartTooltipContent({
 
 const ChartLegend = RechartsPrimitive.Legend;
 
+/**
+ * Función: ChartLegendContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ChartLegendContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function ChartLegendContent({
   className,
   hideIcon = false,
@@ -305,6 +345,13 @@ function ChartLegendContent({
 }
 
 // Helper to extract item config from a payload.
+/**
+ * Función: getPayloadConfigFromPayload
+ * Descripción: Función encargada de consultar y obtener los datos de payload config from
+ * payload. Procesa los parámetros de entrada requeridos, realiza la llamada
+ * pertinente y devuelve la información estructurada para que la aplicación
+ * pueda utilizarla.
+ */
 function getPayloadConfigFromPayload(
   config: ChartConfig,
   payload: unknown,

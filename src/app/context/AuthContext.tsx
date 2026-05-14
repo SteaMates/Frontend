@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: AuthContext.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from 'react';
 import api from '../../lib/api';
 
@@ -57,6 +62,13 @@ function isSessionExpiredByInactivity(): boolean {
     return Date.now() - lastActivity > INACTIVITY_TIMEOUT;
 }
 
+/**
+ * Función: AuthProvider
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * AuthProvider. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -65,6 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userIdRef = useRef<string | undefined>(undefined);
     userIdRef.current = user?.id;
 
+    /**
+                 * Función: refreshSession
+         * Descripción: Función auxiliar de propósito general especializada en refresh session.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
     const refreshSession = async () => {
         if (!localStorage.getItem(TOKEN_KEY)) {
             setUser(null);
@@ -122,6 +140,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (!userIdRef.current) return; // Solo activo cuando hay sesión iniciada
 
+        /**
+                                 * Función: resetTimer
+                 * Descripción: Función auxiliar de propósito general especializada en reset timer.
+                 * Contiene lógica específica para transformar datos, realizar cálculos
+                 * o conectar diferentes partes del sistema según los requisitos del
+                 * módulo.
+                                 */
         const resetTimer = () => {
             // Persistir timestamp de actividad en localStorage (throttled)
             const now = Date.now();
@@ -172,6 +197,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return;
         }
 
+        /**
+                                 * Función: parseLoginNotices
+                 * Descripción: Función auxiliar de propósito general especializada en parse login
+                 * notices. Contiene lógica específica para transformar datos, realizar
+                 * cálculos o conectar diferentes partes del sistema según los
+                 * requisitos del módulo.
+                                 */
         const parseLoginNotices = (): LoginNotice[] => {
             const noticesParam = params.get('notices');
 
@@ -269,6 +301,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // 3. Fallback: verificar validez del token con el backend
+        /**
+                                 * Función: bootstrapAuth
+                 * Descripción: Función auxiliar de propósito general especializada en bootstrap
+                 * auth. Contiene lógica específica para transformar datos, realizar
+                 * cálculos o conectar diferentes partes del sistema según los
+                 * requisitos del módulo.
+                                 */
         const bootstrapAuth = async () => {
             if (steamId && token) {
                 setLoading(false);
@@ -278,6 +317,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         };
 
+        /**
+                                 * Función: onFocus
+                 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+                 * focus. Captura la interacción del usuario o del sistema, valida el
+                 * contexto de ejecución y dispara las actualizaciones de estado
+                 * necesarias en la aplicación.
+                                 */
         const onFocus = () => {
             // Al recuperar el foco también comprobar inactividad
             if (isSessionExpiredByInactivity()) {
@@ -295,6 +341,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, []);
 
+    /**
+                 * Función: login
+         * Descripción: Función auxiliar de propósito general especializada en login. Contiene
+         * lógica específica para transformar datos, realizar cálculos o conectar
+         * diferentes partes del sistema según los requisitos del módulo.
+                 */
     const login = () => {
         const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
         window.location.href = `${backendUrl}/api/auth/steam`;
@@ -307,6 +359,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 }
 
+/**
+ * Función: useAuth
+ * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
+ * auth. Este hook maneja los efectos secundarios, centraliza el estado
+ * necesario y expone las propiedades y métodos esenciales para los componentes
+ * que lo consuman.
+ */
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {

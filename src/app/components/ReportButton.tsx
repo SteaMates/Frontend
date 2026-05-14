@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: ReportButton.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useState } from 'react';
 import { Flag, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -52,6 +57,13 @@ const REASON_OPTIONS: Record<ReportTargetType, Array<{ value: string; label: str
   ],
 };
 
+/**
+ * Función: ReportButton
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ReportButton. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function ReportButton({
   targetId,
   targetType,
@@ -66,7 +78,14 @@ export function ReportButton({
 
   if (!user) return null;
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  /**
+                 * Función: handleSubmit
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * submit. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!reason) {
@@ -95,7 +114,14 @@ export function ReportButton({
     }
   };
 
-  const getTargetTypeLabel = () => {
+  /**
+                 * Función: getTargetTypeLabel
+         * Descripción: Función encargada de consultar y obtener los datos de target type label.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getTargetTypeLabel = () => {
     if (targetType === 'user') return 'usuario';
     if (targetType === 'list') return 'lista';
     if (targetType === 'comment') return 'comentario';

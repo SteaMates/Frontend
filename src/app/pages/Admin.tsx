@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Admin.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link } from "react-router";
@@ -23,6 +28,16 @@ import {
   Download,
   FileSpreadsheet,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../components/ui/alert-dialog";
 
 type TabType = "moderation" | "users";
 type ModerationActionType = "warned" | "silenced" | "banned";
@@ -40,15 +55,33 @@ const initialModerationStats = {
   banned: 0,
 };
 
+/**
+ * Función: normalizeStatus
+ * Descripción: Función auxiliar de propósito general especializada en normalize status.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 const normalizeStatus = (status?: string) =>
   (status || "").toLowerCase().trim();
 
+/**
+ * Función: isModerationActionCurrentlyActive
+ * Descripción: Función de validación o comprobación booleana sobre moderation action
+ * currently active. Evalúa las condiciones de negocio actuales y devuelve
+ * verdadero o falso dependiendo del estado de la entidad solicitada.
+ */
 const isModerationActionCurrentlyActive = (item: any) => {
   if (!item?.isActive) return false;
   if (!item?.expiresAt) return true;
   return new Date(item.expiresAt).getTime() > Date.now();
 };
 
+/**
+ * Función: getActiveActionSet
+ * Descripción: Función encargada de consultar y obtener los datos de active action set.
+ * Procesa los parámetros de entrada requeridos, realiza la llamada pertinente y
+ * devuelve la información estructurada para que la aplicación pueda utilizarla.
+ */
 const getActiveActionSet = (user: any) => {
   const actionSet = new Set<string>();
   const history = Array.isArray(user?.moderationHistory)
@@ -72,6 +105,12 @@ const getActiveActionSet = (user: any) => {
   return actionSet;
 };
 
+/**
+ * Función: isActionActiveForUser
+ * Descripción: Función de validación o comprobación booleana sobre action active for user.
+ * Evalúa las condiciones de negocio actuales y devuelve verdadero o falso
+ * dependiendo del estado de la entidad solicitada.
+ */
 const isActionActiveForUser = (user: any, action: ModerationActionType) => {
   const actions = getActiveActionSet(user);
   if (action === "banned")
@@ -79,6 +118,13 @@ const isActionActiveForUser = (user: any, action: ModerationActionType) => {
   return actions.has(action);
 };
 
+/**
+ * Función: PaginationControls
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * PaginationControls. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function PaginationControls({
   pagination,
   onPageChange,
@@ -122,6 +168,13 @@ function PaginationControls({
   );
 }
 
+/**
+ * Función: Admin
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Admin. Este elemento encapsula la lógica de presentación, gestiona su propio
+ * estado interno y coordina la renderización de sus componentes hijos según los
+ * datos recibidos.
+ */
 export function Admin() {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>("moderation");
@@ -129,7 +182,13 @@ export function Admin() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [loadError, setLoadError] = useState("");
 
-  const loadOverview = async () => {
+  /**
+                 * Función: loadOverview
+         * Descripción: Rutina de carga responsable de volcar los datos de overview a la memoria.
+         * Se utiliza típicamente durante las fases de inicialización para preparar
+         * el entorno antes de la interacción del usuario.
+                 */
+    const loadOverview = async () => {
     try {
       setLoadingStats(true);
       setLoadError("");
@@ -258,8 +317,22 @@ export function Admin() {
   );
 }
 
+/**
+ * Función: ExportButtons
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ExportButtons. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ExportButtons() {
-  const downloadBlob = (blob: Blob, filename: string) => {
+  const [errorDialog, setErrorDialog] = useState({ isOpen: false, message: "" });
+  /**
+                 * Función: downloadBlob
+         * Descripción: Función auxiliar de propósito general especializada en download blob.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -270,7 +343,14 @@ function ExportButtons() {
     URL.revokeObjectURL(url);
   };
 
-  const handleExport = async (
+  /**
+                 * Función: handleExport
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * export. Captura la interacción del usuario o del sistema, valida el
+         * contexto de ejecución y dispara las actualizaciones de estado necesarias
+         * en la aplicación.
+                 */
+    const handleExport = async (
     type: "users" | "reports" | "actions",
     format: "csv" | "xlsx",
   ) => {
@@ -291,7 +371,7 @@ function ExportButtons() {
       downloadBlob(blob, filename);
     } catch (error) {
       console.error("Error exporting data:", error);
-      alert("Error exportando datos");
+      setErrorDialog({ isOpen: true, message: "Error exportando datos" });
     }
   };
 
@@ -305,6 +385,18 @@ function ExportButtons() {
   ];
 
   return (
+    <>
+      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Error</AlertDialogTitle>
+            <AlertDialogDescription>{errorDialog.message}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     <div className="w-full sm:w-auto flex flex-wrap items-center justify-end gap-2">
       {exportGroups.map((group) => (
         <div
@@ -335,9 +427,17 @@ function ExportButtons() {
       ))}
       <div className="sm:hidden w-full" />
     </div>
+    </>
   );
 }
 
+/**
+ * Función: ModerationPanel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * ModerationPanel. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function ModerationPanel({
   stats,
   onReload,
@@ -346,6 +446,8 @@ function ModerationPanel({
   onReload: () => Promise<void>;
 }) {
   const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
+  const [alertDialog, setAlertDialog] = useState({ isOpen: false, message: "" });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, message: "", onConfirm: () => {} });
   const [typeFilter, setTypeFilter] = useState<
     "all" | "list" | "comment" | "user"
   >("all");
@@ -364,21 +466,41 @@ function ModerationPanel({
   const [selectedReport, setSelectedReport] = useState<any>(null);
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const getTargetTypeLabel = (type: string) => {
+  /**
+                 * Función: getTargetTypeLabel
+         * Descripción: Función encargada de consultar y obtener los datos de target type label.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getTargetTypeLabel = (type: string) => {
     if (type === "GameList") return "Lista";
     if (type === "Comment") return "Comentario";
     if (type === "User") return "Usuario";
     return "Contenido";
   };
 
-  const getTargetTypeBg = (type: string) => {
+  /**
+                 * Función: getTargetTypeBg
+         * Descripción: Función encargada de consultar y obtener los datos de target type bg.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getTargetTypeBg = (type: string) => {
     if (type === "GameList") return "bg-blue-500/10 text-blue-400";
     if (type === "Comment") return "bg-purple-500/10 text-purple-400";
     if (type === "User") return "bg-amber-500/10 text-amber-400";
     return "bg-slate-500/10 text-slate-400";
   };
 
-  const loadReports = async () => {
+  /**
+                 * Función: loadReports
+         * Descripción: Rutina de carga responsable de volcar los datos de reports a la memoria.
+         * Se utiliza típicamente durante las fases de inicialización para preparar
+         * el entorno antes de la interacción del usuario.
+                 */
+    const loadReports = async () => {
     try {
       setLoading(true);
       setLoadError("");
@@ -416,7 +538,14 @@ function ModerationPanel({
     loadReports();
   }, [page, filter, typeFilter, searchTerm]);
 
-  const handleResolveReport = async (reportId: string) => {
+  /**
+                 * Función: handleResolveReport
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * resolve report. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleResolveReport = async (reportId: string) => {
     try {
       setSubmitting(true);
       await api.put(`/api/moderation/reports/${reportId}`, {
@@ -430,11 +559,16 @@ function ModerationPanel({
     }
   };
 
-  const handleDeleteContent = async (report: any) => {
+  /**
+                 * Función: handleDeleteContent
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * delete content. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleDeleteContent = async (report: any) => {
     if (report.targetType === "User") {
-      alert(
-        'Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.',
-      );
+      setAlertDialog({ isOpen: true, message: 'Los usuarios no se pueden eliminar desde aquí. Ve a la pestaña "Usuarios" para banear o silenciar.' });
       return;
     }
 
@@ -442,27 +576,25 @@ function ModerationPanel({
       report.targetType === "GameList"
         ? "esta lista"
         : `este ${getTargetTypeLabel(report.targetType).toLowerCase()}`;
-    if (
-      !window.confirm(
-        `¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`,
-      )
-    ) {
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-      const typeStr = report.targetType === "GameList" ? "list" : "comment";
-      const targetId = report.targetId?._id || report.targetId;
-      await api.delete(`/api/moderation/content/${typeStr}/${targetId}`);
-      if (showReportModal) setShowReportModal(false);
-      await Promise.all([onReload(), loadReports()]);
-    } catch (error) {
-      console.error("Error eliminando contenido:", error);
-      alert("Error eliminando contenido");
-    } finally {
-      setSubmitting(false);
-    }
+    setConfirmDialog({
+      isOpen: true,
+      message: `¿Estás seguro de que quieres eliminar ${targetLabel}? Esta acción no se puede deshacer y marcará los reportes como resueltos.`,
+      onConfirm: async () => {
+        try {
+          setSubmitting(true);
+          const typeStr = report.targetType === "GameList" ? "list" : "comment";
+          const targetId = report.targetId?._id || report.targetId;
+          await api.delete(`/api/moderation/content/${typeStr}/${targetId}`);
+          if (showReportModal) setShowReportModal(false);
+          await Promise.all([onReload(), loadReports()]);
+        } catch (error) {
+          console.error("Error eliminando contenido:", error);
+          setAlertDialog({ isOpen: true, message: "Error eliminando contenido" });
+        } finally {
+          setSubmitting(false);
+        }
+      }
+    });
   };
 
   return (
@@ -685,6 +817,23 @@ function ModerationPanel({
         />
       </div>
 
+      <AlertDialog open={alertDialog.isOpen} onOpenChange={(open) => setAlertDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Aviso</AlertDialogTitle><AlertDialogDescription>{alertDialog.message}</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setAlertDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmDialog.isOpen} onOpenChange={(open) => setConfirmDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Confirmar acción</AlertDialogTitle><AlertDialogDescription>{confirmDialog.message}</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setConfirmDialog(p => ({ ...p, isOpen: false }))}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { confirmDialog.onConfirm(); setConfirmDialog(p => ({ ...p, isOpen: false })); }}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {showReportModal && selectedReport && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
@@ -811,10 +960,24 @@ function ModerationPanel({
           </div>
         </div>
       )}
+
+      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Error</AlertDialogTitle><AlertDialogDescription>{errorDialog.message}</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
 
+/**
+ * Función: UsersPanel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * UsersPanel. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function UsersPanel({
   stats,
   onReload,
@@ -822,6 +985,7 @@ function UsersPanel({
   stats: any;
   onReload: () => Promise<void>;
 }) {
+  const [errorDialog, setErrorDialog] = useState({ isOpen: false, message: "" });
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "warned" | "silenced" | "banned"
   >("all");
@@ -850,7 +1014,13 @@ function UsersPanel({
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const loadUsers = async () => {
+  /**
+                 * Función: loadUsers
+         * Descripción: Rutina de carga responsable de volcar los datos de users a la memoria. Se
+         * utiliza típicamente durante las fases de inicialización para preparar el
+         * entorno antes de la interacción del usuario.
+                 */
+    const loadUsers = async () => {
     try {
       setLoading(true);
       setLoadError("");
@@ -887,7 +1057,14 @@ function UsersPanel({
     loadUsers();
   }, [page, statusFilter, searchTerm]);
 
-  const handleOpenActionModal = (
+  /**
+                 * Función: handleOpenActionModal
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * open action modal. Captura la interacción del usuario o del sistema,
+         * valida el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleOpenActionModal = (
     user: any,
     action: ModerationActionType,
     mode: "apply" | "undo" = "apply",
@@ -901,7 +1078,14 @@ function UsersPanel({
     setShowActionModal(true);
   };
 
-  const getActionTitle = (user: any, action: ModerationActionType) => {
+  /**
+                 * Función: getActionTitle
+         * Descripción: Función encargada de consultar y obtener los datos de action title.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getActionTitle = (user: any, action: ModerationActionType) => {
     if (action === "warned")
       return isActionActiveForUser(user, "warned")
         ? "Quitar advertencia"
@@ -913,7 +1097,14 @@ function UsersPanel({
     return isActionActiveForUser(user, "banned") ? "Desbanear" : "Banear";
   };
 
-  const handleToggleAction = async (
+  /**
+                 * Función: handleToggleAction
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * toggle action. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleToggleAction = async (
     user: any,
     action: ModerationActionType,
   ) => {
@@ -931,7 +1122,14 @@ function UsersPanel({
     }
   };
 
-  const handleOpenHistoryModal = async (user: any) => {
+  /**
+                 * Función: handleOpenHistoryModal
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * open history modal. Captura la interacción del usuario o del sistema,
+         * valida el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleOpenHistoryModal = async (user: any) => {
     try {
       setShowHistoryModal(true);
       setHistoryUser(user);
@@ -954,14 +1152,28 @@ function UsersPanel({
     }
   };
 
-  const getActionLabel = (action: string) => {
+  /**
+                 * Función: getActionLabel
+         * Descripción: Función encargada de consultar y obtener los datos de action label.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getActionLabel = (action: string) => {
     if (action === "warned") return "Advertencia";
     if (action === "silenced") return "Silencio";
     if (action === "banned" || action === "suspended") return "Baneo";
     return action;
   };
 
-  const getActionBadge = (action: string) => {
+  /**
+                 * Función: getActionBadge
+         * Descripción: Función encargada de consultar y obtener los datos de action badge.
+         * Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getActionBadge = (action: string) => {
     if (action === "warned")
       return "bg-amber-500/10 text-amber-300 border-amber-500/30";
     if (action === "silenced")
@@ -971,19 +1183,39 @@ function UsersPanel({
     return "bg-slate-500/10 text-slate-300 border-slate-500/30";
   };
 
-  const getHistoryStateLabel = (item: any) => {
+  /**
+                 * Función: getHistoryStateLabel
+         * Descripción: Función encargada de consultar y obtener los datos de history state
+         * label. Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getHistoryStateLabel = (item: any) => {
     if (item?.isActive) return "Activa";
     if (item?.revokeReason === "expired") return "Expirada";
     return "Revertida";
   };
 
-  const getHistoryStateBadge = (item: any) => {
+  /**
+                 * Función: getHistoryStateBadge
+         * Descripción: Función encargada de consultar y obtener los datos de history state
+         * badge. Procesa los parámetros de entrada requeridos, realiza la llamada
+         * pertinente y devuelve la información estructurada para que la aplicación
+         * pueda utilizarla.
+                 */
+    const getHistoryStateBadge = (item: any) => {
     if (item?.isActive) return "bg-emerald-500/10 text-emerald-300";
     if (item?.revokeReason === "expired") return "bg-sky-500/10 text-sky-300";
     return "bg-slate-600/20 text-slate-300";
   };
 
-  const downloadBlob = (blob: Blob, filename: string) => {
+  /**
+                 * Función: downloadBlob
+         * Descripción: Función auxiliar de propósito general especializada en download blob.
+         * Contiene lógica específica para transformar datos, realizar cálculos o
+         * conectar diferentes partes del sistema según los requisitos del módulo.
+                 */
+    const downloadBlob = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
@@ -994,7 +1226,14 @@ function UsersPanel({
     URL.revokeObjectURL(url);
   };
 
-  const handleExportUserHistory = async (user: any, format: "csv" | "xlsx") => {
+  /**
+                 * Función: handleExportUserHistory
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * export user history. Captura la interacción del usuario o del sistema,
+         * valida el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleExportUserHistory = async (user: any, format: "csv" | "xlsx") => {
     try {
       const response = await api.get(
         `/api/moderation/user/${user._id}/export`,
@@ -1019,11 +1258,18 @@ function UsersPanel({
       downloadBlob(blob, `historial-${safeUsername}.${extension}`);
     } catch (error) {
       console.error("Error exportando historial de usuario:", error);
-      alert("Error exportando historial de usuario");
+      setErrorDialog({ isOpen: true, message: "Error exportando historial de usuario" });
     }
   };
 
-  const handleSubmitAction = async () => {
+  /**
+                 * Función: handleSubmitAction
+         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+         * submit action. Captura la interacción del usuario o del sistema, valida
+         * el contexto de ejecución y dispara las actualizaciones de estado
+         * necesarias en la aplicación.
+                 */
+    const handleSubmitAction = async () => {
     if (!selectedUser) return;
 
     const trimmedReason = reason.trim();
@@ -1488,6 +1734,13 @@ function UsersPanel({
           </div>
         </div>
       )}
+
+      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Error</AlertDialogTitle><AlertDialogDescription>{errorDialog.message}</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

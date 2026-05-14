@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: dropdown-menu.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 "use client";
 
 import * as React from "react";
@@ -6,12 +11,26 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "./utils";
 
+/**
+ * Función: DropdownMenu
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenu. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
 }
 
+/**
+ * Función: DropdownMenuPortal
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuPortal. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuPortal({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Portal>) {
@@ -20,6 +39,13 @@ function DropdownMenuPortal({
   );
 }
 
+/**
+ * Función: DropdownMenuTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
@@ -31,6 +57,13 @@ function DropdownMenuTrigger({
   );
 }
 
+/**
+ * Función: DropdownMenuContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuContent({
   className,
   sideOffset = 4,
@@ -51,6 +84,13 @@ function DropdownMenuContent({
   );
 }
 
+/**
+ * Función: DropdownMenuGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuGroup. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuGroup({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Group>) {
@@ -59,6 +99,13 @@ function DropdownMenuGroup({
   );
 }
 
+/**
+ * Función: DropdownMenuItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuItem. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DropdownMenuItem({
   className,
   inset,
@@ -82,6 +129,13 @@ function DropdownMenuItem({
   );
 }
 
+/**
+ * Función: DropdownMenuCheckboxItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuCheckboxItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -108,6 +162,13 @@ function DropdownMenuCheckboxItem({
   );
 }
 
+/**
+ * Función: DropdownMenuRadioGroup
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuRadioGroup. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuRadioGroup({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>) {
@@ -119,6 +180,13 @@ function DropdownMenuRadioGroup({
   );
 }
 
+/**
+ * Función: DropdownMenuRadioItem
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuRadioItem. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuRadioItem({
   className,
   children,
@@ -143,6 +211,13 @@ function DropdownMenuRadioItem({
   );
 }
 
+/**
+ * Función: DropdownMenuLabel
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuLabel. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuLabel({
   className,
   inset,
@@ -163,6 +238,13 @@ function DropdownMenuLabel({
   );
 }
 
+/**
+ * Función: DropdownMenuSeparator
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuSeparator. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuSeparator({
   className,
   ...props
@@ -176,6 +258,13 @@ function DropdownMenuSeparator({
   );
 }
 
+/**
+ * Función: DropdownMenuShortcut
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuShortcut. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuShortcut({
   className,
   ...props
@@ -192,12 +281,26 @@ function DropdownMenuShortcut({
   );
 }
 
+/**
+ * Función: DropdownMenuSub
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuSub. Este elemento encapsula la lógica de presentación, gestiona
+ * su propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 function DropdownMenuSub({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Sub>) {
   return <DropdownMenuPrimitive.Sub data-slot="dropdown-menu-sub" {...props} />;
 }
 
+/**
+ * Función: DropdownMenuSubTrigger
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuSubTrigger. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -222,6 +325,13 @@ function DropdownMenuSubTrigger({
   );
 }
 
+/**
+ * Función: DropdownMenuSubContent
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * DropdownMenuSubContent. Este elemento encapsula la lógica de presentación,
+ * gestiona su propio estado interno y coordina la renderización de sus
+ * componentes hijos según los datos recibidos.
+ */
 function DropdownMenuSubContent({
   className,
   ...props

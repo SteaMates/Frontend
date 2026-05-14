@@ -1,3 +1,8 @@
+/**
+ * Nombre del fichero: Profile.tsx
+ * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
+ */
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Navigate, Link, useParams } from "react-router";
@@ -115,14 +120,32 @@ type GamerIdentity = {
 const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
 const PROFILE_SESSION_CACHE_PREFIX = "steamates_profile_session_cache_v1";
 
+/**
+ * Función: snapshotKey
+ * Descripción: Función auxiliar de propósito general especializada en snapshot key. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function snapshotKey(steamId: string) {
   return `${PROFILE_SNAPSHOT_PREFIX}:${steamId}`;
 }
 
+/**
+ * Función: sessionCacheKey
+ * Descripción: Función auxiliar de propósito general especializada en session cache key.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function sessionCacheKey(steamId: string) {
   return `${PROFILE_SESSION_CACHE_PREFIX}:${steamId}`;
 }
 
+/**
+ * Función: readProfileSnapshot
+ * Descripción: Función auxiliar de propósito general especializada en read profile snapshot.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
   try {
     const raw = localStorage.getItem(snapshotKey(steamId));
@@ -135,6 +158,13 @@ function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
   }
 }
 
+/**
+ * Función: writeProfileSnapshot
+ * Descripción: Función auxiliar de propósito general especializada en write profile
+ * snapshot. Contiene lógica específica para transformar datos, realizar
+ * cálculos o conectar diferentes partes del sistema según los requisitos del
+ * módulo.
+ */
 function writeProfileSnapshot(steamId: string, snapshot: ProfileSnapshot) {
   try {
     localStorage.setItem(snapshotKey(steamId), JSON.stringify(snapshot));
@@ -143,6 +173,12 @@ function writeProfileSnapshot(steamId: string, snapshot: ProfileSnapshot) {
   }
 }
 
+/**
+ * Función: readSessionCache
+ * Descripción: Función auxiliar de propósito general especializada en read session cache.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function readSessionCache(steamId: string): ProfileSnapshot | null {
   try {
     const raw = sessionStorage.getItem(sessionCacheKey(steamId));
@@ -155,6 +191,12 @@ function readSessionCache(steamId: string): ProfileSnapshot | null {
   }
 }
 
+/**
+ * Función: writeSessionCache
+ * Descripción: Función auxiliar de propósito general especializada en write session cache.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function writeSessionCache(steamId: string, snapshot: ProfileSnapshot) {
   try {
     sessionStorage.setItem(sessionCacheKey(steamId), JSON.stringify(snapshot));
@@ -174,17 +216,34 @@ const GENRE_COLORS = [
   "#64748b",
 ];
 
+/**
+ * Función: hoursFromMinutes
+ * Descripción: Función auxiliar de propósito general especializada en hours from minutes.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function hoursFromMinutes(minutes = 0) {
   return Math.max(0, Math.round(minutes / 60));
 }
 
+/**
+ * Función: gameImage
+ * Descripción: Función auxiliar de propósito general especializada en game image. Contiene
+ * lógica específica para transformar datos, realizar cálculos o conectar
+ * diferentes partes del sistema según los requisitos del módulo.
+ */
 function gameImage(appId: number, fallback = "") {
   return (
-    `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg` ||
-    fallback
+    `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
   );
 }
 
+/**
+ * Función: parseMemberYear
+ * Descripción: Función auxiliar de propósito general especializada en parse member year.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function parseMemberYear(value?: number | string): number | null {
   if (typeof value === "number") {
     const ms = value > 1e11 ? value : value * 1000;
@@ -200,6 +259,12 @@ function parseMemberYear(value?: number | string): number | null {
   return null;
 }
 
+/**
+ * Función: relativeLabel
+ * Descripción: Función auxiliar de propósito general especializada en relative label.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function relativeLabel(lastPlayed?: number, fallback = "Reciente") {
   if (!lastPlayed) return fallback;
   const timestamp = lastPlayed > 1e11 ? lastPlayed : lastPlayed * 1000;
@@ -211,6 +276,12 @@ function relativeLabel(lastPlayed?: number, fallback = "Reciente") {
   return `Hace ${days} días`;
 }
 
+/**
+ * Función: normalizeGenres
+ * Descripción: Función auxiliar de propósito general especializada en normalize genres.
+ * Contiene lógica específica para transformar datos, realizar cálculos o
+ * conectar diferentes partes del sistema según los requisitos del módulo.
+ */
 function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
   const candidate =
     (Array.isArray(raw?.genres) && raw.genres) ||
@@ -326,6 +397,13 @@ const IDENTITY_RULES: IdentityRule[] = [
   },
 ];
 
+/**
+ * Función: computeGamerIdentity
+ * Descripción: Función auxiliar de propósito general especializada en compute gamer
+ * identity. Contiene lógica específica para transformar datos, realizar
+ * cálculos o conectar diferentes partes del sistema según los requisitos del
+ * módulo.
+ */
 function computeGamerIdentity(
   genreItems: GenreItem[],
   totalHours: number,
@@ -388,6 +466,13 @@ function computeGamerIdentity(
   };
 }
 
+/**
+ * Función: Profile
+ * Descripción: Componente principal de la interfaz o clase estructural que representa a
+ * Profile. Este elemento encapsula la lógica de presentación, gestiona su
+ * propio estado interno y coordina la renderización de sus componentes hijos
+ * según los datos recibidos.
+ */
 export function Profile() {
   const { user, logout } = useAuth();
   const { steamId: routeSteamId } = useParams();
@@ -778,7 +863,14 @@ export function Profile() {
   const hasRecentAchievements =
     achievementsData?.recentAchievementsList?.length > 0;
 
-  const getMappedAchievements = (list: any[]) =>
+  /**
+                 * Función: getMappedAchievements
+         * Descripción: Función encargada de consultar y obtener los datos de mapped
+         * achievements. Procesa los parámetros de entrada requeridos, realiza la
+         * llamada pertinente y devuelve la información estructurada para que la
+         * aplicación pueda utilizarla.
+                 */
+    const getMappedAchievements = (list: any[]) =>
     (list || []).map((ach: any) => {
       // Si el logro no está desbloqueado (ahora podemos recibir logros normales/bloqueados del backend)
       const isUnlocked = ach.unlocked !== false; // Si no viene explícitamente como false, lo asumimos desbloqueado
@@ -808,7 +900,7 @@ export function Profile() {
   );
 
   // Y si no hay datos de steam, podrÃ­amos no mostrar nada o rellenar
-  let displayAchievements = [];
+  let displayAchievements: any[];
   if (isLoadingAchievements) {
     displayAchievements = [
       {
@@ -1039,12 +1131,26 @@ export function Profile() {
     ? `Ultima sesion: ${lastPlayedLabel}`
     : "Sin actividad reciente detectada";
 
-  const resolveGameCover = (game: Game, fallback?: string) => {
+  /**
+                 * Función: resolveGameCover
+         * Descripción: Función auxiliar de propósito general especializada en resolve game
+         * cover. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const resolveGameCover = (game: Game, fallback?: string) => {
     const detail = gameDetails[String(game.appId)];
     return detail?.headerImage || gameImage(game.appId, fallback || game.icon);
   };
 
-  const resolveGameGenres = (game: Game) => {
+  /**
+                 * Función: resolveGameGenres
+         * Descripción: Función auxiliar de propósito general especializada en resolve game
+         * genres. Contiene lógica específica para transformar datos, realizar
+         * cálculos o conectar diferentes partes del sistema según los requisitos
+         * del módulo.
+                 */
+    const resolveGameGenres = (game: Game) => {
     const detail = gameDetails[String(game.appId)];
     return (detail?.genres || []).map((g) => g.toLowerCase());
   };
