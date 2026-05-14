@@ -70,6 +70,7 @@ export function Lists() {
   const [selectedCategory, setSelectedCategory] = useState("Todas");
   const [query, setQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [errorDialog, setErrorDialog] = useState({ isOpen: false, message: "" });
 
   // Real Lists from backend
   const [lists, setLists] = useState<any[]>([]);
@@ -1334,6 +1335,13 @@ export function Lists() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
+        <AlertDialogContent>
+          <AlertDialogHeader><AlertDialogTitle>Error</AlertDialogTitle><AlertDialogDescription>{errorDialog.message}</AlertDialogDescription></AlertDialogHeader>
+          <AlertDialogFooter><AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

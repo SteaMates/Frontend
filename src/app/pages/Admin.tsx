@@ -961,12 +961,7 @@ function ModerationPanel({
         </div>
       )}
 
-      <AlertDialog open={errorDialog.isOpen} onOpenChange={(open) => setErrorDialog(p => ({ ...p, isOpen: open }))}>
-        <AlertDialogContent>
-          <AlertDialogHeader><AlertDialogTitle>Error</AlertDialogTitle><AlertDialogDescription>{errorDialog.message}</AlertDialogDescription></AlertDialogHeader>
-          <AlertDialogFooter><AlertDialogAction onClick={() => setErrorDialog({ isOpen: false, message: "" })}>Entendido</AlertDialogAction></AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+
     </div>
   );
 }
