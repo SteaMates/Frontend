@@ -12,9 +12,12 @@ const mockedToken = 'fake-jwt-token';
 
 test.describe('Navegación General', () => {
   // Use a beforeEach hook to inject localStorage before each test
-  test.beforeEach(async ({ page }) => {
-    // Navigate to the app first so we can set localStorage on the correct origin
-    await page.goto('/');
+  test.beforeEach(async ({ page, context }) => {
+    // Inject mocked user into the browser context before any navigation
+    await context.addInitScript(({ user, token }) => {
+      localStorage.setItem('steamates_user', JSON.stringify(user));
+      localStorage.setItem('steamates_token', token);
+    }, { user: mockedUser, token: mockedToken });
 
     // Mock the auth API to prevent redirect to Login on network failure
     await page.route('**/api/auth/me', route => {
@@ -24,14 +27,11 @@ test.describe('Navegación General', () => {
         body: JSON.stringify({ user: mockedUser })
       });
     });
-    
-    // Inject the mocked user into localStorage to bypass login
-    await page.evaluate(({ user, token }) => {
-      localStorage.setItem('steamates_user', JSON.stringify(user));
-      localStorage.setItem('steamates_token', token);
-    }, { user: mockedUser, token: mockedToken });
 
-    // Reload the page to apply localStorage state
+    // Navigate to the app after localStorage is ready
+    await page.goto('/');
+
+    // Reload to ensure app reads the injected localStorage state if needed
     await page.reload();
   });
 

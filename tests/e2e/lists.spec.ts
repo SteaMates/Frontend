@@ -10,14 +10,31 @@ const mockedUser = {
 const mockedToken = 'fake-jwt-token';
 
 test.describe('Listas', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    
-    await page.evaluate(({ user, token }) => {
+  test.beforeEach(async ({ page, context }) => {
+    // Inject mocked user into context before navigation
+    await context.addInitScript(({ user, token }) => {
       localStorage.setItem('steamates_user', JSON.stringify(user));
       localStorage.setItem('steamates_token', token);
     }, { user: mockedUser, token: mockedToken });
 
+    // Stub auth and lists API to make tests deterministic
+    await page.route('**/api/auth/me', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ user: mockedUser })
+      });
+    });
+
+    await page.route('**/api/lists**', route => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ results: [{ id: 1, name: 'Lista de prueba' }], total: 1 })
+      });
+    });
+
+    // Navigate to the lists page after stubs are in place
     await page.goto('/lists');
   });
 
