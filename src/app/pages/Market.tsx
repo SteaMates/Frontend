@@ -16,66 +16,6 @@ import api from "../../lib/api";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Función: useDraggableScroll
- * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
- * draggable scroll. Este hook maneja los efectos secundarios, centraliza el
- * estado necesario y expone las propiedades y métodos esenciales para los
- * componentes que lo consuman.
- */
-const DRAG_THRESHOLD = 5; // px de movimiento mínimo para activar el scroll
-
-function useDraggableScroll() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const isMouseDown = useRef(false);
-  const startXRef = useRef(0);
-  const scrollLeftRef = useRef(0);
-
-  const stopDrag = () => {
-    isMouseDown.current = false;
-    setIsDragging(false);
-    document.body.style.cursor = '';
-    document.body.style.userSelect = '';
-  };
-
-  const events = {
-    onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => {
-      isMouseDown.current = true;
-      if (ref.current) {
-        startXRef.current = e.pageX - ref.current.offsetLeft;
-        scrollLeftRef.current = ref.current.scrollLeft;
-      }
-    },
-    onMouseLeave: stopDrag,
-    onMouseUp: stopDrag,
-    onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isMouseDown.current || !ref.current) return;
-      const x = e.pageX - ref.current.offsetLeft;
-      const walk = x - startXRef.current;
-
-      // Solo activar drag si el movimiento supera el umbral
-      if (!isDragging && Math.abs(walk) <= DRAG_THRESHOLD) return;
-
-      if (!isDragging) {
-        // Resetear el punto de inicio al momento exacto en que se cruza el umbral
-        // para evitar el salto inicial
-        startXRef.current = x;
-        scrollLeftRef.current = ref.current.scrollLeft;
-        setIsDragging(true);
-        document.body.style.cursor = 'grabbing';
-        document.body.style.userSelect = 'none';
-        return;
-      }
-
-      e.preventDefault();
-      ref.current.scrollLeft = scrollLeftRef.current - (x - startXRef.current) * 1.5;
-    },
-  };
-
-  return { ref, events, isDragging };
-}
-
 const SORT_OPTIONS = [
   { value: "Popular", label: "Más populares" },
   { value: "Savings", label: "Mayor descuento" },
@@ -138,7 +78,6 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const ranRef = useRef(false);
-  const { ref: scrollRef, events: scrollEvents, isDragging } = useDraggableScroll();
 
   const fetchRecs = useCallback(async (forceRefresh = false) => {
     if (!steamId) return;
@@ -209,12 +148,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       </div>
 
       {loading && (
-        <div
-          ref={scrollRef}
-          {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab custom-scrollbar ${isDragging ? "cursor-grabbing" : ""}`}
-
-        >
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 custom-scrollbar">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex-shrink-0 w-[240px] bg-slate-900 border border-slate-800 rounded-xl h-52 animate-pulse pointer-events-none" />
           ))}
@@ -232,14 +166,9 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       )}
 
       {!loading && deals.length > 0 && (
-        <div
-          ref={scrollRef}
-          {...scrollEvents}
-          className={`flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 cursor-grab custom-scrollbar ${isDragging ? "cursor-grabbing" : ""}`}
-
-        >
+        <div className="flex overflow-x-auto pb-4 -mx-4 px-4 gap-4 custom-scrollbar">
           {deals.map(deal => (
-            <div key={deal.dealID} className={`flex-shrink-0 w-[240px] relative group ${isDragging ? "pointer-events-none" : ""}`}>
+            <div key={deal.dealID} className="flex-shrink-0 w-[240px] relative group">
               <DealCard deal={deal} />
               {deal.reason && (
                 <div className="absolute top-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
@@ -316,9 +245,9 @@ interface SteamGame {
  * según los datos recibidos.
  */
 function SteamGameCard({ game }: { game: SteamGame }) {
-  const saleP = game.price === "Gratis" ? "0.00" : game.price.replace("$", "");
+  const saleP = (game.price === "Gratis" || game.price === "0.00" || game.price === "0") ? "Gratis" : game.price.replace("$", "");
   const normP = game.originalPrice
-    ? game.originalPrice.replace("$", "")
+    ? ((game.originalPrice === "Gratis" || game.originalPrice === "0.00" || game.originalPrice === "0") ? "Gratis" : game.originalPrice.replace("$", ""))
     : saleP;
 
   const synthesizedDeal = {
@@ -369,7 +298,7 @@ function SteamGameCard({ game }: { game: SteamGame }) {
 
         <div className="mt-auto flex items-center justify-between pt-2">
           <div className="flex flex-col">
-            {(game.discountPct || 0) > 0 && game.originalPrice && (
+            {(game.discountPct || 0) > 0 && game.originalPrice && game.originalPrice !== "Gratis" && (
               <span className="text-[10px] line-through text-slate-500 font-medium">
                 {game.originalPrice}
               </span>
@@ -429,8 +358,6 @@ export function Market() {
   const [steamGames, setSteamGames] = useState<SteamGame[]>([]);
   const [steamLoading, setSteamLoading] = useState(false);
 
-  const { ref: categoriesScrollRef, events: categoriesScrollEvents, isDragging: isCategoriesDragging } = useDraggableScroll();
-
   const fetchSteamFallback = useCallback(async (term: string) => {
     setSteamLoading(true);
     setSteamGames([]);
@@ -466,12 +393,12 @@ export function Market() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   /**
-                 * Función: toggleTag
-         * Descripción: Función auxiliar de propósito general especializada en toggle tag.
-         * Contiene lógica específica para transformar datos, realizar cálculos o
-         * conectar diferentes partes del sistema según los requisitos del módulo.
-                 */
-    const toggleTag = (tagId: string) => {
+   * Función: toggleTag
+   * Descripción: Función auxiliar de propósito general especializada en toggle tag.
+   * Contiene lógica específica para transformar datos, realizar cálculos o
+   * conectar diferentes partes del sistema según los requisitos del módulo.
+   */
+  const toggleTag = (tagId: string) => {
     setSelectedTags(prev => prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]);
   };
 
@@ -575,13 +502,7 @@ export function Market() {
     return () => clearTimeout(id);
   }, [search, sortBy, minPrice, maxPrice, selectedTags, fetchDeals]);
 
-  /**
-                 * Función: loadMore
-         * Descripción: Rutina de carga responsable de volcar los datos de more a la memoria. Se
-         * utiliza típicamente durante las fases de inicialización para preparar el
-         * entorno antes de la interacción del usuario.
-                 */
-    const loadMore = () => {
+  const loadMore = () => {
     const next = page + 1;
     setPage(next);
     fetchDeals(next, true);
@@ -700,23 +621,13 @@ export function Market() {
             )}
           </div>
 
-          <div
-            ref={categoriesScrollRef}
-            {...categoriesScrollEvents}
-            className={`flex overflow-x-auto pb-4 -mx-2 px-2 gap-2 cursor-grab custom-scrollbar ${isCategoriesDragging ? "cursor-grabbing" : ""}`}
-          >
+          <div className="flex overflow-x-auto pb-4 -mx-2 px-2 gap-2 custom-scrollbar">
             {GLOBAL_TAGS.map(tag => {
               const isActive = selectedTags.includes(tag.id);
               return (
                 <button
                   key={tag.id}
-                  onClick={(e) => {
-                    if (isCategoriesDragging) {
-                      e.preventDefault();
-                      return;
-                    }
-                    toggleTag(tag.id)
-                  }}
+                  onClick={() => toggleTag(tag.id)}
                   className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 select-none ${isActive
                     ? "bg-cyan-500 text-slate-950 border border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
                     : "bg-slate-800/80 text-slate-300 border border-slate-700/50 hover:bg-slate-700 hover:text-white hover:border-slate-600"

@@ -41,6 +41,12 @@ export function DealCard({ deal }: DealCardProps) {
   const hasDiscount = savings > 0;
   const detailPath = `/game/${deal.steamAppID || deal.gameID}`;
 
+  // Lógica para determinar si el juego es gratis
+  const isFree = deal.salePrice === "Gratis" || parseFloat(deal.salePrice) === 0;
+  const displaySalePrice = isFree ? "Gratis" : `$${deal.salePrice}`;
+  const isNormalFree = deal.normalPrice === "Gratis" || parseFloat(deal.normalPrice) === 0;
+  const displayNormalPrice = isNormalFree ? "Gratis" : `$${deal.normalPrice}`;
+
   return (
     <div className="group relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 flex flex-col h-full text-sm">
       <Link
@@ -51,7 +57,6 @@ export function DealCard({ deal }: DealCardProps) {
         <img
           src={deal.steamAppID ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${deal.steamAppID}/header.jpg` : deal.thumb}
           alt={deal.title}
-          draggable="false"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-800"
           loading="lazy"
           onError={(e) => {
@@ -85,27 +90,27 @@ export function DealCard({ deal }: DealCardProps) {
           </h3>
         </Link>
 
-
-
         <div className="mt-auto flex items-center justify-between">
           <div className="flex flex-col">
-            {hasDiscount && (
+            {hasDiscount && !isNormalFree && (
               <span className="text-[10px] text-slate-500 line-through decoration-slate-500 decoration-1">
-                ${deal.normalPrice}
+                {displayNormalPrice}
               </span>
             )}
             <span
-              className={`text-base font-bold ${hasDiscount ? "text-emerald-400" : "text-slate-200"}`}
+              className={`text-base font-bold ${isFree ? "text-emerald-400" : "text-slate-200"}`}
             >
-              ${deal.salePrice}
+              {displaySalePrice}
             </span>
           </div>
 
           <a
-            href={`https://www.cheapshark.com/redirect?dealID=${deal.dealID}`}
+            href={deal.steamAppID 
+              ? `https://store.steampowered.com/app/${deal.steamAppID}/`
+              : `https://www.cheapshark.com/redirect?dealID=${deal.dealID}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors z-10"
+            className="p-1.5 bg-[#171a21] hover:bg-[#2a475e] text-[#c5c3c0] rounded-md transition-colors z-10"
             title="Ver en tienda"
             onClick={(e) => e.stopPropagation()}
           >
