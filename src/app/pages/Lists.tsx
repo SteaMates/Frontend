@@ -108,7 +108,7 @@ export function Lists() {
          * servidor o API remota. Gestiona la petición HTTP, maneja los posibles
          * errores de red y retorna los datos obtenidos tras su procesamiento.
                  */
-    const fetchLists = async (page = 1, append = false) => {
+  const fetchLists = async (page = 1, append = false) => {
     try {
       if (append) {
         setLoadingMoreLists(true);
@@ -167,7 +167,7 @@ export function Lists() {
          * memoria. Se utiliza típicamente durante las fases de inicialización para
          * preparar el entorno antes de la interacción del usuario.
                  */
-    const loadMoreLists = () => {
+  const loadMoreLists = () => {
     if (loadingMoreLists || loadingLists || !listsHasMore) return;
     fetchLists(listsPage + 1, true);
   };
@@ -180,7 +180,7 @@ export function Lists() {
          * contexto de ejecución y dispara las actualizaciones de estado necesarias
          * en la aplicación.
                  */
-    const handleVote = async (
+  const handleVote = async (
     e: React.MouseEvent,
     listId: string,
     action: "like" | "dislike",
@@ -294,7 +294,7 @@ export function Lists() {
          * cálculos o conectar diferentes partes del sistema según los requisitos
          * del módulo.
                  */
-    const closeCreateModal = () => {
+  const closeCreateModal = () => {
     setIsCreateModalOpen(false);
     setCreateStep(1);
     setCreateGameQuery("");
@@ -309,7 +309,7 @@ export function Lists() {
          * cálculos o conectar diferentes partes del sistema según los requisitos
          * del módulo.
                  */
-    const validateListDraft = () => {
+  const validateListDraft = () => {
     const title = createTitle.trim();
     const description = createDescription.trim();
 
@@ -343,7 +343,7 @@ export function Lists() {
          * Contiene lógica específica para transformar datos, realizar cálculos o
          * conectar diferentes partes del sistema según los requisitos del módulo.
                  */
-    const submitList = async () => {
+  const submitList = async () => {
     const validationError = validateListDraft();
     if (validationError) {
       setErrorDialog({ isOpen: true, message: validationError });
@@ -390,7 +390,7 @@ export function Lists() {
          * y persiste la nueva entidad en la base de datos o estructura
          * correspondiente.
                  */
-    const addGameToSelection = (game: CreateGameOption) => {
+  const addGameToSelection = (game: CreateGameOption) => {
     setCreateSelectedGames((prev) => {
       if (prev.some((item) => item.id === game.id)) {
         return prev;
@@ -405,7 +405,7 @@ export function Lists() {
          * selection. Verifica los permisos y dependencias antes de proceder a la
          * eliminación física o lógica del recurso en el sistema.
                  */
-    const removeGameFromSelection = (gameId: string) => {
+  const removeGameFromSelection = (gameId: string) => {
     setCreateSelectedGames((prev) => prev.filter((game) => game.id !== gameId));
   };
 
@@ -431,7 +431,7 @@ export function Lists() {
              * contexto de ejecución y dispara las actualizaciones de estado
              * necesarias en la aplicación.
                          */
-      const onKeyDown = (event: KeyboardEvent) => {
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         closeCreateModal();
       }
@@ -546,11 +546,10 @@ export function Lists() {
                   <button
                     key={tab.id}
                     onClick={() => setFeedTab(tab.id)}
-                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${
-                      active
-                        ? "bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
-                        : "text-[#62748e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#cad5e2]"
-                    }`}
+                    className={`h-9 px-4 rounded-[8px] text-[13px] font-bold flex items-center gap-2 transition-all whitespace-nowrap ${active
+                      ? "bg-[rgba(43,127,255,0.15)] text-[#51a2ff]"
+                      : "text-[#62748e] hover:bg-[rgba(255,255,255,0.05)] hover:text-[#cad5e2]"
+                      }`}
                   >
                     {tab.id === "trending" && <Flame size={16} />}
                     {tab.id === "top" && <Star size={16} />}
@@ -676,9 +675,9 @@ export function Lists() {
                                 <span>
                                   {list.createdAt
                                     ? formatDistanceToNow(
-                                        new Date(list.createdAt),
-                                        { addSuffix: true, locale: es },
-                                      )
+                                      new Date(list.createdAt),
+                                      { addSuffix: true, locale: es },
+                                    )
                                     : ""}
                                 </span>
                               </div>
@@ -764,22 +763,13 @@ export function Lists() {
               </p>
 
               {/* AQUÍ ESTÁN LAS ESTADÍSTICAS GLOBALES */}
-              <div className="flex items-center justify-between py-3 border-y border-[#1d293d] mb-4">
-                <div className="text-center w-1/2">
+              <div className="flex items-center justify-center py-3 border-y border-[#1d293d] mb-4">
+                <div className="text-center w-full">
                   <div className="text-white font-bold text-[18px]">
                     {totalDbLists > 0 ? totalDbLists : "..."}
                   </div>
                   <div className="text-[#62748e] text-[12px]">
-                    Listas (Total DB)
-                  </div>
-                </div>
-                <div className="w-px h-8 bg-[#1d293d]" />
-                <div className="text-center w-1/2">
-                  <div className="text-white font-bold text-[18px]">
-                    {totalVotesLoaded}
-                  </div>
-                  <div className="text-[#62748e] text-[12px]">
-                    Votos (Pág. Actual)
+                    LISTAS
                   </div>
                 </div>
               </div>
@@ -808,11 +798,10 @@ export function Lists() {
                   <button
                     key={chip}
                     onClick={() => setSelectedCategory(chip)}
-                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${
-                      active
-                        ? "bg-[#155dfc] text-white"
-                        : "bg-[rgba(255,255,255,0.05)] text-[#90a1b9] hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
-                    }`}
+                    className={`px-3 py-1.5 rounded-full text-[12px] font-bold transition-colors ${active
+                      ? "bg-[#155dfc] text-white"
+                      : "bg-[rgba(255,255,255,0.05)] text-[#90a1b9] hover:bg-[rgba(255,255,255,0.1)] hover:text-white"
+                      }`}
                   >
                     {chip}
                   </button>
@@ -857,69 +846,61 @@ export function Lists() {
               <div className="mt-5 flex items-center gap-2 text-[12px]">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 1
-                        ? "bg-[#2b7fff] text-white"
-                        : "bg-[#00bc7d] text-white"
-                    }`}
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 1
+                      ? "bg-[#2b7fff] text-white"
+                      : "bg-[#00bc7d] text-white"
+                      }`}
                   >
                     {createStep === 1 ? "1" : <Check size={14} />}
                   </span>
                   <span
-                    className={`font-medium ${
-                      createStep === 1 ? "text-white" : "text-[#62748e]"
-                    }`}
+                    className={`font-medium ${createStep === 1 ? "text-white" : "text-[#62748e]"
+                      }`}
                   >
                     Info
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${
-                    createStep >= 2
-                      ? "bg-[rgba(0,188,125,0.5)]"
-                      : "bg-[#40517b]"
-                  }`}
+                  className={`h-px flex-1 ${createStep >= 2
+                    ? "bg-[rgba(0,188,125,0.5)]"
+                    : "bg-[#40517b]"
+                    }`}
                 />
                 <div className="flex items-center gap-2">
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 2
-                        ? "bg-[#2b7fff] text-white"
-                        : createStep === 3
-                          ? "bg-[#00bc7d] text-white"
-                          : "bg-[#253353] text-[#62748e]"
-                    }`}
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 2
+                      ? "bg-[#2b7fff] text-white"
+                      : createStep === 3
+                        ? "bg-[#00bc7d] text-white"
+                        : "bg-[#253353] text-[#62748e]"
+                      }`}
                   >
                     {createStep === 3 ? <Check size={14} /> : "2"}
                   </span>
                   <span
-                    className={`font-medium ${
-                      createStep === 2 ? "text-white" : "text-[#62748e]"
-                    }`}
+                    className={`font-medium ${createStep === 2 ? "text-white" : "text-[#62748e]"
+                      }`}
                   >
                     Juegos
                   </span>
                 </div>
                 <div
-                  className={`h-px flex-1 ${
-                    createStep === 3
-                      ? "bg-[rgba(0,188,125,0.5)]"
-                      : "bg-[#2a3554]"
-                  }`}
+                  className={`h-px flex-1 ${createStep === 3
+                    ? "bg-[rgba(0,188,125,0.5)]"
+                    : "bg-[#2a3554]"
+                    }`}
                 />
                 <div
-                  className={`flex items-center gap-2 ${
-                    createStep === 3
-                      ? "text-white"
-                      : "text-[#5f6f8f] opacity-40"
-                  }`}
+                  className={`flex items-center gap-2 ${createStep === 3
+                    ? "text-white"
+                    : "text-[#5f6f8f] opacity-40"
+                    }`}
                 >
                   <span
-                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${
-                      createStep === 3
-                        ? "bg-[#2b7fff] text-white"
-                        : "bg-[#253353] text-[#62748e]"
-                    }`}
+                    className={`h-7 w-7 rounded-full flex items-center justify-center text-[11px] font-semibold ${createStep === 3
+                      ? "bg-[#2b7fff] text-white"
+                      : "bg-[#253353] text-[#62748e]"
+                      }`}
                   >
                     3
                   </span>
@@ -996,11 +977,10 @@ export function Lists() {
                                   : [...prev, option],
                               );
                             }}
-                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${
-                              active
-                                ? "bg-[#1a3770] border-[#2b7fff] text-white"
-                                : "bg-[#111f3a] border-[#2f405e] text-[#a7b6cd] hover:text-white"
-                            }`}
+                            className={`h-[50px] rounded-[10px] border text-[12px] transition-colors ${active
+                              ? "bg-[#1a3770] border-[#2b7fff] text-white"
+                              : "bg-[#111f3a] border-[#2f405e] text-[#a7b6cd] hover:text-white"
+                              }`}
                           >
                             {option}
                           </button>
@@ -1042,11 +1022,10 @@ export function Lists() {
                             key={cover.id}
                             type="button"
                             onClick={() => setCreateCover(cover.image)}
-                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${
-                              active
-                                ? "border-[#2b7fff]"
-                                : "border-[#2f405e] hover:border-[#4766a3]"
-                            }`}
+                            className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors ${active
+                              ? "border-[#2b7fff]"
+                              : "border-[#2f405e] hover:border-[#4766a3]"
+                              }`}
                             aria-label={`Seleccionar portada ${cover.title}`}
                           >
                             <img
@@ -1080,11 +1059,10 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(2)}
                     disabled={!canContinueInfo}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
-                      canContinueInfo
-                        ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
-                        : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                    }`}
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueInfo
+                      ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
+                      : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
+                      }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
@@ -1230,11 +1208,10 @@ export function Lists() {
                     type="button"
                     onClick={() => setCreateStep(3)}
                     disabled={!canContinueGames}
-                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${
-                      canContinueGames
-                        ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
-                        : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
-                    }`}
+                    className={`h-10 w-full sm:w-auto justify-center px-5 rounded-[14px] text-[14px] font-medium flex items-center gap-2 transition-colors ${canContinueGames
+                      ? "bg-[#155dfc] text-white hover:bg-[#2b7fff]"
+                      : "bg-[#1c2f5c] text-[#6c84b3] cursor-not-allowed"
+                      }`}
                   >
                     Siguiente <ChevronRight size={14} />
                   </button>
