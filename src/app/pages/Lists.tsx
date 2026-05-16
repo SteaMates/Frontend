@@ -617,19 +617,19 @@ export function Lists() {
                     >
                       <Link
                         to={`/lists/${list._id}`}
-                        className="block bg-[#0f172b] border border-[#1d293d] rounded-[12px] hover:border-[#314158] transition-colors group overflow-hidden"
+                        className="block bg-[#0f172b] border border-[#1d293d] rounded-[20px] hover:border-[#314158] hover:bg-[#1d293d]/20 transition-all group overflow-hidden shadow-lg hover:shadow-2xl"
                       >
                         <div className="flex">
                           {/* COLUMNA DE VOTOS */}
-                          <div className="w-12 sm:w-16 bg-[rgba(15,23,43,0.3)] border-r border-[#1d293d] flex flex-col items-center py-3 gap-1 shrink-0">
+                          <div className="w-14 sm:w-20 bg-[rgba(15,23,43,0.4)] border-r border-[#1d293d] flex flex-col items-center py-5 gap-2 shrink-0">
                             <button
                               onClick={(e) => handleVote(e, list._id, "like")}
-                              className={`transition-colors p-1 rounded ${hasLiked ? "text-[#ff4500] bg-[rgba(255,69,0,0.1)]" : "text-[#62748e] hover:text-[#ff4500] hover:bg-[rgba(255,69,0,0.1)]"}`}
+                              className={`transition-all p-1.5 rounded-lg ${hasLiked ? "text-[#ff4500] bg-[rgba(255,69,0,0.15)] shadow-inner" : "text-[#62748e] hover:text-[#ff4500] hover:bg-[rgba(255,69,0,0.1)]"}`}
                             >
-                              <ArrowBigUp size={24} />
+                              <ArrowBigUp size={28} />
                             </button>
                             <span
-                              className={`text-[14px] font-bold ${hasLiked ? "text-[#ff4500]" : hasDisliked ? "text-[#7193ff]" : "text-white"}`}
+                              className={`text-[16px] font-black ${hasLiked ? "text-[#ff4500]" : hasDisliked ? "text-[#7193ff]" : "text-white"}`}
                             >
                               {(list.likes?.length || 0) -
                                 (list.dislikes?.length || 0)}
@@ -638,25 +638,24 @@ export function Lists() {
                               onClick={(e) =>
                                 handleVote(e, list._id, "dislike")
                               }
-                              className={`transition-colors p-1 rounded ${hasDisliked ? "text-[#7193ff] bg-[rgba(113,147,255,0.1)]" : "text-[#62748e] hover:text-[#7193ff] hover:bg-[rgba(113,147,255,0.1)]"}`}
+                              className={`transition-all p-1.5 rounded-lg ${hasDisliked ? "text-[#7193ff] bg-[rgba(113,147,255,0.15)] shadow-inner" : "text-[#62748e] hover:text-[#7193ff] hover:bg-[rgba(113,147,255,0.1)]"}`}
                             >
-                              <ArrowBigDown size={24} />
+                              <ArrowBigDown size={28} />
                             </button>
                           </div>
 
                           {/* CONTENIDO DEL POST */}
-                          <div className="p-4 flex-1 flex flex-col sm:flex-row gap-4">
+                          <div className="p-6 flex-1 flex flex-col lg:flex-row gap-6">
                             <div className="flex-1 min-w-0">
-                              {/* AQUÍ ESTÁN LAS CATEGORÍAS CORREGIDAS (SIN L/ Y CON SU NOMBRE REAL) */}
-                              <div className="flex items-center gap-2 text-[12px] text-[#62748e] mb-2 flex-wrap">
+                              <div className="flex items-center gap-3 text-[13px] text-[#62748e] mb-3 flex-wrap">
                                 {list.categories &&
                                   list.categories.length > 0 && (
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <div className="flex flex-wrap gap-2">
                                       {list.categories.map(
                                         (cat: string, i: number) => (
                                           <span
                                             key={i}
-                                            className="bg-[rgba(43,127,255,0.1)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] font-bold"
+                                            className="bg-[#155dfc]/10 text-[#51a2ff] px-2.5 py-1 rounded-[6px] font-black uppercase tracking-wider text-[10px]"
                                           >
                                             {cat}
                                           </span>
@@ -664,15 +663,15 @@ export function Lists() {
                                       )}
                                     </div>
                                   )}
-                                <span>•</span>
-                                <span>
-                                  Posteado por{" "}
-                                  <span className="text-[#cad5e2] hover:underline">
+                                <span className="text-[#314158]">•</span>
+                                <span className="font-medium">
+                                  Por{" "}
+                                  <span className="text-[#cad5e2] font-bold group-hover:text-[#51a2ff] transition-colors">
                                     @{list.author?.username || "Usuario"}
                                   </span>
                                 </span>
-                                <span>•</span>
-                                <span>
+                                <span className="text-[#314158]">•</span>
+                                <span className="font-medium italic">
                                   {list.createdAt
                                     ? formatDistanceToNow(
                                       new Date(list.createdAt),
@@ -682,32 +681,33 @@ export function Lists() {
                                 </span>
                               </div>
 
-                              <h3 className="text-[18px] sm:text-[20px] text-white font-bold mb-2 leading-tight group-hover:text-[#51a2ff] transition-colors">
+                              <h3 className="text-[22px] sm:text-[26px] text-white font-black mb-3 leading-none group-hover:text-[#51a2ff] transition-colors tracking-tight">
                                 {list.title}
                               </h3>
-                              <p className="text-[14px] text-[#90a1b9] line-clamp-2 mb-4">
+                              <p className="text-[15px] text-[#90a1b9] line-clamp-2 mb-6 font-medium leading-relaxed">
                                 {list.description}
                               </p>
 
-                              <div className="flex items-center gap-1 text-[#62748e] text-[12px] font-bold">
-                                <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                  <MessageSquare size={16} />{" "}
-                                  {list.commentsCount || 0} Comentarios
+                              <div className="flex items-center gap-4 text-[#62748e] text-[13px] font-black">
+                                <div className="flex items-center gap-2 hover:bg-[rgba(255,255,255,0.05)] px-3 py-2 rounded-[8px] transition-colors border border-transparent hover:border-[#1d293d]">
+                                  <MessageSquare size={18} className="text-[#51a2ff]" />{" "}
+                                  {list.commentsCount || 0} <span className="hidden sm:inline">Comentarios</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.05)] px-2 py-1.5 rounded-[6px] transition-colors">
-                                  <Gamepad2 size={16} />{" "}
-                                  {list.games?.length || 0} Juegos
+                                <div className="flex items-center gap-2 hover:bg-[rgba(255,255,255,0.05)] px-3 py-2 rounded-[8px] transition-colors border border-transparent hover:border-[#1d293d]">
+                                  <Gamepad2 size={18} className="text-[#00d492]" />{" "}
+                                  {list.games?.length || 0} <span className="hidden sm:inline">Juegos</span>
                                 </div>
                               </div>
                             </div>
 
                             {list.coverImage && (
-                              <div className="w-full sm:w-[180px] h-[120px] rounded-[8px] overflow-hidden shrink-0 border border-[#1d293d]">
+                              <div className="w-full lg:w-[240px] h-[140px] rounded-[16px] overflow-hidden shrink-0 border border-[#1d293d] shadow-xl relative group-hover:border-[#51a2ff]/30 transition-colors">
                                 <img
                                   src={list.coverImage}
                                   alt="Cover"
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                               </div>
                             )}
                           </div>

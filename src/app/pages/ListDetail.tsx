@@ -94,12 +94,10 @@ export function ListDetail() {
   const [error, setError] = useState(false);
 
   /**
-                 * Función: confirmDelete
-         * Descripción: Función auxiliar de propósito general especializada en confirm delete.
-         * Contiene lógica específica para transformar datos, realizar cálculos o
-         * conectar diferentes partes del sistema según los requisitos del módulo.
-                 */
-    const confirmDelete = async () => {
+   * Función: confirmDelete
+   * Descripción: Función auxiliar de propósito general especializada en confirm delete.
+   */
+  const confirmDelete = async () => {
     try {
       setIsDeleting(true);
       await api.delete(`/api/lists/${id}`);
@@ -115,13 +113,10 @@ export function ListDetail() {
 
   useEffect(() => {
     /**
-                         * Función: fetchListAndComments
-             * Descripción: Operación asíncrona dedicada a recuperar la información de list and
-             * comments desde el servidor o API remota. Gestiona la petición HTTP,
-             * maneja los posibles errores de red y retorna los datos obtenidos tras
-             * su procesamiento.
-                         */
-      const fetchListAndComments = async () => {
+     * Función: fetchListAndComments
+     * Descripción: Operación asíncrona dedicada a recuperar la información de list and comments.
+     */
+    const fetchListAndComments = async () => {
       try {
         const [listRes, commentsRes] = await Promise.all([
           api.get(`/api/lists/${id}`),
@@ -156,7 +151,6 @@ export function ListDetail() {
     }
   }, [id]);
 
-  // LOGICA PARA HACER SCROLL Y HIGHLIGHT AL COMENTARIO
   useEffect(() => {
     if (!loading && comments.length > 0 && location.hash.startsWith("#comment-")) {
       const commentId = location.hash.replace("#comment-", "");
@@ -173,14 +167,7 @@ export function ListDetail() {
     }
   }, [loading, comments, location.hash]);
 
-  /**
-                 * Función: handleLike
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * like. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
-    const handleLike = async () => {
+  const handleLike = async () => {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/like`);
@@ -190,14 +177,7 @@ export function ListDetail() {
     }
   };
 
-  /**
-                 * Función: handleDislike
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * dislike. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
-    const handleDislike = async () => {
+  const handleDislike = async () => {
     if (!user) return login();
     try {
       const res = await api.post(`/api/lists/${id}/dislike`);
@@ -207,14 +187,7 @@ export function ListDetail() {
     }
   };
 
-  /**
-                 * Función: handleReplyClick
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * reply click. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
-    const handleReplyClick = (comment: CommentData) => {
+  const handleReplyClick = (comment: CommentData) => {
     setReplyingTo(comment);
     if (!newComment.includes(`@${comment.author.username}`)) {
       setNewComment(`@${comment.author.username} ` + newComment);
@@ -226,14 +199,7 @@ export function ListDetail() {
     }, 10);
   };
 
-  /**
-                 * Función: handlePostComment
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * post comment. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
-    const handlePostComment = async (e: React.FormEvent) => {
+  const handlePostComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return login();
     if (!newComment.trim()) return;
@@ -257,13 +223,7 @@ export function ListDetail() {
     }
   };
 
-  /**
-                 * Función: loadMoreComments
-         * Descripción: Rutina de carga responsable de volcar los datos de more comments a la
-         * memoria. Se utiliza típicamente durante las fases de inicialización para
-         * preparar el entorno antes de la interacción del usuario.
-                 */
-    const loadMoreComments = async () => {
+  const loadMoreComments = async () => {
     if (!id || commentsLoadingMore || loading || !commentsHasMore) return;
 
     try {
@@ -295,14 +255,7 @@ export function ListDetail() {
     }
   };
 
-  /**
-                 * Función: renderCommentContent
-         * Descripción: Función auxiliar de propósito general especializada en render comment
-         * content. Contiene lógica específica para transformar datos, realizar
-         * cálculos o conectar diferentes partes del sistema según los requisitos
-         * del módulo.
-                 */
-    const renderCommentContent = (text: string) => {
+  const renderCommentContent = (text: string) => {
     const parts = text.split(/(@\w+)/g);
     return parts.map((part, i) =>
       part.startsWith('@') ? (
@@ -314,7 +267,7 @@ export function ListDetail() {
   };
 
   if (loading) {
-    return <div className="text-white text-center py-20">Cargando...</div>;
+    return <div className="text-white text-center py-20 font-black text-xl animate-pulse">Cargando colección...</div>;
   }
 
   if (error || !list) {
@@ -322,89 +275,89 @@ export function ListDetail() {
   }
 
   return (
-    <div className="pb-20 max-w-[1400px] mx-auto px-4">
+    <div className="pb-20 px-4 md:px-8">
       <Link
         to="/lists"
-        className="inline-flex items-center gap-2 text-[#90a1b9] hover:text-white text-[15px] font-medium"
+        className="inline-flex items-center gap-2 text-[#90a1b9] hover:text-white text-[15px] font-medium transition-colors"
       >
         <ArrowLeft size={18} /> Volver a Listas
       </Link>
 
-      <article className="mt-6 rounded-[16px] border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-2xl">
-        <header className="relative h-[140px] sm:h-[180px] bg-[#1d293d]">
+      <article className="mt-6 rounded-[24px] border border-[#1d293d] bg-[#0f172b] overflow-hidden shadow-[0px_32px_64px_-12px_rgba(0,0,0,0.5)]">
+        <header className="relative h-[200px] sm:h-[260px] bg-[#1d293d]">
           <img
             src={list.coverImage || "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070"}
             alt={list.title}
-            className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
+            className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] via-[rgba(15,23,43,0.5)] to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172b] via-[rgba(15,23,43,0.4)] to-transparent" />
 
-          <div className="absolute inset-x-4 bottom-4 sm:inset-x-8 sm:bottom-6 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
+          <div className="absolute inset-x-6 bottom-6 sm:inset-x-10 sm:bottom-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2 mb-3">
                 {list.categories && list.categories.map((cat, idx) => (
-                  <span key={idx} className="bg-[rgba(43,127,255,0.2)] border border-[rgba(43,127,255,0.3)] text-[#51a2ff] px-2 py-0.5 rounded-[4px] text-[10px] font-bold uppercase tracking-wider">
+                  <span key={idx} className="bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] px-2.5 py-1 rounded-[6px] text-[11px] font-black uppercase tracking-widest">
                     {cat}
                   </span>
                 ))}
               </div>
-              <h1 className="text-white text-[24px] sm:text-[32px] leading-tight font-bold">
+              <h1 className="text-white text-[32px] sm:text-[42px] lg:text-[48px] leading-none font-black tracking-tight truncate">
                 {list.title}
               </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px] sm:text-[14px]">
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-[14px] sm:text-[15px]">
                 <UserProfileLink
                   steamId={list.author?.steamId || list.author?._id}
                   username={list.author?.username || 'Unknown'}
                   avatar={list.author?.avatar}
                   variant="both"
-                  avatarClassName="w-6 h-6 rounded-full border border-[#45556c] bg-[#314158]"
-                  nameClassName="text-[#cad5e2] hover:text-white font-medium"
+                  avatarClassName="w-8 h-8 rounded-full border border-[#45556c] bg-[#314158] shadow-lg"
+                  nameClassName="text-[#cad5e2] hover:text-[#51a2ff] font-bold transition-colors"
                 />
-                <span className="text-[#62748e]">•</span>
-                <span className="text-[#62748e]">
-                  {formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es })}
+                <span className="text-[#314158] font-bold">/</span>
+                <span className="text-[#62748e] font-medium">
+                  Publicado {formatDistanceToNow(new Date(list.createdAt), { addSuffix: true, locale: es })}
                 </span>
               </div>
             </div>
 
-            <div className="h-10 rounded-[10px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.6)] backdrop-blur-md px-1.5 flex items-center gap-1 w-fit">
+            <div className="h-12 rounded-[14px] border border-[rgba(255,255,255,0.1)] bg-[rgba(2,6,24,0.7)] backdrop-blur-xl px-2 flex items-center gap-2 w-fit shadow-xl shrink-0">
               <button
                 onClick={handleLike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.likes?.includes(user?.id || '') ? 'text-[#00d492]' : 'text-[#a3b3cb]'}`}
+                className={`h-8 px-4 rounded-[10px] flex items-center gap-2 hover:bg-[rgba(255,255,255,0.1)] transition-all text-[14px] font-black ${list.likes?.includes(user?.id || '') ? 'text-[#00d492] bg-[#00d492]/10' : 'text-[#a3b3cb]'}`}
               >
-                <ThumbsUp size={14} /> {list.likes?.length || 0}
+                <ThumbsUp size={16} /> {list.likes?.length || 0}
               </button>
-              <div className="w-px h-4 bg-[#314158]" />
+              <div className="w-px h-5 bg-[#314158]" />
               <button
                 onClick={handleDislike}
-                className={`h-7 px-3 rounded-[6px] flex items-center gap-1.5 hover:bg-[rgba(255,255,255,0.1)] transition-colors text-[13px] font-bold ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467]' : 'text-[#a3b3cb]'}`}
+                className={`h-8 px-4 rounded-[10px] flex items-center gap-2 hover:bg-[rgba(255,255,255,0.1)] transition-all text-[14px] font-black ${list.dislikes?.includes(user?.id || '') ? 'text-[#ff6467] bg-[#ff6467]/10' : 'text-[#a3b3cb]'}`}
               >
-                <ThumbsDown size={14} /> {list.dislikes?.length || 0}
+                <ThumbsDown size={16} /> {list.dislikes?.length || 0}
               </button>
             </div>
           </div>
         </header>
 
-        <section className="px-4 sm:px-8 py-5 border-b border-[#1d293d] bg-[#0f172b]">
-          <p className="text-[#cad5e2] text-[15px] leading-[26px] whitespace-pre-wrap max-w-4xl">
+        <section className="px-6 sm:px-10 py-8 border-b border-[#1d293d] bg-[#0f172b]">
+          <p className="text-[#cad5e2] text-[16px] leading-[28px] whitespace-pre-wrap font-medium">
             {list.description}
           </p>
-          <div className="mt-5 flex flex-wrap items-center gap-4 border-t border-[#1d293d] pt-4">
+          <div className="mt-8 flex flex-wrap items-center gap-6 border-t border-[#1d293d] pt-6">
             {user && user.id !== String(list.author?._id) && (
               <ReportButton
                 targetId={list._id}
                 targetType="list"
-                buttonLabel="Reportar lista"
-                buttonClassName="inline-flex items-center gap-1.5 text-[#62748e] text-[13px] font-medium hover:text-[#ff8a8c] transition-colors"
+                buttonLabel="Reportar colección"
+                buttonClassName="inline-flex items-center gap-2 text-[#62748e] text-[14px] font-bold hover:text-[#ff8a8c] transition-colors"
               />
             )}
             {user && user.id === String(list.author?._id) && (
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(true)}
-                className="inline-flex items-center gap-1.5 text-[#ff6467] text-[13px] font-medium hover:text-[#ff8a8c] transition-colors"
+                className="inline-flex items-center gap-2 text-[#ff6467] text-[14px] font-bold hover:text-[#ff8a8c] transition-colors"
               >
-                <Trash2 size={16} /> Borrar lista
+                <Trash2 size={18} /> Borrar lista
               </button>
             )}
             <button
@@ -413,25 +366,25 @@ export function ListDetail() {
                 navigator.clipboard.writeText(window.location.href);
                 toast.success("¡Enlace copiado al portapapeles!");
               }}
-              className="inline-flex items-center gap-1.5 text-[#62748e] text-[13px] font-medium hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 text-[#62748e] text-[14px] font-bold hover:text-white transition-colors"
             >
-              <Share2 size={16} /> Compartir
+              <Share2 size={18} /> Compartir enlace
             </button>
           </div>
         </section>
 
-        <div className="flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-[#1d293d]">
-          <section className="flex-1 bg-[rgba(2,6,24,0.3)] p-4 sm:p-8">
-            <div className="flex items-center gap-2 mb-6">
-              <span className="w-7 h-7 rounded-[8px] bg-[#155dfc] inline-flex items-center justify-center text-white text-[12px] font-bold">
-                {list.games.length}
-              </span>
-              <h2 className="text-white text-[18px] font-bold">
+        <div className="flex flex-col xl:flex-row divide-y xl:divide-y-0 xl:divide-x divide-[#1d293d]">
+          <section className="flex-1 bg-[rgba(2,6,24,0.3)] p-6 sm:p-10">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-9 h-9 rounded-[12px] bg-[#155dfc] flex items-center justify-center text-white shadow-lg shadow-[#155dfc]/20">
+                <span className="text-[14px] font-black">{list.games.length}</span>
+              </div>
+              <h2 className="text-white text-[22px] font-black tracking-tight">
                 Juegos en esta colección
               </h2>
             </div>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {list.games.map((game, index) => {
                 const steamCdnUrl = game.appId
                   ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${game.appId}/header.jpg`
@@ -442,16 +395,16 @@ export function ListDetail() {
                   <Link
                     to={`/game/${game.appId}`}
                     key={game._id}
-                    className="rounded-[12px] border border-[#1d293d] bg-[#0f172b] p-3 flex items-center gap-4 hover:border-[#314158] transition-colors group cursor-pointer"
+                    className="rounded-[18px] border border-[#1d293d] bg-[#0b1221]/60 p-4 flex items-center gap-5 hover:border-[#314158] hover:bg-[#1d293d]/20 transition-all group cursor-pointer"
                   >
-                    <div className="text-[#314158] text-[20px] font-bold w-8 text-center shrink-0 group-hover:text-[#51a2ff] transition-colors">
-                      #{index + 1}
+                    <div className="text-[#314158] text-[24px] font-black w-10 text-center shrink-0 group-hover:text-[#51a2ff] transition-colors italic">
+                      {String(index + 1).padStart(2, '0')}
                     </div>
-                    <div className="relative w-[120px] sm:w-[160px] h-[75px] rounded-[8px] overflow-hidden bg-[#1d293d] shrink-0">
+                    <div className="relative w-[140px] h-[80px] rounded-[12px] overflow-hidden bg-[#1d293d] shrink-0 border border-[#314158]/50 shadow-lg">
                       <img
                         src={initialImageUrl}
                         alt={game.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           if (!target.dataset.failed) {
@@ -462,7 +415,7 @@ export function ListDetail() {
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-white text-[16px] font-bold truncate group-hover:text-[#51a2ff] transition-colors">
+                      <h3 className="text-white text-[17px] font-black truncate group-hover:text-[#51a2ff] transition-colors tracking-tight">
                         {game.name}
                       </h3>
                     </div>
@@ -472,60 +425,65 @@ export function ListDetail() {
             </div>
           </section>
 
-          <section className="w-full lg:w-[420px] xl:w-[480px] bg-[#0b1221] flex flex-col shrink-0 lg:h-[800px]">
-            <div className="p-4 border-b border-[#1d293d] bg-[#0f172b] flex items-center gap-2 shrink-0">
-              <MessageSquare size={18} className="text-[#51a2ff]" />
-              <h2 className="text-white text-[16px] font-bold">
-                Chat de la lista ({commentsTotal || comments.length})
-              </h2>
+          <section className="w-full xl:w-[480px] 2xl:w-[540px] bg-[#0b1221] flex flex-col shrink-0 xl:h-[900px]">
+            <div className="p-6 border-b border-[#1d293d] bg-[#0f172b] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <MessageSquare size={20} className="text-[#51a2ff]" />
+                <h2 className="text-white text-[18px] font-black tracking-tight">
+                  Chat de la comunidad
+                </h2>
+              </div>
+              <span className="px-2.5 py-1 rounded-[6px] bg-[#1d293d] text-[#90a1b9] text-[12px] font-black">
+                {commentsTotal || comments.length}
+              </span>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-5 scrollbar-thin scrollbar-thumb-[#1d293d] scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-[#1d293d] scrollbar-track-transparent">
               {comments.map((comment) => (
                 <div
                   key={comment._id}
                   id={`comment-${comment._id}`}
-                  className="flex gap-3 group transition-all duration-500 rounded-lg p-1.5 -mx-1.5"
+                  className="flex gap-4 group transition-all duration-500 rounded-xl p-2 -mx-2"
                 >
                   <UserProfileLink
                     steamId={comment.author?.steamId || comment.author?._id}
                     username={comment.author?.username || 'Unknown'}
                     avatar={comment.author?.avatar}
                     variant="avatar"
-                    avatarClassName="w-8 h-8 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d]"
+                    avatarClassName="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 bg-[#1d293d] shadow-lg group-hover:scale-105 transition-transform"
                   />
 
                   <div className="min-w-0 flex-1">
-                    <div className="rounded-[12px] rounded-tl-[4px] bg-[rgba(29,41,61,0.5)] px-3 py-2 border border-[#1d293d]">
-                      <div className="flex items-center justify-between gap-2 mb-0.5">
+                    <div className="rounded-[16px] rounded-tl-[4px] bg-[rgba(29,41,61,0.4)] px-4 py-3 border border-[#1d293d] group-hover:bg-[rgba(29,41,61,0.6)] transition-colors">
+                      <div className="flex items-center justify-between gap-3 mb-1">
                         <UserProfileLink
                           steamId={comment.author?.steamId || comment.author?._id}
                           username={comment.author?.username || 'Unknown'}
                           variant="name"
-                          nameClassName="text-white text-[13px] font-bold truncate"
+                          nameClassName="text-white text-[14px] font-black truncate hover:text-[#51a2ff] transition-colors"
                         />
-                        <span className="text-[#62748e] text-[10px] whitespace-nowrap">
+                        <span className="text-[#62748e] text-[11px] font-bold whitespace-nowrap">
                           {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true, locale: es })}
                         </span>
                       </div>
-                      <p className="text-[#cad5e2] text-[13px] leading-[18px] break-words whitespace-pre-wrap">
+                      <p className="text-[#cad5e2] text-[14px] leading-[20px] break-words whitespace-pre-wrap font-medium">
                         {renderCommentContent(comment.content)}
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-3 mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-4 mt-1.5 ml-1 opacity-0 group-hover:opacity-100 transition-all transform translate-y-1 group-hover:translate-y-0">
                       <button
                         onClick={() => handleReplyClick(comment)}
-                        className="text-[11px] text-[#62748e] hover:text-[#51a2ff] font-medium flex items-center gap-1"
+                        className="text-[12px] text-[#62748e] hover:text-[#51a2ff] font-bold flex items-center gap-1.5 transition-colors"
                       >
-                        <Reply size={12} /> Responder
+                        <Reply size={14} /> Responder
                       </button>
                       {user && user.id !== String(comment.author?._id) && (
                         <ReportButton
                           targetId={comment._id}
                           targetType="comment"
                           buttonLabel="Reportar"
-                          buttonClassName="inline-flex items-center gap-1 text-[#62748e] text-[11px] font-medium hover:text-[#ff8a8c]"
+                          buttonClassName="inline-flex items-center gap-1.5 text-[#62748e] text-[12px] font-bold hover:text-[#ff8a8c] transition-colors"
                         />
                       )}
                     </div>
@@ -534,61 +492,61 @@ export function ListDetail() {
               ))}
 
               {commentsHasMore && (
-                <div className="flex justify-center pt-2">
+                <div className="flex justify-center pt-4">
                   <button
                     type="button"
                     onClick={loadMoreComments}
                     disabled={commentsLoadingMore}
-                    className="px-4 py-2 rounded-[8px] bg-[rgba(43,127,255,0.1)] text-[#51a2ff] text-[12px] font-bold hover:bg-[rgba(43,127,255,0.2)] transition-colors disabled:opacity-50"
+                    className="px-6 py-2.5 rounded-[12px] bg-[#155dfc]/10 text-[#51a2ff] text-[13px] font-black hover:bg-[#155dfc]/20 transition-all border border-[#155dfc]/20 disabled:opacity-50"
                   >
-                    {commentsLoadingMore ? "Cargando..." : "Cargar mensajes anteriores"}
+                    {commentsLoadingMore ? "Cargando mensajes..." : "Cargar mensajes anteriores"}
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-[#1d293d] bg-[#0f172b] shrink-0">
+            <div className="p-6 border-t border-[#1d293d] bg-[#0f172b] shrink-0">
               {!user ? (
-                <div className="text-center py-4 bg-[rgba(2,6,24,0.5)] rounded-[10px] border border-[#1d293d]">
-                  <Lock size={20} className="text-[#62748e] mx-auto mb-2" />
-                  <p className="text-[#90a1b9] text-[13px] mb-3">Inicia sesión para chatear</p>
-                  <button onClick={login} className="h-8 px-4 rounded-[8px] bg-[#155dfc] text-white text-[12px] font-bold">
+                <div className="text-center py-6 bg-[rgba(2,6,24,0.5)] rounded-[16px] border border-[#1d293d] backdrop-blur-md">
+                  <Lock size={24} className="text-[#62748e] mx-auto mb-3" />
+                  <p className="text-[#90a1b9] text-[14px] font-bold mb-4">Inicia sesión para participar</p>
+                  <button onClick={login} className="h-10 px-6 rounded-[12px] bg-[#155dfc] text-white text-[13px] font-black shadow-lg shadow-[#155dfc]/20 hover:bg-[#2b7fff] transition-all">
                     Conectar Steam
                   </button>
                 </div>
               ) : (
                 <>
                   {replyingTo && (
-                    <div className="mb-2 flex items-center justify-between bg-[rgba(43,127,255,0.1)] border border-[rgba(43,127,255,0.2)] rounded-[6px] px-3 py-1.5">
-                      <span className="text-[12px] text-[#51a2ff] flex items-center gap-1.5">
-                        <Reply size={14} /> Respondiendo a <span className="font-bold">@{replyingTo.author.username}</span>
+                    <div className="mb-3 flex items-center justify-between bg-[#51a2ff]/10 border border-[#51a2ff]/20 rounded-[10px] px-4 py-2 animate-in fade-in slide-in-from-bottom-2">
+                      <span className="text-[13px] text-[#51a2ff] flex items-center gap-2 font-medium">
+                        <Reply size={16} /> Respondiendo a <span className="font-black">@{replyingTo.author.username}</span>
                       </span>
-                      <button type="button" onClick={() => setReplyingTo(null)} className="text-[#51a2ff] hover:text-white">
-                        <X size={14} />
+                      <button type="button" onClick={() => setReplyingTo(null)} className="text-[#51a2ff] hover:text-white transition-colors">
+                        <X size={16} />
                       </button>
                     </div>
                   )}
-                  <form onSubmit={handlePostComment} className="flex gap-3">
+                  <form onSubmit={handlePostComment} className="flex gap-4">
                     <img
                       src={user.avatarfull}
                       alt={user.personaname}
-                      className="w-9 h-9 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 mt-0.5"
+                      className="w-10 h-10 rounded-full object-cover ring-2 ring-[#1d293d] shrink-0 mt-1 shadow-lg"
                     />
-                    <div className="flex-1 flex flex-col gap-2">
+                    <div className="flex-1 flex flex-col gap-3">
                       <textarea
                         ref={commentInputRef}
                         value={newComment}
                         onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Escribe un mensaje..."
-                        className="w-full rounded-[10px] border border-[#1d293d] bg-[rgba(2,6,24,0.5)] px-3 py-2 text-white text-[13px] placeholder-[#62748e] focus:outline-none focus:border-[#51a2ff] resize-none h-16"
+                        placeholder="Escribe un mensaje para la comunidad..."
+                        className="w-full rounded-[14px] border border-[#1d293d] bg-[rgba(2,6,24,0.6)] px-4 py-3 text-white text-[14px] font-medium placeholder-[#62748e] focus:outline-none focus:border-[#51a2ff] focus:ring-1 focus:ring-[#51a2ff] transition-all resize-none h-24"
                       />
                       <div className="flex justify-end">
                         <button
                           type="submit"
                           disabled={!newComment.trim()}
-                          className="h-8 px-5 rounded-[8px] bg-[#155dfc] text-white text-[13px] font-bold disabled:opacity-50 hover:bg-[#2b7fff] transition-colors"
+                          className="h-9 px-6 rounded-[12px] bg-[#155dfc] text-white text-[14px] font-black disabled:opacity-50 hover:bg-[#2b7fff] transition-all shadow-lg shadow-[#155dfc]/10"
                         >
-                          Enviar
+                          Enviar mensaje
                         </button>
                       </div>
                     </div>
@@ -597,11 +555,9 @@ export function ListDetail() {
               )}
             </div>
           </section>
-
         </div>
       </article>
 
-      {/* MODAL DE CONFIRMACIÓN DE BORRADO */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-50 bg-[#020617]/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => !isDeleting && setShowDeleteModal(false)}>
           <div className="w-full max-w-sm bg-[#0f172b] border border-[#1d293d] rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
