@@ -348,7 +348,20 @@ function computeGamerIdentity(
   genreItems: GenreItem[],
   totalHours: number,
 ): GamerIdentity {
-  if (!genreItems.length || totalHours <= 0) {
+  if (totalHours <= 0) {
+    return {
+      label: "Modo Incógnito",
+      emoji: "🕵️",
+      pct: 0,
+      hours: 0,
+      detail: "Las horas de juego están ocultas por privacidad.",
+      hint: "Imposible calcular la identidad sin datos de tiempo.",
+      keywords: [],
+      detailLabel: "",
+    };
+  }
+
+  if (!genreItems.length) {
     return {
       label: "Identidad en pausa",
       emoji: "🧭",
@@ -417,9 +430,7 @@ export function Profile() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [resolvedSteamId, setResolvedSteamId] = useState<string | null>(null);
-  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(
-    null,
-  );
+  const [libraryStatus, setLibraryStatus] = useState<LibraryDataStatus | null>(null);
   const [usingSnapshot, setUsingSnapshot] = useState(false);
   const [snapshotCachedAt, setSnapshotCachedAt] = useState<number | null>(null);
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
@@ -854,13 +865,6 @@ export function Profile() {
   const activeGenre =
     genreItems.find((i) => i.name === hoveredGenre) || genreItems[0] || null;
 
-  // Ajustes del Gráfico de Recharts (Nombres adaptativos)
-  const maxTopHours = Math.max(
-    ...topGames.map((g) => hoursFromMinutes(g.playtime)),
-    1,
-  );
-
-  // Transformar nombres largos para que no rompan el gráfico
   const formattedTopGames = topGames.map(g => ({
     name: g.name.length > 20 ? g.name.substring(0, 18) + "..." : g.name,
     fullName: g.name,
@@ -901,33 +905,31 @@ export function Profile() {
         ? "No hay juegos sin jugar"
         : "Sin juegos disponibles en la biblioteca";
 
-  const recentActivity = recentGames.slice(0, 5).map((r) => ({
-    name: r.name,
-    action:
-      r.playtime2Weeks && r.playtime2Weeks > 0
-        ? `Jugó ${(r.playtime2Weeks / 60).toFixed(1)}h`
-        : `Jugó ${Math.max(1, Math.round((r.playtimeForever || 0) / 60))}h`,
-    when: relativeLabel(r.lastPlayed, "Reciente"),
-    tone: "play" as const,
-  }));
-
   const sortedByHours = [...sourceGames].sort(
     (a, b) => (b.playtime || 0) - (a.playtime || 0),
   );
   const playedGames = sortedByHours.filter((g) => (g.playtime || 0) > 0);
-  const top3Games = playedGames.slice(0, 3);
 
-  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY) - MEJORADO
+  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY) A PRUEBA DE FALLOS
   const getTimelineEras = () => {
+    // 1. Caso especial: El usuario ocultó sus horas de juego (privacidad) pero podemos ver su biblioteca
+    if (sourceGames.length > 0 && totalHours === 0) {
+      const items = [];
+      if (memberYear) {
+        items.push({ year: memberYear, topGame: "Llegada a Steam", hours: 0, isOrigin: true });
+      }
+      items.push({ year: "∞", topGame: "Colección Privada", hours: sourceGames.length, isHidden: true });
+      return items.sort((a, b) => (b.year === "∞" ? 1 : b.year) - (a.year === "∞" ? 1 : a.year));
+    }
+
     if (playedGames.length === 0) return [];
 
-    // Crear un mapa de fechas recientes para mayor precisión
     const recentDateMap: Record<number, number> = {};
     recentGames.forEach(rg => {
       if (rg.lastPlayed) recentDateMap[rg.appId] = rg.lastPlayed;
     });
 
-    // 1. Recopilar eras con fechas (Cruzando con datos recientes si falta en la biblioteca)
+    // 2. Extraer juegos con fechas reales
     const gameEras = playedGames
       .map(g => {
         const ts = recentDateMap[g.appId] || g.lastPlayed || 0;
@@ -948,33 +950,36 @@ export function Profile() {
     });
 
     let results = Object.entries(yearMap)
-      .map(([year, data]) => ({ year: Number(year), ...data }))
+      .map(([year, data]) => ({ year: Number(year), ...data, isOrigin: false, isHidden: false }))
       .sort((a, b) => b.year - a.year);
 
-    // 2. Fallback si no hay fechas: Usar el juego más jugado como hito atemporal
-    if (results.length === 0 && topGames.length > 0) {
-      const main = topGames[0];
-      results.push({
-        year: memberYear ? Number(memberYear) : new Date().getFullYear(),
-        hours: totalHours,
-        topGame: main.name,
-        maxGameHours: hoursFromMinutes(main.playtime),
-        isLegacy: true
-      });
+    // Si encontramos años, construimos la línea con el origen
+    if (results.length > 0) {
+      if (memberYear && !results.some(r => r.year === Number(memberYear))) {
+        results.push({
+          year: Number(memberYear),
+          hours: 0,
+          topGame: "Llegada a Steam",
+          maxGameHours: 0,
+          isOrigin: true,
+          isHidden: false
+        });
+      }
+      return results.sort((a, b) => b.year - a.year).slice(0, 3);
     }
 
-    // 3. Añadir origen
-    if (memberYear && !results.some(r => r.year === Number(memberYear))) {
-      results.push({
-        year: Number(memberYear),
-        hours: 0,
-        topGame: "Llegada a Steam",
-        maxGameHours: 0,
-        isOrigin: true
-      });
-    }
+    // 3. Fallback: El usuario tiene horas, pero Steam no devolvió NINGÚN timestamp.
+    // Usamos el top 3 de sus juegos más jugados y los mostramos como "Hitos".
+    const top3 = [...playedGames].slice(0, 3);
+    const fallbackResults = top3.map((g, idx) => ({
+      year: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉",
+      hours: hoursFromMinutes(g.playtime),
+      topGame: g.name,
+      isOrigin: false,
+      isHidden: false
+    }));
 
-    return results.sort((a, b) => b.year - a.year).slice(0, 3);
+    return fallbackResults;
   };
 
   const timelineEras = getTimelineEras();
@@ -1015,13 +1020,13 @@ export function Profile() {
     ? relativeLabel(signatureGame.lastPlayed, "Reciente")
     : "Sin actividad reciente";
 
-  const signatureTitle = signatureGame ? signatureGame.name : "Sin datos aun";
+  // Textos del signature ajustados para la privacidad
+  const signatureTitle = signatureGame
+    ? signatureGame.name
+    : (sourceGames.length > 0 && totalHours === 0 ? "Perfil Privado" : "Sin datos aun");
   const signatureDetail = signatureGame
     ? `${signatureHours}h · ${signaturePct}% de tu tiempo`
-    : "Juega un poco mas para definirlo";
-  const signatureSub = signatureGame
-    ? `Última sesión: ${signatureLastPlayed}`
-    : "Sin actividad reciente detectada";
+    : (sourceGames.length > 0 && totalHours === 0 ? "Las horas están ocultas" : "Juega un poco mas para definirlo");
 
   const resolveGameCover = (game: Game, fallback?: string) => {
     const detail = gameDetails[String(game.appId)];
@@ -1306,68 +1311,79 @@ export function Profile() {
           </h3>
 
           <div className="flex-1 w-full mt-2 min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                layout="vertical"
-                data={formattedTopGames}
-                margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
-              >
-                <XAxis type="number" hide domain={[0, 'dataMax']} />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  axisLine={false}
-                  tickLine={false}
-                  width={140}
-                  tick={{ fill: "#cbd5e1", fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip
-                  cursor={{ fill: "rgba(81,162,255,0.1)", radius: 8 }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload;
-                      return (
-                        <div className="bg-[#0f172b]/95 backdrop-blur border border-[#314158] rounded-[12px] p-3 shadow-2xl">
-                          <p className="text-white text-[13px] font-black mb-1">
-                            {data.fullName}
-                          </p>
-                          <div className="flex items-center gap-1.5">
-                            <Clock size={12} className="text-[#51a2ff]" />
-                            <p className="text-[#51a2ff] text-[12px] font-bold">
-                              {data.hours.toLocaleString()} horas jugadas
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar
-                  dataKey="hours"
-                  radius={[0, 6, 6, 0]}
-                  barSize={32}
-                  background={{ fill: "rgba(29, 41, 61, 0.3)", radius: 6 }}
+            {formattedTopGames.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  layout="vertical"
+                  data={formattedTopGames}
+                  margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
                 >
-                  {formattedTopGames.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={[
-                        "#3b82f6", // Blue
-                        "#6366f1", // Indigo
-                        "#8b5cf6", // Violet
-                        "#a855f7", // Purple
-                        "#d946ef", // Fuchsia
-                      ][index % 5]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                  <XAxis type="number" hide domain={[0, 'dataMax']} />
+                  <YAxis
+                    dataKey="name"
+                    type="category"
+                    axisLine={false}
+                    tickLine={false}
+                    width={140}
+                    tick={{ fill: "#cbd5e1", fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "rgba(81,162,255,0.1)", radius: 8 }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-[#0f172b]/95 backdrop-blur border border-[#314158] rounded-[12px] p-3 shadow-2xl">
+                            <p className="text-white text-[13px] font-black mb-1">
+                              {data.fullName}
+                            </p>
+                            <div className="flex items-center gap-1.5">
+                              <Clock size={12} className="text-[#51a2ff]" />
+                              <p className="text-[#51a2ff] text-[12px] font-bold">
+                                {data.hours.toLocaleString()} horas jugadas
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar
+                    dataKey="hours"
+                    radius={[0, 6, 6, 0]}
+                    barSize={32}
+                    background={{ fill: "rgba(29, 41, 61, 0.3)", radius: 6 }}
+                  >
+                    {formattedTopGames.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={[
+                          "#3b82f6", // Blue
+                          "#6366f1", // Indigo
+                          "#8b5cf6", // Violet
+                          "#a855f7", // Purple
+                          "#d946ef", // Fuchsia
+                        ][index % 5]}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-center">
+                <span className="text-2xl">⚠</span>
+                <p className="text-[#f59e0b] text-[12px] font-medium mt-2">
+                  No hay datos suficientes
+                </p>
+                <p className="text-[#62748e] text-[11px] max-w-[200px]">
+                  Las horas de juego podrían estar ocultas por privacidad.
+                </p>
+              </div>
+            )}
           </div>
         </article>
 
-        {/* GRÁFICO CIRCULAR DE GÉNEROS (Mantenido igual, funciona bien) */}
         <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
@@ -1378,100 +1394,60 @@ export function Profile() {
             </span>
           </div>
 
-          <div className="flex flex-col lg:flex-row items-center gap-6 mt-2 min-h-[300px]">
-            {/* Izquierda: Gráfico */}
-            <div className="w-full lg:w-1/2 h-[280px] flex items-center justify-center relative group/pie">
-              {activeGenre ? (
-                <>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={genreItems}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={75}
-                        outerRadius={105}
-                        paddingAngle={4}
-                        dataKey="hours"
-                        stroke="none"
-                        onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
-                        onMouseLeave={() => setHoveredGenre(null)}
-                      >
-                        {genreItems.map((item, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={item.color}
-                            opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
-                            style={{ transition: "all 0.3s ease" }}
-                          />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-                    <p className="text-white text-[20px] font-black leading-tight">
-                      {activeGenre.name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="h-[18px] px-2 rounded-full bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] text-[10px] font-black uppercase">
-                        {activeGenre.pct}%
-                      </span>
-                      <p className="text-[#94a3b8] text-[12px] font-bold">
-                        {activeGenre.hours}h
-                      </p>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <span className="text-[#f59e0b] text-[12px] font-medium">
-                    Sin datos de géneros disponibles
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Derecha: Lista de Juegos */}
-            <div className="w-full lg:w-1/2 flex flex-col justify-center">
-              {activeGenre && (
-                <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                  <p className="text-[11px] uppercase tracking-wider text-[#62748e] mb-3 font-black flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeGenre.color }} />
-                    Títulos de {activeGenre.name}
-                  </p>
-                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                    {(activeGenre as any).gamesList?.slice(0, 10).map((g: any) => (
-                      <div
-                        key={g.appId}
-                        className="group/gameitem relative aspect-[3/4] rounded-lg overflow-hidden border border-[#1d293d] hover:border-[#51a2ff] transition-all shadow-lg"
-                        title={`${g.name} (${hoursFromMinutes(g.playtime)}h)`}
-                      >
-                        <img
-                          src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${g.appId}/library_600x900.jpg`}
-                          alt={g.name}
-                          className="w-full h-full object-cover grayscale-[0.2] group-hover/gameitem:grayscale-0 group-hover/gameitem:scale-110 transition-all duration-300"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = gameImage(g.appId, g.icon);
-                          }}
+          <div className="h-[280px] flex items-center justify-center relative group/pie">
+            {activeGenre ? (
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={genreItems}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={85}
+                      outerRadius={115}
+                      paddingAngle={4}
+                      dataKey="hours"
+                      stroke="none"
+                      onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
+                      onMouseLeave={() => setHoveredGenre(null)}
+                    >
+                      {genreItems.map((item, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={item.color}
+                          opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
+                          style={{ transition: "all 0.3s ease" }}
                         />
-                      </div>
-                    ))}
-                    {(activeGenre as any).gamesList?.length > 10 && (
-                      <div className="aspect-[3/4] rounded-lg bg-[#1d293d]/50 border border-[#1d293d] flex items-center justify-center text-[11px] text-[#62748e] font-black">
-                        +{(activeGenre as any).gamesList.length - 10}
-                      </div>
-                    )}
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                  <p className="text-white text-[22px] font-black leading-tight">
+                    {activeGenre.name}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="h-[18px] px-2 rounded-full bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] text-[10px] font-black uppercase">
+                      {activeGenre.pct}%
+                    </span>
+                    <p className="text-[#94a3b8] text-[12px] font-bold">
+                      {activeGenre.hours}h
+                    </p>
                   </div>
-                  {(activeGenre as any).gamesList?.length === 0 && (
-                    <p className="text-[12px] text-[#45556c] italic py-4">No se han detectado títulos específicos</p>
-                  )}
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-center">
+                <span className="text-2xl">⚠</span>
+                <p className="text-[#f59e0b] text-[12px] font-medium">
+                  Sin datos de géneros disponibles
+                </p>
+              </div>
+            )}
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2 mt-4 pt-4 border-t border-[#1d293d]/30">
+          <div className="flex flex-wrap justify-center gap-2 mt-2">
             {genreItems.slice(0, 6).map((item) => (
               <div
                 key={item.name}
@@ -1648,15 +1624,19 @@ export function Profile() {
             <div className="mt-4 pt-4 border-t border-[#1d293d]/50">
               <p className="text-[9px] uppercase tracking-wider text-[#45556c] mb-2 font-bold">Juegos que lo confirman</p>
               <div className="flex -space-x-2">
-                {identityGames.slice(0, 4).map((game, i) => (
-                  <img
-                    key={game.appId}
-                    src={game.icon || resolveGameCover(game)}
-                    className="w-8 h-8 rounded-full border-2 border-[#0f172b] object-cover"
-                    title={game.name}
-                    style={{ zIndex: 10 - i }}
-                  />
-                ))}
+                {identityGames.length > 0 ? (
+                  identityGames.slice(0, 4).map((game, i) => (
+                    <img
+                      key={game.appId}
+                      src={game.icon || resolveGameCover(game)}
+                      className="w-8 h-8 rounded-full border-2 border-[#0f172b] object-cover"
+                      title={game.name}
+                      style={{ zIndex: 10 - i }}
+                    />
+                  ))
+                ) : (
+                  <span className="text-[10px] text-[#62748e]">Sin datos suficientes</span>
+                )}
               </div>
             </div>
           </article>
@@ -1689,12 +1669,13 @@ export function Profile() {
                 </div>
               ) : (
                 <div className="h-[80px] w-full rounded-[12px] border border-dashed border-[#314158] flex items-center justify-center text-[10px] text-[#62748e]">
-                  Sigue jugando para descubrirlo
+                  {sourceGames.length > 0 ? "Horas de juego ocultas" : "Sigue jugando para descubrirlo"}
                 </div>
               )}
             </div>
           </article>
 
+          {/* Steam Journey (Línea de tiempo A PRUEBA DE FALLOS) */}
           <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-5 shadow-xl flex flex-col">
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#00d492]">
               <CalendarDays size={14} /> Steam Journey
@@ -1704,22 +1685,25 @@ export function Profile() {
             </p>
 
             <div className="flex-1 flex flex-col justify-center gap-3">
-              {timelineEras.length > 0 ? timelineEras.map((era, idx) => (
+              {timelineEras.length > 0 ? timelineEras.map((era: any, idx: number) => (
                 <div key={`${era.year}-${idx}`} className="flex items-center gap-3 relative">
+                  {/* Línea conectora */}
                   {idx !== timelineEras.length - 1 && (
                     <div className="absolute left-[13px] top-[24px] w-0.5 h-6 bg-[#1d293d] z-0" />
                   )}
+                  {/* Punto del año o icono de medalla */}
                   <div className={`w-7 h-7 rounded-full bg-[#0b1225] border-2 flex items-center justify-center z-10 shrink-0 ${era.isOrigin ? "border-[#51a2ff]" : "border-[#00d492]"}`}>
                     <span className={`text-[8px] font-black ${era.isOrigin ? "text-[#51a2ff]" : "text-[#00d492]"}`}>
-                      {(era.year && era.year > 0) ? String(era.year).slice(2) + "'" : "∞"}
+                      {typeof era.year === 'number' ? (era.year > 0 ? String(era.year).slice(2) + "'" : "∞") : era.year}
                     </span>
                   </div>
+                  {/* Detalle */}
                   <div className="flex-1 min-w-0 bg-[#162032]/50 border border-[#1d293d] rounded-lg p-1.5 flex items-center justify-between">
                     <span className="text-[11px] text-white font-semibold truncate max-w-[120px]">
-                      {(era as any).isOrigin ? "Origen" : era.topGame}
+                      {era.isOrigin ? "Llegada a Steam" : era.topGame}
                     </span>
                     <span className="text-[9px] text-[#00d492] font-mono shrink-0">
-                      {era.hours > 0 ? `${era.hours}h` : "Inicio"}
+                      {era.isHidden ? `${era.hours} juegos` : (era.hours > 0 ? `${era.hours}h` : "Inicio")}
                     </span>
                   </div>
                 </div>
