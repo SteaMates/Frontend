@@ -20,7 +20,7 @@ import {
   Sparkles,
   Target,
   Trophy,
-  Trends,
+  TrendingUp,
   Zap,
   RefreshCw,
   Flame,
