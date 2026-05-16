@@ -1347,60 +1347,100 @@ export function Profile() {
             </span>
           </div>
 
-          <div className="h-[280px] flex items-center justify-center relative group/pie">
-            {activeGenre ? (
-              <>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={genreItems}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={85}
-                      outerRadius={115}
-                      paddingAngle={4}
-                      dataKey="hours"
-                      stroke="none"
-                      onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
-                      onMouseLeave={() => setHoveredGenre(null)}
-                    >
-                      {genreItems.map((item, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={item.color}
-                          opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
-                          style={{ transition: "all 0.3s ease" }}
-                        />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+          <div className="flex flex-col lg:flex-row items-center gap-6 mt-2 min-h-[300px]">
+            {/* Izquierda: Gráfico */}
+            <div className="w-full lg:w-1/2 h-[280px] flex items-center justify-center relative group/pie">
+              {activeGenre ? (
+                <>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={genreItems}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={75}
+                        outerRadius={105}
+                        paddingAngle={4}
+                        dataKey="hours"
+                        stroke="none"
+                        onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
+                        onMouseLeave={() => setHoveredGenre(null)}
+                      >
+                        {genreItems.map((item, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={item.color}
+                            opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
+                            style={{ transition: "all 0.3s ease" }}
+                          />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
 
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-                  <p className="text-white text-[22px] font-black leading-tight">
-                    {activeGenre.name}
-                  </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="h-[18px] px-2 rounded-full bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] text-[10px] font-black uppercase">
-                      {activeGenre.pct}%
-                    </span>
-                    <p className="text-[#94a3b8] text-[12px] font-bold">
-                      {activeGenre.hours}h
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                    <p className="text-white text-[20px] font-black leading-tight">
+                      {activeGenre.name}
                     </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="h-[18px] px-2 rounded-full bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] text-[10px] font-black uppercase">
+                        {activeGenre.pct}%
+                      </span>
+                      <p className="text-[#94a3b8] text-[12px] font-bold">
+                        {activeGenre.hours}h
+                      </p>
+                    </div>
                   </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <span className="text-[#f59e0b] text-[12px] font-medium">
+                    Sin datos de géneros disponibles
+                  </span>
                 </div>
-              </>
-            ) : (
-              <div className="flex flex-col items-center gap-2 text-center">
-                <span className="text-2xl">⚠</span>
-                <p className="text-[#f59e0b] text-[12px] font-medium">
-                  Sin datos de géneros disponibles
-                </p>
-              </div>
-            )}
+              )}
+            </div>
+
+            {/* Derecha: Lista de Juegos */}
+            <div className="w-full lg:w-1/2 flex flex-col justify-center">
+              {activeGenre && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                  <p className="text-[11px] uppercase tracking-wider text-[#62748e] mb-3 font-black flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeGenre.color }} />
+                    Títulos de {activeGenre.name}
+                  </p>
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                    {(activeGenre as any).gamesList?.slice(0, 10).map((g: any) => (
+                      <div
+                        key={g.appId}
+                        className="group/gameitem relative aspect-[3/4] rounded-lg overflow-hidden border border-[#1d293d] hover:border-[#51a2ff] transition-all shadow-lg"
+                        title={`${g.name} (${hoursFromMinutes(g.playtime)}h)`}
+                      >
+                        <img
+                          src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${g.appId}/library_600x900.jpg`}
+                          alt={g.name}
+                          className="w-full h-full object-cover grayscale-[0.2] group-hover/gameitem:grayscale-0 group-hover/gameitem:scale-110 transition-all duration-300"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = gameImage(g.appId, g.icon);
+                          }}
+                        />
+                      </div>
+                    ))}
+                    {(activeGenre as any).gamesList?.length > 10 && (
+                      <div className="aspect-[3/4] rounded-lg bg-[#1d293d]/50 border border-[#1d293d] flex items-center justify-center text-[11px] text-[#62748e] font-black">
+                        +{(activeGenre as any).gamesList.length - 10}
+                      </div>
+                    )}
+                  </div>
+                  {(activeGenre as any).gamesList?.length === 0 && (
+                    <p className="text-[12px] text-[#45556c] italic py-4">No se han detectado títulos específicos</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
+          <div className="flex flex-wrap justify-center gap-2 mt-4 pt-4 border-t border-[#1d293d]/30">
             {genreItems.slice(0, 6).map((item) => (
               <div
                 key={item.name}
