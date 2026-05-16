@@ -492,6 +492,7 @@ export function Profile() {
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
   const [profileBanner, setProfileBanner] = useState<string | null>(null);
   const [gameDetails, setGameDetails] = useState<GameDetailsMap>({});
+  const [hoveredGenre, setHoveredGenre] = useState<string | null>(null);
 
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
   const targetSteamId = routeSteamId || resolvedSteamId || user?.steamid;
@@ -928,11 +929,24 @@ export function Profile() {
     ];
   }
 
-  const genreItems = normalizeGenres(genreData, totalHours);
+  const genreItems = normalizeGenres(genreData, totalHours).map((item) => {
+    const gamesInGenre = sourceGames
+      .filter((g) => {
+        const details = gameDetails[String(g.appId)];
+        return details?.genres?.some(
+          (genre) => genre.toLowerCase() === item.name.toLowerCase(),
+        );
+      })
+      .sort((a, b) => (b.playtime || 0) - (a.playtime || 0));
+    return { ...item, gamesList: gamesInGenre };
+  });
+
+
   const gamerIdentity = computeGamerIdentity(genreItems, totalHours);
 
   const genreTotalHours = genreItems.reduce((sum, item) => sum + item.hours, 0);
-  const genreFocus = genreItems[0] || null;
+  const activeGenre =
+    genreItems.find((i) => i.name === hoveredGenre) || genreItems[0] || null;
 
   const gradientStops = (() => {
     let acc = 0;
@@ -949,7 +963,8 @@ export function Profile() {
     ...topGames.map((g) => hoursFromMinutes(g.playtime)),
     1,
   );
-  const axisMax = Math.ceil(maxTopHours / 500) * 500;
+  // Ajuste más ceñido para que las barras rellenen mejor
+  const axisMax = maxTopHours;
   const axisTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) =>
     Math.round(axisMax * ratio),
   );
@@ -1459,7 +1474,7 @@ export function Profile() {
         </section>
       )}
 
-      <section className="grid grid-cols-1 xl:grid-cols-[1.53fr_1fr] gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-4">
             <Trophy size={18} className="text-[#ffb900]" /> Top 5 Más Jugados
@@ -1537,8 +1552,8 @@ export function Profile() {
             </span>
           </div>
 
-          <div className="h-[250px] flex items-center justify-center">
-            {genreFocus ? (
+          <div className="h-[280px] flex items-center justify-center">
+            {activeGenre ? (
               <div className="relative w-[168px] h-[168px] sm:w-[198px] sm:h-[198px]">
                 <div
                   className="absolute inset-0 rounded-full"
@@ -1548,13 +1563,13 @@ export function Profile() {
                 />
                 <div className="absolute inset-[30px] sm:inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
                   <p className="text-white text-[24px] font-bold leading-none">
-                    {genreFocus.name}
+                    {activeGenre.name}
                   </p>
                   <p className="text-[#94a3b8] text-[11px] mt-1">
-                    {genreFocus.hours}h - {genreFocus.pct}%
+                    {activeGenre.hours}h - {activeGenre.pct}%
                   </p>
                   <p className="text-[#64748b] text-[10px]">
-                    {genreFocus.games} juegos
+                    {activeGenre.games} juegos
                   </p>
                 </div>
               </div>
@@ -1571,22 +1586,60 @@ export function Profile() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 mt-2">
-            {genreItems.map((item) => (
-              <div
-                key={item.name}
-                className="h-[24.5px] px-2 rounded-[10px] flex items-center gap-2 bg-[#1d293d]"
-              >
-                <span
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[11px] text-[#90a1b9] truncate flex-1">
-                  {item.name}
-                </span>
-                <span className="text-[10px] text-[#45556c]">{item.pct}%</span>
+          <div className="flex flex-col gap-4 mt-2">
+            <div className="grid grid-cols-2 gap-2">
+              {genreItems.map((item) => (
+                <div
+                  key={item.name}
+                  onMouseEnter={() => setHoveredGenre(item.name)}
+                  onMouseLeave={() => setHoveredGenre(null)}
+                  className={`h-[30px] px-3 rounded-[10px] flex items-center gap-2 transition-all cursor-default ${
+                    hoveredGenre === item.name
+                      ? "bg-[#2b5cb4] shadow-lg scale-[1.02]"
+                      : "bg-[#1d293d] hover:bg-[#263550]"
+                  }`}
+                >
+                  <span
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-[11px] text-white font-medium truncate flex-1">
+                    {item.name}
+                  </span>
+                  <span className="text-[10px] text-[#90a1b9] font-bold">
+                    {item.pct}%
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {activeGenre && activeGenre.gamesList && activeGenre.gamesList.length > 0 && (
+              <div className="mt-2 pt-4 border-t border-[#1d293d]/50 animate-in fade-in slide-in-from-top-2">
+                <p className="text-[10px] uppercase tracking-wider text-[#62748e] mb-2 font-bold">
+                  Juegos de {activeGenre.name}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {(activeGenre as any).gamesList.slice(0, 6).map((g: any) => (
+                    <div
+                      key={g.appId}
+                      className="group/game relative h-8 w-8 rounded-[6px] overflow-hidden border border-[#1d293d] hover:border-[#51a2ff] transition-all"
+                      title={`${g.name} (${hoursFromMinutes(g.playtime)}h)`}
+                    >
+                      <img
+                        src={gameImage(g.appId, g.icon)}
+                        alt={g.name}
+                        className="w-full h-full object-cover grayscale-[0.3] group-hover/game:grayscale-0"
+                      />
+                    </div>
+                  ))}
+                  {(activeGenre as any).gamesList.length > 6 && (
+                    <div className="h-8 px-2 rounded-[6px] bg-[#1d293d] flex items-center justify-center text-[9px] text-[#62748e] font-black">
+                      +{(activeGenre as any).gamesList.length - 6}
+                    </div>
+                  )}
+                </div>
               </div>
-            ))}
+            )}
           </div>
         </article>
       </section>
