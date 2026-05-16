@@ -24,7 +24,8 @@ import {
   Zap,
   RefreshCw,
   Flame,
-  CalendarDays
+  CalendarDays,
+  Users
 } from "lucide-react";
 import {
   PieChart,
