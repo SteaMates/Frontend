@@ -157,23 +157,34 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       } catch { /* ignorar */ }
     }
 
-    setLoading(true); setError(""); setDeals([]);
+    // Guardar los deals actuales por si el refresco falla
+    let previousDeals: RecommendedDeal[] = [];
+    setDeals(prev => { previousDeals = prev; return prev; });
+    setLoading(true); setError("");
     try {
       const res = await api.post("/api/chat/market-recommendations", {
         steamId,
         limit: 12,
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
-      setDeals(found);
-      // Guardar en caché de sesión
-      try {
-        sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
-          steamId,
-          deals: found,
-          timestamp: Date.now(),
-        }));
-      } catch { /* quota exceeded — ignorar */ }
+
+      if (found.length === 0 && previousDeals.length > 0) {
+        // Sin resultados nuevos — conservar los anteriores
+        setError("No se encontraron nuevas recomendaciones. Se mantienen las anteriores.");
+      } else {
+        setDeals(found);
+        // Guardar en caché de sesión
+        try {
+          sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
+            steamId,
+            deals: found,
+            timestamp: Date.now(),
+          }));
+        } catch { /* quota exceeded — ignorar */ }
+      }
     } catch (e: any) {
+      // Error — conservar deals anteriores si los hay
+      if (previousDeals.length > 0) setDeals(previousDeals);
       const status = e.response?.status;
       const msg = e.response?.data?.error ||
         (status === 429
