@@ -24,6 +24,17 @@ import {
   Zap,
   RefreshCw,
 } from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
 
 interface Game {
   appId: number;
@@ -1480,64 +1491,63 @@ export function Profile() {
             <Trophy size={18} className="text-[#ffb900]" /> Top 5 Más Jugados
           </h3>
 
-          <div className="relative mt-2 pt-1 pb-8">
-            <div className="absolute left-[96px] sm:left-[132px] right-[12px] sm:right-[16px] top-0 bottom-10 grid grid-cols-4">
-              {[0, 1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="border-r border-dashed border-[rgba(49,65,88,0.6)]"
+          <div className="h-[300px] w-full mt-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                layout="vertical"
+                data={topGames.map((g) => ({
+                  name: g.name,
+                  hours: hoursFromMinutes(g.playtime),
+                }))}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  axisLine={false}
+                  tickLine={false}
+                  width={100}
+                  tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: "bold" }}
                 />
-              ))}
-            </div>
-
-            <div className="relative z-10 space-y-4">
-              {topGames.length === 0 && (
-                <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
-                  Sin datos de juego disponibles
-                </div>
-              )}
-              {topGames.map((game, index) => {
-                const hours = hoursFromMinutes(game.playtime);
-                const width = (hours / axisMax) * 100;
-                const barColors = [
-                  "#4285f4",
-                  "#6366f1",
-                  "#8b5cf6",
-                  "#a78bfa",
-                  "#c4b5fd",
-                ];
-                return (
-                  <div key={game.appId} className="flex items-center gap-3">
-                    <div className="w-[84px] sm:w-[120px] text-right">
-                      <p
-                        className="text-[12px] text-[#94a3b8] leading-[1.15]"
-                        title={game.name}
-                      >
-                        {game.name}
-                      </p>
-                    </div>
-                    <div className="flex-1 h-6 bg-[rgba(29,41,61,0.6)] rounded-[6px] relative flex items-center">
-                      <div
-                        className="absolute left-0 top-0 h-full rounded-[6px]"
-                        style={{
-                          width: `${Math.max(6, width)}%`,
-                          backgroundColor: barColors[index] || "#4285f4",
-                        }}
-                      />
-                      <span className="relative z-10 ml-2 text-[11px] font-bold text-white drop-shadow-md">
-                        {Math.floor(hours).toLocaleString()}h
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-4 ml-[96px] sm:ml-[132px] mr-[12px] sm:mr-[16px] flex justify-between text-[10px] text-[#64748b]">
-              {axisTicks.map((tick) => (
-                <span key={tick}>{tick}</span>
-              ))}
-            </div>
+                <Tooltip
+                  cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-3 shadow-2xl">
+                          <p className="text-white text-[12px] font-black">
+                            {payload[0].payload.name}
+                          </p>
+                          <p className="text-[#51a2ff] text-[11px] font-bold">
+                            {payload[0].value} horas jugadas
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Bar
+                  dataKey="hours"
+                  radius={[0, 6, 6, 0]}
+                  barSize={20}
+                >
+                  {topGames.map((_, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={[
+                        "#4285f4",
+                        "#6366f1",
+                        "#8b5cf6",
+                        "#a78bfa",
+                        "#c4b5fd",
+                      ][index % 5]}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </article>
 
@@ -1552,27 +1562,52 @@ export function Profile() {
             </span>
           </div>
 
-          <div className="h-[280px] flex items-center justify-center">
+          <div className="h-[300px] flex items-center justify-center relative group/pie">
             {activeGenre ? (
-              <div className="relative w-[168px] h-[168px] sm:w-[198px] sm:h-[198px]">
-                <div
-                  className="absolute inset-0 rounded-full"
-                  style={{
-                    background: `conic-gradient(${gradientStops || "#ef4444 0deg 360deg"})`,
-                  }}
-                />
-                <div className="absolute inset-[30px] sm:inset-[38px] rounded-full bg-[#0f172b] flex flex-col items-center justify-center text-center px-2">
-                  <p className="text-white text-[24px] font-bold leading-none">
+              <>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={genreItems}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={110}
+                      paddingAngle={5}
+                      dataKey="hours"
+                      stroke="none"
+                      onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
+                      onMouseLeave={() => setHoveredGenre(null)}
+                    >
+                      {genreItems.map((item, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={item.color}
+                          opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
+                          style={{ transition: "all 0.3s ease" }}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
+                  <p className="text-white text-[24px] font-black leading-tight animate-in fade-in zoom-in duration-300">
                     {activeGenre.name}
                   </p>
-                  <p className="text-[#94a3b8] text-[11px] mt-1">
-                    {activeGenre.hours}h - {activeGenre.pct}%
-                  </p>
-                  <p className="text-[#64748b] text-[10px]">
-                    {activeGenre.games} juegos
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="h-[18px] px-2 rounded-full bg-[#155dfc]/20 border border-[#155dfc]/30 text-[#51a2ff] text-[10px] font-black uppercase">
+                      {activeGenre.pct}%
+                    </span>
+                    <p className="text-[#94a3b8] text-[12px] font-bold">
+                      {activeGenre.hours}h
+                    </p>
+                  </div>
+                  <p className="text-[#64748b] text-[10px] mt-1 font-medium">
+                    {activeGenre.games} títulos detectados
                   </p>
                 </div>
-              </div>
+              </>
             ) : (
               <div className="flex flex-col items-center gap-2 text-center">
                 <span className="text-2xl">⚠</span>
