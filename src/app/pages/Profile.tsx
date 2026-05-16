@@ -437,7 +437,7 @@ export function Profile() {
   const [libraryFilter, setLibraryFilter] = useState<LibraryFilter>("top");
   const [profileBanner, setProfileBanner] = useState<string | null>(null);
   const [gameDetails, setGameDetails] = useState<GameDetailsMap>({});
-  const [hoveredGenre, setHoveredGenre] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
 
   const isOwnProfile = !routeSteamId || routeSteamId === user?.steamid;
   const targetSteamId = routeSteamId || resolvedSteamId || user?.steamid;
@@ -862,9 +862,8 @@ export function Profile() {
 
   const gamerIdentity = computeGamerIdentity(genreItems, totalHours);
 
-  const genreTotalHours = genreItems.reduce((sum, item) => sum + item.hours, 0);
   const activeGenre =
-    genreItems.find((i) => i.name === hoveredGenre) || genreItems[0] || null;
+    genreItems.find((i) => i.name === selectedGenre) || genreItems[0] || null;
 
   const formattedTopGames = topGames.map(g => ({
     name: g.name.length > 20 ? g.name.substring(0, 18) + "..." : g.name,
@@ -1343,9 +1342,6 @@ export function Profile() {
             <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
               <Gamepad2 size={18} className="text-[#8b5cf6]" /> Géneros Favoritos
             </h3>
-            <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
-              {genreTotalHours || 0}h total
-            </span>
           </div>
 
           <div className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-4">
@@ -1363,15 +1359,16 @@ export function Profile() {
                         paddingAngle={4}
                         dataKey="hours"
                         stroke="none"
-                        onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
-                        onMouseLeave={() => setHoveredGenre(null)}
+                        isAnimationActive={false}
+                        onClick={(_, index) => setSelectedGenre(genreItems[index].name)}
+                        className="cursor-pointer outline-none"
                       >
                         {genreItems.map((item, index) => (
                           <Cell
                             key={`cell-${index}`}
                             fill={item.color}
-                            opacity={hoveredGenre === null || hoveredGenre === item.name ? 1 : 0.3}
-                            style={{ transition: "all 0.3s ease" }}
+                            opacity={selectedGenre === null || selectedGenre === item.name ? 1 : 0.3}
+                            style={{ transition: "all 0.3s ease", outline: "none" }}
                           />
                         ))}
                       </Pie>
@@ -1450,9 +1447,8 @@ export function Profile() {
             {genreItems.slice(0, 6).map((item) => (
               <div
                 key={item.name}
-                onMouseEnter={() => setHoveredGenre(item.name)}
-                onMouseLeave={() => setHoveredGenre(null)}
-                className={`px-2.5 py-1 rounded-[8px] flex items-center gap-1.5 transition-all cursor-default ${hoveredGenre === item.name
+                onClick={() => setSelectedGenre(item.name)}
+                className={`px-2.5 py-1 rounded-[8px] flex items-center gap-1.5 transition-all cursor-pointer ${selectedGenre === item.name
                     ? "bg-[#2b5cb4] shadow-lg scale-105"
                     : "bg-[#1d293d] hover:bg-[#263550]"
                   }`}
