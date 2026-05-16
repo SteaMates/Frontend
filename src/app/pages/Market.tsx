@@ -78,6 +78,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const ranRef = useRef(false);
+  const dealsRef = useRef<RecommendedDeal[]>([]); // ref síncrono para capturar deals antes de limpiar
 
   const fetchRecs = useCallback(async (forceRefresh = false) => {
     if (!steamId) return;
@@ -90,12 +91,15 @@ function AIRecommendations({ steamId }: { steamId: string }) {
           const cached = JSON.parse(raw);
           if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL) {
             setDeals(cached.deals);
+            dealsRef.current = cached.deals;
             return;
           }
         }
       } catch { /* ignorar */ }
     }
 
+    // Guardar deals actuales antes de limpiar (para restaurar si falla)
+    const savedDeals = dealsRef.current;
     setLoading(true); setError(""); setDeals([]);
     try {
       const res = await api.post("/api/chat/market-recommendations", {
@@ -104,6 +108,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
+      dealsRef.current = found;
       try {
         sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
           steamId,
@@ -112,6 +117,11 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         }));
       } catch { /* quota exceeded — ignorar */ }
     } catch (e: any) {
+      // Restaurar deals anteriores si los había
+      if (savedDeals.length > 0) {
+        setDeals(savedDeals);
+        dealsRef.current = savedDeals;
+      }
       const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
       setError(msg);
     } finally {
