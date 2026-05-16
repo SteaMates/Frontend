@@ -149,7 +149,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
         if (raw) {
           const cached = JSON.parse(raw);
-          if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL && cached.deals?.length > 0) {
+          if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL) {
             setDeals(cached.deals);
             return;
           }
@@ -165,32 +165,15 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
-      // Solo guardar en caché si hay resultados (evita cachear resultados vacíos)
-      if (found.length > 0) {
-        try {
-          sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
-            steamId,
-            deals: found,
-            timestamp: Date.now(),
-          }));
-        } catch { /* quota exceeded — ignorar */ }
-      }
-    } catch (e: any) {
-      // En caso de error, restaurar los deals del caché si los hay
       try {
-        const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
-        if (raw) {
-          const cached = JSON.parse(raw);
-          if (cached.steamId === steamId && cached.deals?.length > 0) {
-            setDeals(cached.deals);
-          }
-        }
-      } catch { /* ignorar */ }
-      const status = e.response?.status;
-      const msg = e.response?.data?.error ||
-        (status === 429
-          ? "Solo puedes actualizar las recomendaciones una vez cada 5 minutos."
-          : "No se pudieron cargar las recomendaciones.");
+        sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
+          steamId,
+          deals: found,
+          timestamp: Date.now(),
+        }));
+      } catch { /* quota exceeded — ignorar */ }
+    } catch (e: any) {
+      const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
       setError(msg);
     } finally {
       setLoading(false);
