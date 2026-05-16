@@ -51,6 +51,7 @@ export function DealCard({ deal }: DealCardProps) {
         <img
           src={deal.steamAppID ? `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${deal.steamAppID}/header.jpg` : deal.thumb}
           alt={deal.title}
+          draggable="false"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 bg-slate-800"
           loading="lazy"
           onError={(e) => {

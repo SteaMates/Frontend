@@ -58,13 +58,18 @@ function useDraggableScroll() {
       if (!isDragging && Math.abs(walk) <= DRAG_THRESHOLD) return;
 
       if (!isDragging) {
+        // Resetear el punto de inicio al momento exacto en que se cruza el umbral
+        // para evitar el salto inicial
+        startXRef.current = x;
+        scrollLeftRef.current = ref.current.scrollLeft;
         setIsDragging(true);
         document.body.style.cursor = 'grabbing';
         document.body.style.userSelect = 'none';
+        return;
       }
 
       e.preventDefault();
-      ref.current.scrollLeft = scrollLeftRef.current - walk * 2;
+      ref.current.scrollLeft = scrollLeftRef.current - (x - startXRef.current) * 1.5;
     },
   };
 
@@ -126,7 +131,7 @@ interface RecommendedDeal extends Deal {
  * componentes hijos según los datos recibidos.
  */
 const AI_RECS_CACHE_KEY = "steamates_ai_recs_cache";
-const AI_RECS_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+const AI_RECS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos (igual al límite del backend)
 
 function AIRecommendations({ steamId }: { steamId: string }) {
   const [deals, setDeals] = useState<RecommendedDeal[]>([]);
@@ -169,7 +174,11 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         }));
       } catch { /* quota exceeded — ignorar */ }
     } catch (e: any) {
-      const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
+      const status = e.response?.status;
+      const msg = e.response?.data?.error ||
+        (status === 429
+          ? "Solo puedes actualizar las recomendaciones una vez cada 5 minutos."
+          : "No se pudieron cargar las recomendaciones.");
       setError(msg);
     } finally {
       setLoading(false);
