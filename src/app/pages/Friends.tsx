@@ -44,12 +44,14 @@ import {
   type SessionGame,
 } from "../components/SessionBooking";
 import { UserProfileLink } from "../components/UserProfileLink";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Friend {
   steamId: string;
   username: string;
   avatar: string;
   status: number;
+  visibility: number; // 1: privado, 3: público
   currentGame: string | null;
   friendSince?: number;
 }
@@ -205,6 +207,58 @@ const RADAR_AXES: {
       description: "Horas concentradas en su top 1",
     },
   ];
+
+/**
+ * Función: PrivateProfileModal
+ * Descripción: Modal de advertencia para perfiles privados con diseño premium.
+ */
+function PrivateProfileModal({ username, onClose }: { username: string, onClose: () => void }) {
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl overflow-hidden"
+        >
+          {/* Decoración de fondo */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-20 h-20 bg-amber-500/10 border border-amber-500/20 rounded-2xl flex items-center justify-center mb-6 shadow-inner">
+              <Shield size={40} className="text-amber-500" />
+            </div>
+            
+            <h3 className="text-2xl font-bold text-white mb-3">
+              Perfil Privado Detectado
+            </h3>
+            
+            <p className="text-slate-400 text-base leading-relaxed mb-8">
+              El perfil de <span className="text-white font-semibold">@{username}</span> está configurado como privado.
+              <br /><br />
+              Debido a las restricciones de privacidad de Steam, no podemos acceder a su biblioteca de juegos ni a sus estadísticas de juego.
+            </p>
+            
+            <button
+              onClick={onClose}
+              className="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-900/20 active:scale-[0.98] cursor-pointer"
+            >
+              Entendido
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
 
 /**
  * Función: DonutChart
@@ -1526,6 +1580,7 @@ export function Friends() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [privateFriendName, setPrivateFriendName] = useState<string | null>(null);
 
   // <-- AUTOMATIZAR PESTAÑA SI HAY HASH EN URL
   const initialTab: Tab = location.hash.startsWith("#session-") ? "sesiones" : "amigos";
@@ -1876,6 +1931,14 @@ export function Friends() {
          * conectar diferentes partes del sistema según los requisitos del módulo.
                  */
     const toggleSelect = (id: string) => {
+    const friend = friends.find(f => f.steamId === id);
+    
+    // Si el perfil es privado (visibility !== 3) y no está ya seleccionado (para permitir deseleccion)
+    if (friend && friend.visibility !== 3 && !selectedIds.has(id)) {
+      setPrivateFriendName(friend.username);
+      return;
+    }
+
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -2278,6 +2341,13 @@ export function Friends() {
             // Si el estado recarga por otros useEffects, no hace falta más aquí.
           }}
           existingSessions={scheduledSessions}
+        />
+      )}
+
+      {privateFriendName && (
+        <PrivateProfileModal 
+          username={privateFriendName} 
+          onClose={() => setPrivateFriendName(null)} 
         />
       )}
     </div>
