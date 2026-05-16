@@ -23,40 +23,48 @@ import api from "../../lib/api";
  * estado necesario y expone las propiedades y métodos esenciales para los
  * componentes que lo consuman.
  */
+const DRAG_THRESHOLD = 5; // px de movimiento mínimo para activar el scroll
+
 function useDraggableScroll() {
   const ref = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const isMouseDown = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+
+  const stopDrag = () => {
+    isMouseDown.current = false;
+    setIsDragging(false);
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+  };
 
   const events = {
     onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => {
-      setIsDragging(true);
+      isMouseDown.current = true;
       if (ref.current) {
-        setStartX(e.pageX - ref.current.offsetLeft);
-        setScrollLeft(ref.current.scrollLeft);
+        startXRef.current = e.pageX - ref.current.offsetLeft;
+        scrollLeftRef.current = ref.current.scrollLeft;
+      }
+    },
+    onMouseLeave: stopDrag,
+    onMouseUp: stopDrag,
+    onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isMouseDown.current || !ref.current) return;
+      const x = e.pageX - ref.current.offsetLeft;
+      const walk = x - startXRef.current;
+
+      // Solo activar drag si el movimiento supera el umbral
+      if (!isDragging && Math.abs(walk) <= DRAG_THRESHOLD) return;
+
+      if (!isDragging) {
+        setIsDragging(true);
         document.body.style.cursor = 'grabbing';
         document.body.style.userSelect = 'none';
       }
-    },
-    onMouseLeave: () => {
-      setIsDragging(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    },
-    onMouseUp: () => {
-      setIsDragging(false);
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    },
-    onMouseMove: (e: React.MouseEvent<HTMLDivElement>) => {
-      if (!isDragging) return;
+
       e.preventDefault();
-      if (ref.current) {
-        const x = e.pageX - ref.current.offsetLeft;
-        const walk = (x - startX) * 2;
-        ref.current.scrollLeft = scrollLeft - walk;
-      }
+      ref.current.scrollLeft = scrollLeftRef.current - walk * 2;
     },
   };
 
