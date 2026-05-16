@@ -258,6 +258,7 @@ function NotificationItem({
   const { respondInvite } = useNotifications();
   const isUnread = !n.readAt;
   const [responding, setResponding] = useState<"accepted" | "declined" | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Check if this is a pending invite that still needs a response
   const sessionId = n.session?._id ?? (n.data?.sessionId as string | undefined);
@@ -291,6 +292,9 @@ function NotificationItem({
     session_updated: "bg-amber-500",
     price_alert_triggered: "bg-purple-500",
     list_mention: "bg-[#51a2ff]",
+    content_deleted: "bg-rose-500",
+    list_like: "bg-pink-500",
+    list_comment: "bg-cyan-500",
   };
 
   /**
@@ -316,12 +320,19 @@ function NotificationItem({
         navigate(`/game/${n.data.steamAppId || n.data.gameId}`);
         didNavigate = true;
       }
-    } else if (n.type === "list_mention") {
+    } else if (n.type === "list_mention" || n.type === "list_comment") {
       if (n.data?.listId) {
         const commentId = n.data?.commentId;
         navigate(`/lists/${n.data.listId}${commentId ? `#comment-${commentId}` : ""}`);
         didNavigate = true;
       }
+    } else if (n.type === "list_like") {
+      if (n.data?.listId) {
+        navigate(`/lists/${n.data.listId}`);
+        didNavigate = true;
+      }
+    } else if (n.type === "content_deleted") {
+      setIsExpanded(!isExpanded);
     }
 
     if (didNavigate) {
@@ -337,33 +348,33 @@ function NotificationItem({
         className="flex gap-3 items-start cursor-pointer"
         onClick={handleClick}
       >
-      <div className="relative shrink-0 mt-0.5">
-        {n.from?.avatar ? (
-          <img
-            src={n.from.avatar}
-            alt={n.from.username}
-            className="w-8 h-8 rounded-full"
+        <div className="relative shrink-0 mt-0.5">
+          {n.from?.avatar ? (
+            <img
+              src={n.from.avatar}
+              alt={n.from.username}
+              className="w-8 h-8 rounded-full"
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+              <Gamepad2 size={16} className="text-slate-400" />
+            </div>
+          )}
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${typeColors[n.type] ?? "bg-slate-500"
+              }`}
           />
-        ) : (
-          <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
-            <Gamepad2 size={16} className="text-slate-400" />
-          </div>
-        )}
-        <span
-          className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${typeColors[n.type] ?? "bg-slate-500"
-            }`}
-        />
-      </div>
+        </div>
 
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-slate-100 leading-tight">
-          {n.title}
-        </p>
-        <p className="text-xs text-slate-400 mt-0.5 leading-snug line-clamp-2">
-          {n.message}
-        </p>
-        <p className="text-xs text-slate-500 mt-1">{timeAgo(n.createdAt)}</p>
-      </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-slate-100 leading-tight">
+            {n.title}
+          </p>
+          <p className={`text-xs text-slate-400 mt-0.5 leading-snug ${isExpanded ? "" : "line-clamp-2"}`}>
+            {n.message}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">{timeAgo(n.createdAt)}</p>
+        </div>
 
         {isUnread && !isPendingInvite && (
           <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
@@ -427,7 +438,7 @@ export function NotificationBell({
              * Captura la interacción del usuario o del sistema, valida el contexto de
              * ejecución y dispara las actualizaciones de estado necesarias en la
              * aplicación.
-                         */
+                          */
       function handle(e: MouseEvent) {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -498,7 +509,7 @@ export function NotificationBell({
              * resize. Captura la interacción del usuario o del sistema, valida el
              * contexto de ejecución y dispara las actualizaciones de estado
              * necesarias en la aplicación.
-                         */
+                          */
       const handleResize = () => positionPanel();
     window.addEventListener("resize", handleResize);
     window.addEventListener("scroll", handleResize, true);
