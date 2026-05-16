@@ -157,9 +157,16 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       } catch { /* ignorar */ }
     }
 
-    // Guardar los deals actuales por si el refresco falla
+    // Leer los deals actuales del caché antes de limpiar, por si el refresco falla
     let previousDeals: RecommendedDeal[] = [];
-    setDeals(prev => { previousDeals = prev; return prev; });
+    try {
+      const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (cached.steamId === steamId) previousDeals = cached.deals ?? [];
+      }
+    } catch { /* ignorar */ }
+
     setLoading(true); setError("");
     try {
       const res = await api.post("/api/chat/market-recommendations", {
