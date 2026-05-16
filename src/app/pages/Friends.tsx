@@ -450,8 +450,19 @@ function AnalyticsPanel({
     );
   }
 
+  const privateFriendsCount = selectedFriends.filter(f => f.visibility !== 3).length;
+
   return (
     <div className="flex flex-col gap-6">
+      {privateFriendsCount > 0 && (
+        <div className="flex items-center gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-[18px]">
+          <Shield size={20} className="text-amber-500 shrink-0" />
+          <p className="text-amber-200/80 text-sm">
+            Hay <span className="font-bold text-amber-500">{privateFriendsCount} amigo{privateFriendsCount !== 1 ? 's' : ''}</span> con perfil privado. Sus estadísticas no se pueden incluir en la comparativa.
+          </p>
+        </div>
+      )}
+      
       <div className="flex items-center p-2 gap-1 bg-[rgba(15,23,43,0.6)] border border-[#1d293d] rounded-[16px]">
         {subTabs.map((t) => (
           <button
@@ -1854,6 +1865,17 @@ export function Friends() {
     }
   }, [activeTab, user?.steamid]);
 
+  useEffect(() => {
+    if (activeTab === "analitica" && selectedIds.size > 0) {
+      const firstPrivateFriend = friends.find(
+        (f) => selectedIds.has(f.steamId) && f.visibility !== 3
+      );
+      if (firstPrivateFriend) {
+        setPrivateFriendName(firstPrivateFriend.username);
+      }
+    }
+  }, [activeTab, selectedIds, friends]);
+
   if (!user) return <Navigate to="/login" replace />;
 
   /**
@@ -2062,6 +2084,9 @@ export function Friends() {
                         variant="name"
                         nameClassName="text-[#cad5e2] text-[14px] font-medium truncate"
                       />
+                      {friend.visibility !== 3 && (
+                        <Shield size={12} className="text-amber-500 shrink-0" title="Perfil Privado" />
+                      )}
                     </div>
                     <p
                       className={`text-[11px] truncate ${getStatusTextColor(friend)}`}
