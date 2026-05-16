@@ -506,7 +506,7 @@ export function Lists() {
   );
 
   return (
-    <div className="pb-20 max-w-[1400px] mx-auto px-4">
+    <div className="pb-20 px-4 md:px-8">
       {/* HEADER BANNER ESTILO REDDIT */}
       <div className="relative rounded-[16px] overflow-hidden mb-8 border border-[#1d293d] bg-[#0f172b]">
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(21,93,252,0.1)_0%,rgba(79,57,246,0.1)_50%,rgba(152,16,250,0.1)_100%)]" />

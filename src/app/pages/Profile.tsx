@@ -864,12 +864,12 @@ export function Profile() {
     achievementsData?.recentAchievementsList?.length > 0;
 
   /**
-                 * Función: getMappedAchievements
-         * Descripción: Función encargada de consultar y obtener los datos de mapped
-         * achievements. Procesa los parámetros de entrada requeridos, realiza la
-         * llamada pertinente y devuelve la información estructurada para que la
-         * aplicación pueda utilizarla.
-                 */
+		 * Función: getMappedAchievements
+	 * Descripción: Función encargada de consultar y obtener los datos de mapped
+	 * achievements. Procesa los parámetros de entrada requeridos, realiza la
+	 * llamada pertinente y devuelve la información estructurada para que la
+	 * aplicación pueda utilizarla.
+		 */
     const getMappedAchievements = (list: any[]) =>
     (list || []).map((ach: any) => {
       // Si el logro no está desbloqueado (ahora podemos recibir logros normales/bloqueados del backend)
@@ -1132,24 +1132,24 @@ export function Profile() {
     : "Sin actividad reciente detectada";
 
   /**
-                 * Función: resolveGameCover
-         * Descripción: Función auxiliar de propósito general especializada en resolve game
-         * cover. Contiene lógica específica para transformar datos, realizar
-         * cálculos o conectar diferentes partes del sistema según los requisitos
-         * del módulo.
-                 */
+		 * Función: resolveGameCover
+	 * Descripción: Función auxiliar de propósito general especializada en resolve game
+	 * cover. Contiene lógica específica para transformar datos, realizar
+	 * cálculos o conectar diferentes partes del sistema según los requisitos
+	 * del módulo.
+		 */
     const resolveGameCover = (game: Game, fallback?: string) => {
     const detail = gameDetails[String(game.appId)];
     return detail?.headerImage || gameImage(game.appId, fallback || game.icon);
   };
 
   /**
-                 * Función: resolveGameGenres
-         * Descripción: Función auxiliar de propósito general especializada en resolve game
-         * genres. Contiene lógica específica para transformar datos, realizar
-         * cálculos o conectar diferentes partes del sistema según los requisitos
-         * del módulo.
-                 */
+		 * Función: resolveGameGenres
+	 * Descripción: Función auxiliar de propósito general especializada en resolve game
+	 * genres. Contiene lógica específica para transformar datos, realizar
+	 * cálculos o conectar diferentes partes del sistema según los requisitos
+	 * del módulo.
+		 */
     const resolveGameGenres = (game: Game) => {
     const detail = gameDetails[String(game.appId)];
     return (detail?.genres || []).map((g) => g.toLowerCase());
@@ -1245,7 +1245,7 @@ export function Profile() {
   ];
 
   return (
-    <div className="max-w-[1084px] mx-auto space-y-6 pb-20">
+    <div className="space-y-6 pb-20 px-4 md:px-8">
       <section className="relative rounded-[16px] overflow-hidden shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
         <div className="relative h-[180px] sm:h-[224px]">
           {profileBanner ? (

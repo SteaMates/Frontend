@@ -659,12 +659,12 @@ export function GameDetail() {
   }, [user, marketIdentity]);
 
   /**
-                 * Función: handleWishlist
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * wishlist. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: handleWishlist
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * wishlist. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const handleWishlist = async () => {
     if (!user) {
       toast.info("Inicia sesión para usar tu wishlist");
@@ -702,12 +702,12 @@ export function GameDetail() {
   };
 
   /**
-                 * Función: handlePriceAlert
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * price alert. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: handlePriceAlert
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * price alert. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const handlePriceAlert = async () => {
     if (!user) {
       toast.info("Inicia sesión para crear alertas de precio");
@@ -745,11 +745,11 @@ export function GameDetail() {
   };
 
   /**
-                 * Función: closeAlertModal
-         * Descripción: Función auxiliar de propósito general especializada en close alert modal.
-         * Contiene lógica específica para transformar datos, realizar cálculos o
-         * conectar diferentes partes del sistema según los requisitos del módulo.
-                 */
+		 * Función: closeAlertModal
+	 * Descripción: Función auxiliar de propósito general especializada en close alert modal.
+	 * Contiene lógica específica para transformar datos, realizar cálculos o
+	 * conectar diferentes partes del sistema según los requisitos del módulo.
+		 */
     const closeAlertModal = () => {
     if (alertBusy) return;
     setShowAlertModal(false);
@@ -757,12 +757,12 @@ export function GameDetail() {
   };
 
   /**
-                 * Función: handleCreateAlert
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * create alert. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: handleCreateAlert
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * create alert. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const handleCreateAlert = async () => {
     const targetPrice = Number(targetPriceInput.replace(",", "."));
     if (!Number.isFinite(targetPrice) || targetPrice <= 0) {
@@ -798,12 +798,12 @@ export function GameDetail() {
     if (!showAlertModal) return;
 
     /**
-                         * Función: onKeyDown
-             * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-             * key down. Captura la interacción del usuario o del sistema, valida el
-             * contexto de ejecución y dispara las actualizaciones de estado
-             * necesarias en la aplicación.
-                         */
+		 * Función: onKeyDown
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * key down. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado
+	 * necesarias en la aplicación.
+		 */
       const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && !alertBusy) {
         setShowAlertModal(false);
@@ -825,7 +825,7 @@ export function GameDetail() {
   );
 
   if (loadError) return (
-    <div className="max-w-3xl mx-auto pb-20 pt-8">
+    <div className="px-4 md:px-8 pb-20 pt-8">
       <Link to="/market" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm">
         <ArrowLeft size={16}/> Volver
       </Link>
@@ -837,7 +837,7 @@ export function GameDetail() {
   );
 
   return (
-    <div className="pb-20 max-w-6xl mx-auto">
+    <div className="pb-20 px-4 md:px-8">
       <Link to="/market" className="inline-flex items-center gap-2 text-slate-400 hover:text-white text-sm mb-8">
         <ArrowLeft size={16}/> Volver al Mercado
       </Link>

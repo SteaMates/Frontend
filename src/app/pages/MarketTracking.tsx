@@ -121,11 +121,11 @@ export function MarketTracking() {
   );
 
   /**
-                 * Función: loadData
-         * Descripción: Rutina de carga responsable de volcar los datos de data a la memoria. Se
-         * utiliza típicamente durante las fases de inicialización para preparar el
-         * entorno antes de la interacción del usuario.
-                 */
+		 * Función: loadData
+	 * Descripción: Rutina de carga responsable de volcar los datos de data a la memoria. Se
+	 * utiliza típicamente durante las fases de inicialización para preparar el
+	 * entorno antes de la interacción del usuario.
+		 */
     const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
@@ -162,12 +162,12 @@ export function MarketTracking() {
   }
 
   /**
-                 * Función: onRemoveWishlist
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * remove wishlist. Captura la interacción del usuario o del sistema, valida
-         * el contexto de ejecución y dispara las actualizaciones de estado
-         * necesarias en la aplicación.
-                 */
+		 * Función: onRemoveWishlist
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * remove wishlist. Captura la interacción del usuario o del sistema, valida
+	 * el contexto de ejecución y dispara las actualizaciones de estado
+	 * necesarias en la aplicación.
+		 */
     const onRemoveWishlist = async (item: WishlistItem) => {
     const identity = getActionId(item);
     if (!identity) {
@@ -187,12 +187,12 @@ export function MarketTracking() {
   };
 
   /**
-                 * Función: onDeleteAlert
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * delete alert. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: onDeleteAlert
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * delete alert. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const onDeleteAlert = async (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
@@ -212,12 +212,12 @@ export function MarketTracking() {
   };
 
   /**
-                 * Función: onToggleAlert
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * toggle alert. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: onToggleAlert
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * toggle alert. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const onToggleAlert = async (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
@@ -252,11 +252,11 @@ export function MarketTracking() {
 
   // NUEVA FUNCIÓN: Abre el modal en lugar de usar window.prompt
   /**
-                 * Función: openEditModal
-         * Descripción: Función auxiliar de propósito general especializada en open edit modal.
-         * Contiene lógica específica para transformar datos, realizar cálculos o
-         * conectar diferentes partes del sistema según los requisitos del módulo.
-                 */
+		 * Función: openEditModal
+	 * Descripción: Función auxiliar de propósito general especializada en open edit modal.
+	 * Contiene lógica específica para transformar datos, realizar cálculos o
+	 * conectar diferentes partes del sistema según los requisitos del módulo.
+		 */
     const openEditModal = (item: PriceAlertItem) => {
     const identity = getActionId(item);
     if (!identity) {
@@ -274,12 +274,12 @@ export function MarketTracking() {
 
   // NUEVA FUNCIÓN: Guarda el dato desde el modal
   /**
-                 * Función: handleSaveTarget
-         * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
-         * save target. Captura la interacción del usuario o del sistema, valida el
-         * contexto de ejecución y dispara las actualizaciones de estado necesarias
-         * en la aplicación.
-                 */
+		 * Función: handleSaveTarget
+	 * Descripción: Manejador de eventos (handler) diseñado para responder a la acción de
+	 * save target. Captura la interacción del usuario o del sistema, valida el
+	 * contexto de ejecución y dispara las actualizaciones de estado necesarias
+	 * en la aplicación.
+		 */
     const handleSaveTarget = async () => {
     if (!alertToEdit) return;
     const identity = getActionId(alertToEdit);
@@ -332,7 +332,7 @@ export function MarketTracking() {
   }
 
   return (
-    <div className="space-y-8 pb-20 max-w-[1400px] mx-auto">
+    <div className="space-y-8 pb-20 px-4 md:px-8">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pr-14 sm:pr-16">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-white flex items-center gap-3">
