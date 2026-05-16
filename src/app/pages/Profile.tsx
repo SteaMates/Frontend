@@ -1530,8 +1530,9 @@ export function Profile() {
                 />
                 <Bar
                   dataKey="hours"
-                  radius={[0, 6, 6, 0]}
-                  barSize={20}
+                  radius={[0, 8, 8, 0]}
+                  barSize={42}
+                  background={{ fill: "rgba(29, 41, 61, 0.2)", radius: 8 }}
                 >
                   {topGames.map((_, index) => (
                     <Cell
@@ -1888,21 +1889,22 @@ export function Profile() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0c1b35] via-[#0f172b] to-[#1a1235] opacity-80" />
+          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#080e1c] to-[#0f172b] p-6 shadow-xl">
+            <div className="absolute top-0 right-0 p-4 opacity-10">
+              <Sparkles size={80} />
+            </div>
             <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
-                <span className="text-[16px]">{gamerIdentity.emoji}</span>
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#51a2ff]">
+                <span className="text-[18px]">{gamerIdentity.emoji}</span>
                 Identidad gamer
               </div>
-              <p className="mt-2 text-[22px] font-bold text-white">
+              <p className="mt-4 text-[28px] font-black text-white leading-tight">
                 {gamerIdentity.label}
               </p>
-              <p className="mt-1 text-[12px] text-[#90a1b9]">
+              <p className="mt-2 text-[13px] text-[#94a3b8] leading-relaxed">
                 {gamerIdentity.detail}
               </p>
-              <p className="text-[10px] text-[#64748b]">{gamerIdentity.hint}</p>
-              <p className="mt-2 text-[10px] uppercase tracking-[0.4px] text-[#64748b]">
+              <p className="mt-4 text-[10px] uppercase tracking-[0.5px] font-bold text-[#45556c]">
                 {identityNote}
               </p>
               <div className="mt-2 grid grid-cols-2 gap-2">
@@ -1956,21 +1958,22 @@ export function Profile() {
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1a1b2f] via-[#121826] to-[#22102a] opacity-80" />
+          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#1a1b2f] to-[#121826] p-6 shadow-xl">
             <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
-                <Trophy size={14} className="text-[#ffb900]" /> Juego firma
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#ffb900]">
+                <Trophy size={16} /> Juego firma
               </div>
-              <div className="mt-2 flex items-start gap-3">
+              <div className="mt-5 flex items-start gap-4">
                 <div className="flex-1 min-w-0">
-                  <p className="text-[20px] font-bold text-white truncate">
+                  <p className="text-[24px] font-black text-white truncate">
                     {signatureTitle}
                   </p>
-                  <p className="mt-1 text-[12px] text-[#90a1b9]">
+                  <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
                     {signatureDetail}
                   </p>
-                  <p className="text-[10px] text-[#64748b]">{signatureSub}</p>
+                  <p className="mt-1 text-[11px] text-[#64748b] font-medium italic">
+                    {signatureSub}
+                  </p>
                   {signatureGame && (
                     <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
                       <div
@@ -1997,22 +2000,20 @@ export function Profile() {
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
-            <div
-              className={`absolute inset-0 bg-gradient-to-br ${dominance.tone} opacity-80`}
-            />
+          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-6 shadow-xl">
             <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
-                <Target size={14} className="text-[#00d492]" /> Dominio de
-                biblioteca
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#00d492]">
+                <Target size={16} /> Dominio de biblioteca
               </div>
-              <p className="mt-2 text-[20px] font-bold text-white">
+              <p className="mt-4 text-[24px] font-black text-white">
                 {dominance.label}
               </p>
-              <p className="mt-1 text-[12px] text-[#90a1b9]">
+              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
                 {dominanceSummary}
               </p>
-              <p className="text-[10px] text-[#64748b]">{dominance.detail}</p>
+              <p className="mt-1 text-[11px] text-[#64748b] leading-relaxed">
+                {dominance.detail}
+              </p>
               <div className="mt-2 grid grid-cols-3 gap-2">
                 {dominanceGames.map(({ game, hours, pct }) => (
                   <div key={`dominance-${game.appId}`} className="space-y-1">
@@ -2052,38 +2053,37 @@ export function Profile() {
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#10263f] via-[#0f172b] to-[#0b2238] opacity-80" />
+          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#10263f] to-[#0f172b] p-6 shadow-xl">
             <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
-                <Zap size={14} className="text-[#00d3f3]" /> Racha reciente
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#00d3f3]">
+                <Zap size={16} /> Racha reciente
               </div>
-              <p className="mt-2 text-[20px] font-bold text-white">
+              <p className="mt-4 text-[24px] font-black text-white">
                 {recentSummary}
               </p>
-              <p className="mt-1 text-[12px] text-[#90a1b9]">{recentDetail}</p>
-              <p className="text-[10px] text-[#64748b]">
+              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
+                {recentDetail}
+              </p>
+              <p className="mt-1 text-[11px] text-[#64748b]">
                 {recentMinutes > 0
-                  ? "Actividad basada en las ultimas 2 semanas"
+                  ? "Actividad basada en las últimas 2 semanas"
                   : "No se detecta actividad reciente"}
               </p>
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[14px] border border-[#1d293d] bg-[rgba(8,14,28,0.9)] p-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0f1c33] via-[#0f172b] to-[#1b1f32] opacity-80" />
+          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#0f1c33] to-[#0f172b] p-6 shadow-xl">
             <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.45px] text-[#94a3b8]">
-                <Clock size={14} className="text-[#51a2ff]" /> Ultimo juego
-                jugado
+              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#51a2ff]">
+                <Clock size={16} /> Último juego
               </div>
-              <p className="mt-2 text-[20px] font-bold text-white truncate">
+              <p className="mt-4 text-[24px] font-black text-white truncate">
                 {lastPlayedTitle}
               </p>
-              <p className="mt-1 text-[12px] text-[#90a1b9]">
+              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
                 {lastPlayedDetail}
               </p>
-              <p className="text-[10px] text-[#64748b]">
+              <p className="mt-1 text-[11px] text-[#64748b]">
                 {lastPlayedGame
                   ? "Se actualiza con Steam cuando hay actividad"
                   : "Sin datos recientes disponibles"}
