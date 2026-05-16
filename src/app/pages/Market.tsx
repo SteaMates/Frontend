@@ -83,7 +83,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   const fetchRecs = useCallback(async (forceRefresh = false) => {
     if (!steamId) return;
 
-    // Intentar usar caché si no es un refresco forzado
+    // 1. Intentar usar caché SOLO si NO es un refresco forzado
     if (!forceRefresh) {
       try {
         const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
@@ -98,9 +98,13 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       } catch { /* ignorar */ }
     }
 
-    // Guardar deals actuales antes de limpiar (para restaurar si falla)
+    // 2. Guardar deals actuales en un ref antes de intentar la nueva petición
     const savedDeals = dealsRef.current;
-    setLoading(true); setError(""); setDeals([]);
+    
+    setLoading(true); 
+    setError(""); 
+    // No limpiamos setDeals([]) inmediatamente para evitar parpadeo si vamos a restaurar
+    
     try {
       const res = await api.post("/api/chat/market-recommendations", {
         steamId,
@@ -109,19 +113,28 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
       dealsRef.current = found;
+      
+      // Actualizar caché con los nuevos resultados
       try {
         sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
           steamId,
           deals: found,
           timestamp: Date.now(),
         }));
-      } catch { /* quota exceeded — ignorar */ }
+      } catch { /* quota exceeded */ }
+      
     } catch (e: any) {
-      // Restaurar deals anteriores si los había
+      const isRateLimit = e.response?.status === 429;
+      
+      // 3. Si falla (especialmente por límite), restauramos lo que teníamos
       if (savedDeals.length > 0) {
         setDeals(savedDeals);
         dealsRef.current = savedDeals;
+      } else {
+        // Si no había nada previo, entonces sí limpiamos
+        setDeals([]);
       }
+
       const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
       setError(msg);
     } finally {
@@ -146,8 +159,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         {!loading && (
           <button
             onClick={() => {
-              sessionStorage.removeItem(AI_RECS_CACHE_KEY);
-              ranRef.current = false;
+              // Ya no borramos sessionStorage aquí, fetchRecs(true) lo ignora
               fetchRecs(true);
             }}
             className="flex items-center gap-1.5 text-[12px] text-[#62748e] hover:text-white transition-colors"
