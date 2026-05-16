@@ -157,41 +157,33 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       } catch { /* ignorar */ }
     }
 
-    // Leer los deals actuales del caché antes de limpiar, por si el refresco falla
-    let previousDeals: RecommendedDeal[] = [];
-    try {
-      const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
-      if (raw) {
-        const cached = JSON.parse(raw);
-        if (cached.steamId === steamId) previousDeals = cached.deals ?? [];
-      }
-    } catch { /* ignorar */ }
-
-    setLoading(true); setError("");
+    setLoading(true); setError(""); setDeals([]);
     try {
       const res = await api.post("/api/chat/market-recommendations", {
         steamId,
         limit: 12,
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
-
-      if (found.length === 0 && previousDeals.length > 0) {
-        // Sin resultados nuevos — conservar los anteriores
-        setError("No se encontraron nuevas recomendaciones. Se mantienen las anteriores.");
-      } else {
-        setDeals(found);
-        // Guardar en caché de sesión
-        try {
-          sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
-            steamId,
-            deals: found,
-            timestamp: Date.now(),
-          }));
-        } catch { /* quota exceeded — ignorar */ }
-      }
+      setDeals(found);
+      // Guardar en caché de sesión
+      try {
+        sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
+          steamId,
+          deals: found,
+          timestamp: Date.now(),
+        }));
+      } catch { /* quota exceeded — ignorar */ }
     } catch (e: any) {
-      // Error — conservar deals anteriores si los hay
-      if (previousDeals.length > 0) setDeals(previousDeals);
+      // En caso de error, restaurar los deals del caché si los hay
+      try {
+        const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached.steamId === steamId && cached.deals?.length > 0) {
+            setDeals(cached.deals);
+          }
+        }
+      } catch { /* ignorar */ }
       const status = e.response?.status;
       const msg = e.response?.data?.error ||
         (status === 429
