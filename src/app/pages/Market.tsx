@@ -117,6 +117,9 @@ interface RecommendedDeal extends Deal {
  * gestiona su propio estado interno y coordina la renderización de sus
  * componentes hijos según los datos recibidos.
  */
+const AI_RECS_CACHE_KEY = "steamates_ai_recs_cache";
+const AI_RECS_CACHE_TTL = 10 * 60 * 1000; // 10 minutos
+
 function AIRecommendations({ steamId }: { steamId: string }) {
   const [deals, setDeals] = useState<RecommendedDeal[]>([]);
   const [loading, setLoading] = useState(false);
@@ -124,8 +127,23 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   const ranRef = useRef(false);
   const { ref: scrollRef, events: scrollEvents, isDragging } = useDraggableScroll();
 
-  const fetchRecs = useCallback(async () => {
+  const fetchRecs = useCallback(async (forceRefresh = false) => {
     if (!steamId) return;
+
+    // Intentar usar caché si no es un refresco forzado
+    if (!forceRefresh) {
+      try {
+        const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL) {
+            setDeals(cached.deals);
+            return;
+          }
+        }
+      } catch { /* ignorar */ }
+    }
+
     setLoading(true); setError(""); setDeals([]);
     try {
       const res = await api.post("/api/chat/market-recommendations", {
@@ -134,6 +152,14 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
+      // Guardar en caché de sesión
+      try {
+        sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
+          steamId,
+          deals: found,
+          timestamp: Date.now(),
+        }));
+      } catch { /* quota exceeded — ignorar */ }
     } catch (e: any) {
       const msg = e.response?.data?.error || "No se pudieron cargar las recomendaciones.";
       setError(msg);
@@ -143,7 +169,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
   }, [steamId]);
 
   useEffect(() => {
-    if (!ranRef.current && steamId) { ranRef.current = true; fetchRecs(); }
+    if (!ranRef.current && steamId) { ranRef.current = true; fetchRecs(false); }
   }, [steamId, fetchRecs]);
 
   if (!steamId) return null;
@@ -158,7 +184,11 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         </h2>
         {!loading && (
           <button
-            onClick={() => { ranRef.current = false; fetchRecs(); }}
+            onClick={() => {
+              sessionStorage.removeItem(AI_RECS_CACHE_KEY);
+              ranRef.current = false;
+              fetchRecs(true);
+            }}
             className="flex items-center gap-1.5 text-[12px] text-[#62748e] hover:text-white transition-colors"
           >
             <RefreshCw size={13} /> Refrescar
