@@ -921,15 +921,14 @@ export function Profile() {
   const getTimelineEras = () => {
     if (playedGames.length === 0) return [];
 
-    // Extraer años de los juegos jugados
+    // 1. Recopilar eras con fechas reales
     const gameEras = playedGames
       .map(g => {
         const year = g.lastPlayed ? new Date(g.lastPlayed * 1000).getFullYear() : null;
         return { year, hours: hoursFromMinutes(g.playtime), name: g.name };
       })
-      .filter(g => g.year && g.year > 2000 && g.year <= new Date().getFullYear());
+      .filter(g => g.year && g.year >= 2003 && g.year <= new Date().getFullYear());
 
-    // Agrupar por año
     const yearMap: Record<number, { hours: number, topGame: string, maxGameHours: number }> = {};
     gameEras.forEach(g => {
       if (!yearMap[g.year!]) yearMap[g.year!] = { hours: 0, topGame: g.name, maxGameHours: g.hours };
@@ -940,10 +939,34 @@ export function Profile() {
       }
     });
 
-    return Object.entries(yearMap)
+    let results = Object.entries(yearMap)
       .map(([year, data]) => ({ year: Number(year), ...data }))
-      .sort((a, b) => b.year - a.year) // Orden descendente (más reciente primero)
-      .slice(0, 3); // Coger solo los 3 años más intensos/recientes
+      .sort((a, b) => b.year - a.year);
+
+    // 2. Si no hay eras con fecha, usar hitos por horas (Legacy Era)
+    if (results.length === 0 && topGames.length > 0) {
+      const mainGame = topGames[0];
+      results.push({
+        year: memberYear ? Number(memberYear) : 0,
+        hours: totalHours,
+        topGame: mainGame.name,
+        maxGameHours: hoursFromMinutes(mainGame.playtime),
+        isLegacy: true
+      });
+    }
+
+    // 3. Añadir el origen si no está presente y lo conocemos
+    if (memberYear && !results.some(r => r.year === Number(memberYear))) {
+      results.push({
+        year: Number(memberYear),
+        hours: 0,
+        topGame: "Llegada a SteaMates",
+        maxGameHours: 0,
+        isOrigin: true
+      });
+    }
+
+    return results.sort((a, b) => b.year - a.year).slice(0, 3);
   };
 
   const timelineEras = getTimelineEras();
@@ -1664,35 +1687,37 @@ export function Profile() {
             </div>
           </article>
 
-          {/* NUEVO INSIGHT: Steam Journey (Línea de tiempo) */}
           <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-5 shadow-xl flex flex-col">
             <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#00d492]">
               <CalendarDays size={14} /> Steam Journey
             </div>
             <p className="mt-1 text-[11px] text-[#94a3b8] mb-4">
-              Tus años más intensos y su juego estrella
+              Hitos y momentos clave de tu historia
             </p>
 
             <div className="flex-1 flex flex-col justify-center gap-3">
               {timelineEras.length > 0 ? timelineEras.map((era, idx) => (
-                <div key={era.year} className="flex items-center gap-3 relative">
-                  {/* Línea conectora */}
+                <div key={`${era.year}-${idx}`} className="flex items-center gap-3 relative">
                   {idx !== timelineEras.length - 1 && (
                     <div className="absolute left-[13px] top-[24px] w-0.5 h-6 bg-[#1d293d] z-0" />
                   )}
-                  {/* Punto del año */}
-                  <div className="w-7 h-7 rounded-full bg-[#0b1225] border-2 border-[#00d492] flex items-center justify-center z-10 shrink-0">
-                    <span className="text-[8px] font-black text-[#00d492]">{String(era.year).slice(2)}'</span>
+                  <div className={`w-7 h-7 rounded-full bg-[#0b1225] border-2 flex items-center justify-center z-10 shrink-0 ${era.isOrigin ? "border-[#51a2ff]" : "border-[#00d492]"}`}>
+                    <span className={`text-[8px] font-black ${era.isOrigin ? "text-[#51a2ff]" : "text-[#00d492]"}`}>
+                      {(era.year && era.year > 0) ? String(era.year).slice(2) + "'" : "∞"}
+                    </span>
                   </div>
-                  {/* Detalle */}
                   <div className="flex-1 min-w-0 bg-[#162032]/50 border border-[#1d293d] rounded-lg p-1.5 flex items-center justify-between">
-                    <span className="text-[11px] text-white font-semibold truncate max-w-[120px]">{era.topGame}</span>
-                    <span className="text-[9px] text-[#00d492] font-mono shrink-0">{era.hours}h</span>
+                    <span className="text-[11px] text-white font-semibold truncate max-w-[120px]">
+                      {(era as any).isOrigin ? "Origen" : era.topGame}
+                    </span>
+                    <span className="text-[9px] text-[#00d492] font-mono shrink-0">
+                      {era.hours > 0 ? `${era.hours}h` : "Inicio"}
+                    </span>
                   </div>
                 </div>
               )) : (
                 <div className="text-center text-[11px] text-[#62748e] py-4">
-                  No hay historial de años suficiente.
+                  Sigue jugando para generar hitos.
                 </div>
               )}
             </div>
