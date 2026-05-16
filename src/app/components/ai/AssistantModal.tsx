@@ -433,12 +433,20 @@ export function AssistantModal() {
         text: data.response || 'Lo siento, no pude generar una respuesta.',
       };
       setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("AI Error:", error);
+      const status = error?.response?.status;
+      const serverMessage = error?.response?.data?.error;
+
+      let errorText = "Lo siento, tuve un problema al procesar tu solicitud. Intenta de nuevo más tarde.";
+      if (status === 429 && serverMessage) {
+        errorText = serverMessage; // Mensaje de cooldown del backend
+      }
+
       const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        text: "Lo siento, tuve un problema al procesar tu solicitud. Intenta de nuevo más tarde."
+        text: errorText,
       };
       setMessages(prev => [...prev, errorMsg]);
     } finally {
