@@ -20,11 +20,12 @@ import {
   Sparkles,
   Target,
   Trophy,
-  TrendingUp,
+  Trends,
   Zap,
   RefreshCw,
   Flame,
   CalendarDays,
+  Database,
   Users
 } from "lucide-react";
 import {
@@ -910,79 +911,32 @@ export function Profile() {
   );
   const playedGames = sortedByHours.filter((g) => (g.playtime || 0) > 0);
 
-  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY) A PRUEBA DE FALLOS
-  const getTimelineEras = () => {
-    // 1. Caso especial: El usuario ocultó sus horas de juego (privacidad) pero podemos ver su biblioteca
-    if (sourceGames.length > 0 && totalHours === 0) {
-      const items = [];
-      if (memberYear) {
-        items.push({ year: memberYear, topGame: "Llegada a Steam", hours: 0, isOrigin: true });
-      }
-      items.push({ year: "∞", topGame: "Colección Privada", hours: sourceGames.length, isHidden: true });
-      return items.sort((a, b) => (b.year === "∞" ? 1 : b.year) - (a.year === "∞" ? 1 : a.year));
+  // CÁLCULO DE LA DISTRIBUCIÓN DE BIBLIOTECA (BACKLOG / HORAS) A PRUEBA DE FALLOS
+  const getLibraryDistribution = () => {
+    const total = sourceGames.length;
+    if (total === 0) return [];
+    
+    // Si tiene la visibilidad oculta (Privacy issue: 0 total hours pero +0 juegos descubiertos)
+    if (total > 0 && totalHours === 0) {
+      return [
+        { label: "Juegos Privados", count: total, color: "bg-[#475569]", percent: 100 }
+      ];
     }
 
-    if (playedGames.length === 0) return [];
+    const unplayed = sourceGames.filter(g => (g.playtime || 0) === 0).length;
+    const casual = sourceGames.filter(g => (g.playtime || 0) > 0 && (g.playtime || 0) < 600).length; // < 10 horas
+    const regular = sourceGames.filter(g => (g.playtime || 0) >= 600 && (g.playtime || 0) < 3000).length; // 10 - 50 horas
+    const hardcore = sourceGames.filter(g => (g.playtime || 0) >= 3000).length; // > 50 horas
 
-    const recentDateMap: Record<number, number> = {};
-    recentGames.forEach(rg => {
-      if (rg.lastPlayed) recentDateMap[rg.appId] = rg.lastPlayed;
-    });
-
-    // 2. Extraer juegos con fechas reales
-    const gameEras = playedGames
-      .map(g => {
-        const ts = recentDateMap[g.appId] || g.lastPlayed || 0;
-        const year = ts > 0 ? new Date(ts > 1e11 ? ts : ts * 1000).getFullYear() : null;
-        return { year, hours: hoursFromMinutes(g.playtime), name: g.name };
-      })
-      .filter(g => g.year && g.year >= 2003 && g.year <= new Date().getFullYear());
-
-    const yearMap: Record<number, { hours: number, topGame: string, maxGameHours: number }> = {};
-    gameEras.forEach(g => {
-      const y = g.year!;
-      if (!yearMap[y]) yearMap[y] = { hours: 0, topGame: g.name, maxGameHours: g.hours };
-      yearMap[y].hours += g.hours;
-      if (g.hours > yearMap[y].maxGameHours) {
-        yearMap[y].topGame = g.name;
-        yearMap[y].maxGameHours = g.hours;
-      }
-    });
-
-    let results = Object.entries(yearMap)
-      .map(([year, data]) => ({ year: Number(year), ...data, isOrigin: false, isHidden: false }))
-      .sort((a, b) => b.year - a.year);
-
-    // Si encontramos años, construimos la línea con el origen
-    if (results.length > 0) {
-      if (memberYear && !results.some(r => r.year === Number(memberYear))) {
-        results.push({
-          year: Number(memberYear),
-          hours: 0,
-          topGame: "Llegada a Steam",
-          maxGameHours: 0,
-          isOrigin: true,
-          isHidden: false
-        });
-      }
-      return results.sort((a, b) => b.year - a.year).slice(0, 3);
-    }
-
-    // 3. Fallback: El usuario tiene horas, pero Steam no devolvió NINGÚN timestamp.
-    // Usamos el top 3 de sus juegos más jugados y los mostramos como "Hitos".
-    const top3 = [...playedGames].slice(0, 3);
-    const fallbackResults = top3.map((g, idx) => ({
-      year: idx === 0 ? "👑" : idx === 1 ? "🥈" : "🥉",
-      hours: hoursFromMinutes(g.playtime),
-      topGame: g.name,
-      isOrigin: false,
-      isHidden: false
-    }));
-
-    return fallbackResults;
+    return [
+      { label: "Favoritos (+50h)", count: hardcore, color: "bg-[#fbbf24]", percent: Math.round((hardcore/total)*100) },
+      { label: "Jugados (10-50h)", count: regular, color: "bg-[#38bdf8]", percent: Math.round((regular/total)*100) },
+      { label: "Probados (<10h)", count: casual, color: "bg-[#818cf8]", percent: Math.round((casual/total)*100) },
+      { label: "Sin Jugar (Backlog)", count: unplayed, color: "bg-[#334155]", percent: Math.round((unplayed/total)*100) },
+    ].filter(item => item.count > 0);
   };
 
-  const timelineEras = getTimelineEras();
+  const libraryDistribution = getLibraryDistribution();
 
   const recentGameIds = new Set(recentGames.map((g) => g.appId));
   const signaturePick =
@@ -1675,41 +1629,46 @@ export function Profile() {
             </div>
           </article>
 
-          {/* Steam Journey (Línea de tiempo A PRUEBA DE FALLOS) */}
+          {/* Distribución de Biblioteca (ESTADO DEL BACKLOG) */}
           <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-5 shadow-xl flex flex-col">
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#00d492]">
-              <CalendarDays size={14} /> Steam Journey
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#38bdf8]">
+              <Database size={14} /> Estado de Biblioteca
             </div>
-            <p className="mt-1 text-[11px] text-[#94a3b8] mb-4">
-              Hitos y momentos clave de tu historia
+            <p className="mt-1 text-[11px] text-[#94a3b8] mb-5">
+              Distribución de uso y completado de juegos
             </p>
 
-            <div className="flex-1 flex flex-col justify-center gap-3">
-              {timelineEras.length > 0 ? timelineEras.map((era: any, idx: number) => (
-                <div key={`${era.year}-${idx}`} className="flex items-center gap-3 relative">
-                  {/* Línea conectora */}
-                  {idx !== timelineEras.length - 1 && (
-                    <div className="absolute left-[13px] top-[24px] w-0.5 h-6 bg-[#1d293d] z-0" />
-                  )}
-                  {/* Punto del año o icono de medalla */}
-                  <div className={`w-7 h-7 rounded-full bg-[#0b1225] border-2 flex items-center justify-center z-10 shrink-0 ${era.isOrigin ? "border-[#51a2ff]" : "border-[#00d492]"}`}>
-                    <span className={`text-[8px] font-black ${era.isOrigin ? "text-[#51a2ff]" : "text-[#00d492]"}`}>
-                      {typeof era.year === 'number' ? (era.year > 0 ? String(era.year).slice(2) + "'" : "∞") : era.year}
-                    </span>
+            <div className="flex-1 flex flex-col justify-center gap-5">
+              {libraryDistribution.length > 0 ? (
+                <>
+                  {/* Barra de progreso combinada */}
+                  <div className="w-full h-3 rounded-full flex overflow-hidden opacity-90 shadow-inner">
+                    {libraryDistribution.map((item: any, idx: number) => (
+                      <div 
+                        key={idx} 
+                        className={`h-full ${item.color}`} 
+                        style={{ width: `${item.percent}%` }}
+                        title={`${item.label}: ${item.count} juegos`}
+                      />
+                    ))}
                   </div>
-                  {/* Detalle */}
-                  <div className="flex-1 min-w-0 bg-[#162032]/50 border border-[#1d293d] rounded-lg p-1.5 flex items-center justify-between">
-                    <span className="text-[11px] text-white font-semibold truncate max-w-[120px]">
-                      {era.isOrigin ? "Llegada a Steam" : era.topGame}
-                    </span>
-                    <span className="text-[9px] text-[#00d492] font-mono shrink-0">
-                      {era.isHidden ? `${era.hours} juegos` : (era.hours > 0 ? `${era.hours}h` : "Inicio")}
-                    </span>
+
+                  {/* Leyenda */}
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {libraryDistribution.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center gap-2 bg-[#162032]/50 p-2 rounded-lg border border-[#1d293d]">
+                        <div className={`w-3 h-3 rounded-full shrink-0 ${item.color}`} />
+                        <div className="flex flex-col">
+                          <span className="text-[9px] text-[#94a3b8] font-bold uppercase">{item.label}</span>
+                          <span className="text-[12px] text-white font-black">{item.count} <span className="text-[9px] font-normal text-[#62748e]">juegos</span> <span className="text-[9px] text-[#94a3b8] font-normal">({item.percent}%)</span></span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </div>
-              )) : (
+                </>
+              ) : (
                 <div className="text-center text-[11px] text-[#62748e] py-4">
-                  Sigue jugando para generar hitos.
+                  Sigue jugando para generar estadísticas.
                 </div>
               )}
             </div>
