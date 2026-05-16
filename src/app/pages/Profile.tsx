@@ -1,6 +1,6 @@
 /**
  * Nombre del fichero: Profile.tsx
- * Descripción: Fichero fuente de la aplicación SteaMates.
+ * Descripción: Fichero fuente de la aplicación SteaMates. Perfil del jugador con analítica de biblioteca, logros y géneros.
  * Autor: Adrián Artigas Subiras, Adrián Becerril Granada, Pablo Nicolás Fabra Roque, Enrique Baldovin Cotela, Adrián Nasarre
  */
 import { useEffect, useState, useCallback } from "react";
@@ -23,6 +23,8 @@ import {
   TrendingUp,
   Zap,
   RefreshCw,
+  Flame,
+  CalendarDays
 } from "lucide-react";
 import {
   PieChart,
@@ -131,32 +133,14 @@ type GamerIdentity = {
 const PROFILE_SNAPSHOT_PREFIX = "steamates_profile_snapshot_v1";
 const PROFILE_SESSION_CACHE_PREFIX = "steamates_profile_session_cache_v1";
 
-/**
- * Función: snapshotKey
- * Descripción: Función auxiliar de propósito general especializada en snapshot key. Contiene
- * lógica específica para transformar datos, realizar cálculos o conectar
- * diferentes partes del sistema según los requisitos del módulo.
- */
 function snapshotKey(steamId: string) {
   return `${PROFILE_SNAPSHOT_PREFIX}:${steamId}`;
 }
 
-/**
- * Función: sessionCacheKey
- * Descripción: Función auxiliar de propósito general especializada en session cache key.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function sessionCacheKey(steamId: string) {
   return `${PROFILE_SESSION_CACHE_PREFIX}:${steamId}`;
 }
 
-/**
- * Función: readProfileSnapshot
- * Descripción: Función auxiliar de propósito general especializada en read profile snapshot.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
   try {
     const raw = localStorage.getItem(snapshotKey(steamId));
@@ -169,27 +153,14 @@ function readProfileSnapshot(steamId: string): ProfileSnapshot | null {
   }
 }
 
-/**
- * Función: writeProfileSnapshot
- * Descripción: Función auxiliar de propósito general especializada en write profile
- * snapshot. Contiene lógica específica para transformar datos, realizar
- * cálculos o conectar diferentes partes del sistema según los requisitos del
- * módulo.
- */
 function writeProfileSnapshot(steamId: string, snapshot: ProfileSnapshot) {
   try {
     localStorage.setItem(snapshotKey(steamId), JSON.stringify(snapshot));
   } catch {
-    // Ignore storage quota errors
+    // Ignore
   }
 }
 
-/**
- * Función: readSessionCache
- * Descripción: Función auxiliar de propósito general especializada en read session cache.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function readSessionCache(steamId: string): ProfileSnapshot | null {
   try {
     const raw = sessionStorage.getItem(sessionCacheKey(steamId));
@@ -202,17 +173,11 @@ function readSessionCache(steamId: string): ProfileSnapshot | null {
   }
 }
 
-/**
- * Función: writeSessionCache
- * Descripción: Función auxiliar de propósito general especializada en write session cache.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function writeSessionCache(steamId: string, snapshot: ProfileSnapshot) {
   try {
     sessionStorage.setItem(sessionCacheKey(steamId), JSON.stringify(snapshot));
   } catch {
-    // Ignore storage quota errors
+    // Ignore
   }
 }
 
@@ -227,34 +192,16 @@ const GENRE_COLORS = [
   "#64748b",
 ];
 
-/**
- * Función: hoursFromMinutes
- * Descripción: Función auxiliar de propósito general especializada en hours from minutes.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function hoursFromMinutes(minutes = 0) {
   return Math.max(0, Math.round(minutes / 60));
 }
 
-/**
- * Función: gameImage
- * Descripción: Función auxiliar de propósito general especializada en game image. Contiene
- * lógica específica para transformar datos, realizar cálculos o conectar
- * diferentes partes del sistema según los requisitos del módulo.
- */
 function gameImage(appId: number, fallback = "") {
   return (
     `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`
   );
 }
 
-/**
- * Función: parseMemberYear
- * Descripción: Función auxiliar de propósito general especializada en parse member year.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function parseMemberYear(value?: number | string): number | null {
   if (typeof value === "number") {
     const ms = value > 1e11 ? value : value * 1000;
@@ -270,12 +217,6 @@ function parseMemberYear(value?: number | string): number | null {
   return null;
 }
 
-/**
- * Función: relativeLabel
- * Descripción: Función auxiliar de propósito general especializada en relative label.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function relativeLabel(lastPlayed?: number, fallback = "Reciente") {
   if (!lastPlayed) return fallback;
   const timestamp = lastPlayed > 1e11 ? lastPlayed : lastPlayed * 1000;
@@ -287,12 +228,6 @@ function relativeLabel(lastPlayed?: number, fallback = "Reciente") {
   return `Hace ${days} días`;
 }
 
-/**
- * Función: normalizeGenres
- * Descripción: Función auxiliar de propósito general especializada en normalize genres.
- * Contiene lógica específica para transformar datos, realizar cálculos o
- * conectar diferentes partes del sistema según los requisitos del módulo.
- */
 function normalizeGenres(raw: any, totalHours: number): GenreItem[] {
   const candidate =
     (Array.isArray(raw?.genres) && raw.genres) ||
@@ -408,13 +343,6 @@ const IDENTITY_RULES: IdentityRule[] = [
   },
 ];
 
-/**
- * Función: computeGamerIdentity
- * Descripción: Función auxiliar de propósito general especializada en compute gamer
- * identity. Contiene lógica específica para transformar datos, realizar
- * cálculos o conectar diferentes partes del sistema según los requisitos del
- * módulo.
- */
 function computeGamerIdentity(
   genreItems: GenreItem[],
   totalHours: number,
@@ -477,13 +405,6 @@ function computeGamerIdentity(
   };
 }
 
-/**
- * Función: Profile
- * Descripción: Componente principal de la interfaz o clase estructural que representa a
- * Profile. Este elemento encapsula la lógica de presentación, gestiona su
- * propio estado interno y coordina la renderización de sus componentes hijos
- * según los datos recibidos.
- */
 export function Profile() {
   const { user, logout } = useAuth();
   const { steamId: routeSteamId } = useParams();
@@ -542,7 +463,7 @@ export function Profile() {
             steamIdToLoad = meRes.data.user.steamId;
           }
         } catch {
-          // Ignore and fallback to auth context steamid
+          // Ignore
         }
       }
 
@@ -598,7 +519,7 @@ export function Profile() {
         if (snapshot && snapshot.games.length > 0) {
           setProfile(
             snapshot.profile ||
-              (Object.keys(profileData).length > 0 ? profileData : null),
+            (Object.keys(profileData).length > 0 ? profileData : null),
           );
           setGames(snapshot.games || []);
           setRecentGames(snapshot.recentGames || []);
@@ -634,16 +555,13 @@ export function Profile() {
           achievementsData: null,
           cachedAt: Date.now(),
         };
-        // Guardar en caché de sesión
         writeSessionCache(steamIdToLoad, cacheData);
         setSnapshotCachedAt(cacheData.cachedAt);
-        // Guardar en localStorage si es el perfil propio
         if (isOwnProfile) {
           writeProfileSnapshot(steamIdToLoad, cacheData);
         }
       }
 
-      // Fetch achievements lazily (takes longer)
       api
         .get(achievementsEndpoint)
         .then((res) => {
@@ -686,7 +604,6 @@ export function Profile() {
   useEffect(() => {
     if (!user) return;
 
-    // initial load: only attempt to use session cache or snapshot. Do NOT call network automatically.
     (async () => {
       let steamIdToLoad = routeSteamId || user.steamid;
       if (!routeSteamId) {
@@ -711,7 +628,6 @@ export function Profile() {
         setUsingSnapshot(false);
         setLoading(false);
         void loadGameDetails(sessionCache.games || []);
-        // Cargar banner aunque los datos vengan de caché
         api
           .get(`/api/steam/profile-background/${steamIdToLoad}`)
           .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
@@ -731,7 +647,6 @@ export function Profile() {
           setUsingSnapshot(true);
           setLoading(false);
           void loadGameDetails(snapshot.games || []);
-          // Cargar banner aunque los datos vengan de snapshot
           api
             .get(`/api/steam/profile-background/${steamIdToLoad}`)
             .then((res) => setProfileBanner(res?.data?.backgroundUrl || null))
@@ -739,13 +654,10 @@ export function Profile() {
           return;
         }
       } else {
-        // Para perfiles de otros usuarios: si no hay caché, realizar la primera
-        // petición automáticamente y almacenar los datos (comportamiento igual al propio perfil).
         void fetchFromApi();
         return;
       }
 
-      // No cache disponible para el propio perfil — esperar a la acción del usuario
       setLoading(false);
     })();
   }, [user, routeSteamId, isOwnProfile]);
@@ -772,11 +684,10 @@ export function Profile() {
   const displaySteamId = targetSteamId || user.steamid;
 
   const sourceGames = games;
-  const hasNoLibraryData = sourceGames.length === 0;
-  const noLibraryReason = libraryStatus?.reason || null;
   const snapshotDateLabel = snapshotCachedAt
     ? new Date(snapshotCachedAt).toLocaleString("es-ES")
     : "";
+  const noLibraryReason = libraryStatus?.reason || null;
   const feedbackTone = loadError
     ? "from-[#7c2d12]/20 to-[#dc2626]/10 border-[#7f1d1d]"
     : usingSnapshot
@@ -805,8 +716,8 @@ export function Profile() {
       ? "Steam no ha respondido con datos completos en esta carga, así que se usa el último estado guardado para que no veas todo a 0."
       : noLibraryReason === "private_or_unavailable"
         ? isOwnProfile
-          ? "Steam Web API no permite acceder a bibliotecas privadas, incluso si has iniciado sesión en la app (OpenID no otorga permisos de lectura). Cambia la privacidad de 'Detalles de los juegos' a 'Público' en Steam para verlos aquí."
-          : "Los detalles de juegos o logros pueden estar limitados por privacidad de Steam o por la Web API."
+          ? "Steam Web API no permite acceder a bibliotecas privadas. Cambia la privacidad a 'Público' en Steam para verlos aquí."
+          : "Los detalles de juegos o logros pueden estar limitados por privacidad."
         : noLibraryReason === "no_games"
           ? isOwnProfile
             ? "No hay juegos visibles en tu cuenta de Steam actualmente."
@@ -848,7 +759,7 @@ export function Profile() {
   const dailyAverage =
     profile?.dailyAverageHours ??
     Number(((totalHours || 0) / daysSinceMember).toFixed(1));
-  // Reemplazar la cuenta por la cuenta real si está disponible
+
   const apiAchievements =
     achievementsData === null
       ? "..."
@@ -867,26 +778,13 @@ export function Profile() {
   const completedEstimated =
     apiCompleted === 0 && games.length > 0 && achievementsData !== null;
 
-  // Mostramos los logros reales más raros conseguidos por el jugador
-  // O un pequeño fallback vacío mientras cargan
   const isLoadingAchievements = achievementsData === null;
-  const hasRareAchievements =
-    achievementsData?.rarestAchievementsList?.length > 0;
-  const hasRecentAchievements =
-    achievementsData?.recentAchievementsList?.length > 0;
+  const hasRareAchievements = achievementsData?.rarestAchievementsList?.length > 0;
+  const hasRecentAchievements = achievementsData?.recentAchievementsList?.length > 0;
 
-  /**
-		 * Función: getMappedAchievements
-	 * Descripción: Función encargada de consultar y obtener los datos de mapped
-	 * achievements. Procesa los parámetros de entrada requeridos, realiza la
-	 * llamada pertinente y devuelve la información estructurada para que la
-	 * aplicación pueda utilizarla.
-		 */
-    const getMappedAchievements = (list: any[]) =>
+  const getMappedAchievements = (list: any[]) =>
     (list || []).map((ach: any) => {
-      // Si el logro no está desbloqueado (ahora podemos recibir logros normales/bloqueados del backend)
-      const isUnlocked = ach.unlocked !== false; // Si no viene explícitamente como false, lo asumimos desbloqueado
-
+      const isUnlocked = ach.unlocked !== false;
       return {
         title: ach.name,
         subtitle: ach.game,
@@ -902,7 +800,6 @@ export function Profile() {
       };
     });
 
-  // Intentar usar raros, si no recientes (para handling de usuarios con 0 logros globales o sin datos)
   const realAchievements = getMappedAchievements(
     hasRareAchievements
       ? achievementsData.rarestAchievementsList
@@ -911,7 +808,6 @@ export function Profile() {
         : [],
   );
 
-  // Y si no hay datos de steam, podrÃ­amos no mostrar nada o rellenar
   let displayAchievements: any[];
   if (isLoadingAchievements) {
     displayAchievements = [
@@ -927,7 +823,6 @@ export function Profile() {
   } else if (realAchievements.length > 0) {
     displayAchievements = realAchievements;
   } else {
-    // Show completely empty state
     displayAchievements = [
       {
         title: "Sin datos",
@@ -952,39 +847,29 @@ export function Profile() {
     return { ...item, gamesList: gamesInGenre };
   });
 
-
   const gamerIdentity = computeGamerIdentity(genreItems, totalHours);
 
   const genreTotalHours = genreItems.reduce((sum, item) => sum + item.hours, 0);
   const activeGenre =
     genreItems.find((i) => i.name === hoveredGenre) || genreItems[0] || null;
 
-  const gradientStops = (() => {
-    let acc = 0;
-    return genreItems
-      .map((item) => {
-        const start = acc;
-        acc += (item.hours / Math.max(1, genreTotalHours)) * 360;
-        return `${item.color} ${start}deg ${acc}deg`;
-      })
-      .join(", ");
-  })();
-
+  // Ajustes del Gráfico de Recharts (Nombres adaptativos)
   const maxTopHours = Math.max(
     ...topGames.map((g) => hoursFromMinutes(g.playtime)),
     1,
   );
-  // Ajuste más ceñido para que las barras rellenen mejor
-  const axisMax = maxTopHours;
-  const axisTicks = [0, 0.25, 0.5, 0.75, 1].map((ratio) =>
-    Math.round(axisMax * ratio),
-  );
+
+  // Transformar nombres largos para que no rompan el gráfico
+  const formattedTopGames = topGames.map(g => ({
+    name: g.name.length > 20 ? g.name.substring(0, 18) + "..." : g.name,
+    fullName: g.name,
+    hours: hoursFromMinutes(g.playtime)
+  }));
 
   const libraryRows = (() => {
     if (libraryFilter === "unplayed") {
       return sourceGames.filter((g) => (g.playtime ?? 0) === 0).slice(0, 12);
     }
-
     if (libraryFilter === "recent") {
       if (recentGames.length > 0) {
         return recentGames
@@ -1015,7 +900,7 @@ export function Profile() {
         ? "No hay juegos sin jugar"
         : "Sin juegos disponibles en la biblioteca";
 
-  const recentActivity = recentGames.slice(0, 5).map((r, index) => ({
+  const recentActivity = recentGames.slice(0, 5).map((r) => ({
     name: r.name,
     action:
       r.playtime2Weeks && r.playtime2Weeks > 0
@@ -1030,52 +915,37 @@ export function Profile() {
   );
   const playedGames = sortedByHours.filter((g) => (g.playtime || 0) > 0);
   const top3Games = playedGames.slice(0, 3);
-  const top3Hours = top3Games.reduce(
-    (sum, game) => sum + hoursFromMinutes(game.playtime),
-    0,
-  );
-  const concentrationPct =
-    totalHours > 0 ? Math.round((top3Hours / totalHours) * 100) : 0;
 
-  const dominance = (() => {
-    if (totalHours <= 0) {
-      return {
-        label: "Sin datos",
-        detail: "Aun no hay horas suficientes para medir el dominio.",
-        tone: "from-[#1d293d] to-[#1d293d]",
-      };
-    }
+  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY)
+  const getTimelineEras = () => {
+    if (playedGames.length === 0) return [];
 
-    if (concentrationPct >= 80) {
-      return {
-        label: "Jugador especializado",
-        detail: "Prefieres dominar pocos juegos antes que probar muchos.",
-        tone: "from-[#0b2f5a] to-[#1a2b4a]",
-      };
-    }
+    // Extraer años de los juegos jugados
+    const gameEras = playedGames
+      .map(g => {
+        const year = g.lastPlayed ? new Date(g.lastPlayed * 1000).getFullYear() : null;
+        return { year, hours: hoursFromMinutes(g.playtime), name: g.name };
+      })
+      .filter(g => g.year && g.year > 2000 && g.year <= new Date().getFullYear());
 
-    if (concentrationPct >= 55) {
-      return {
-        label: "Equilibrado",
-        detail: "Combinas unos pocos juegos fuertes con variedad.",
-        tone: "from-[#1b2a4a] to-[#1b233a]",
-      };
-    }
+    // Agrupar por año
+    const yearMap: Record<number, { hours: number, topGame: string, maxGameHours: number }> = {};
+    gameEras.forEach(g => {
+      if (!yearMap[g.year!]) yearMap[g.year!] = { hours: 0, topGame: g.name, maxGameHours: g.hours };
+      yearMap[g.year!].hours += g.hours;
+      if (g.hours > yearMap[g.year!].maxGameHours) {
+        yearMap[g.year!].topGame = g.name;
+        yearMap[g.year!].maxGameHours = g.hours;
+      }
+    });
 
-    return {
-      label: "Explorador",
-      detail: "Te mueves por muchos juegos distintos.",
-      tone: "from-[#1d293d] to-[#1a2235]",
-    };
-  })();
+    return Object.entries(yearMap)
+      .map(([year, data]) => ({ year: Number(year), ...data }))
+      .sort((a, b) => b.year - a.year) // Orden descendente (más reciente primero)
+      .slice(0, 3); // Coger solo los 3 años más intensos/recientes
+  };
 
-  const dominanceSummary =
-    totalHours > 0
-      ? `El ${concentrationPct}% de tus horas estan en tus ${Math.max(
-          top3Games.length,
-          1,
-        )} juegos principales`
-      : "Sin horas jugadas suficientes";
+  const timelineEras = getTimelineEras();
 
   const recentGameIds = new Set(recentGames.map((g) => g.appId));
   const signaturePick =
@@ -1113,70 +983,20 @@ export function Profile() {
     ? relativeLabel(signatureGame.lastPlayed, "Reciente")
     : "Sin actividad reciente";
 
-  const recentMinutes = recentGames.reduce(
-    (sum, game) => sum + (game.playtime2Weeks || 0),
-    0,
-  );
-  const recentHours = Number((recentMinutes / 60).toFixed(1));
-  const recentMainGame =
-    [...recentGames]
-      .sort((a, b) => (b.playtime2Weeks || 0) - (a.playtime2Weeks || 0))
-      .shift() || null;
-  const recentSummary =
-    recentMinutes > 0
-      ? `Has jugado ${recentHours}h en las ultimas 2 semanas`
-      : "Modo reposo";
-  const recentDetail =
-    recentMinutes > 0 && recentMainGame
-      ? `Tu juego activo ahora es ${recentMainGame.name}`
-      : "Sin actividad reciente en las ultimas 2 semanas";
-
-  const lastPlayedFromLibrary = [...sourceGames]
-    .filter((g) => (g.lastPlayed || 0) > 0)
-    .sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))
-    .shift();
-  const lastPlayedFromRecent = [...recentGames]
-    .filter((g) => (g.lastPlayed || 0) > 0)
-    .sort((a, b) => (b.lastPlayed || 0) - (a.lastPlayed || 0))
-    .shift();
-  const lastPlayedGame = lastPlayedFromLibrary || lastPlayedFromRecent || null;
-  const lastPlayedLabel = lastPlayedGame?.lastPlayed
-    ? relativeLabel(lastPlayedGame.lastPlayed, "Reciente")
-    : "Sin actividad reciente detectada";
-
   const signatureTitle = signatureGame ? signatureGame.name : "Sin datos aun";
   const signatureDetail = signatureGame
-    ? `${signatureHours}h · ${signaturePct}% de todo tu tiempo jugado`
+    ? `${signatureHours}h · ${signaturePct}% de tu tiempo`
     : "Juega un poco mas para definirlo";
   const signatureSub = signatureGame
-    ? `Ultima sesion: ${signatureLastPlayed}`
+    ? `Última sesión: ${signatureLastPlayed}`
     : "Sin actividad reciente detectada";
 
-  const lastPlayedTitle = lastPlayedGame?.name || "Sin actividad reciente";
-  const lastPlayedDetail = lastPlayedGame
-    ? `Ultima sesion: ${lastPlayedLabel}`
-    : "Sin actividad reciente detectada";
-
-  /**
-		 * Función: resolveGameCover
-	 * Descripción: Función auxiliar de propósito general especializada en resolve game
-	 * cover. Contiene lógica específica para transformar datos, realizar
-	 * cálculos o conectar diferentes partes del sistema según los requisitos
-	 * del módulo.
-		 */
-    const resolveGameCover = (game: Game, fallback?: string) => {
+  const resolveGameCover = (game: Game, fallback?: string) => {
     const detail = gameDetails[String(game.appId)];
     return detail?.headerImage || gameImage(game.appId, fallback || game.icon);
   };
 
-  /**
-		 * Función: resolveGameGenres
-	 * Descripción: Función auxiliar de propósito general especializada en resolve game
-	 * genres. Contiene lógica específica para transformar datos, realizar
-	 * cálculos o conectar diferentes partes del sistema según los requisitos
-	 * del módulo.
-		 */
-    const resolveGameGenres = (game: Game) => {
+  const resolveGameGenres = (game: Game) => {
     const detail = gameDetails[String(game.appId)];
     return (detail?.genres || []).map((g) => g.toLowerCase());
   };
@@ -1187,29 +1007,19 @@ export function Profile() {
   const identityMatches =
     identityKeywords.length > 0
       ? playedGames.filter((game) => {
-          const genres = resolveGameGenres(game);
-          return identityKeywords.some((keyword) =>
-            genres.some((genre) => genre.includes(keyword)),
-          );
-        })
+        const genres = resolveGameGenres(game);
+        return identityKeywords.some((keyword) =>
+          genres.some((genre) => genre.includes(keyword)),
+        );
+      })
       : [];
   const identityGames = (
     identityMatches.length > 0 ? identityMatches : topGames
   ).slice(0, 4);
   const identityNote =
     identityMatches.length > 0
-      ? `Juegos que refuerzan ${gamerIdentity.detailLabel}`
-      : "Sin datos de genero completos, mostrando tus mas jugados";
-
-  const dominanceGames = top3Games.map((game) => {
-    const hours = hoursFromMinutes(game.playtime);
-    const pct = totalHours > 0 ? Math.round((hours / totalHours) * 100) : 0;
-    return {
-      game,
-      hours,
-      pct,
-    };
-  });
+      ? `Juegos que refuerzan tu rol de ${gamerIdentity.label}`
+      : "Mostrando tus más jugados";
 
   const signatureCover = signatureGame ? resolveGameCover(signatureGame) : "";
 
@@ -1250,7 +1060,7 @@ export function Profile() {
       label: "Logros",
       value: `${totalAchievements}`,
       warning: achievementsEstimated
-        ? "Steam no devolvió datos de logros para este perfil"
+        ? "Steam no devolvió datos de logros"
         : undefined,
       Icon: Trophy,
       valueClass: "text-[#ffb900]",
@@ -1261,7 +1071,7 @@ export function Profile() {
       label: "Completados",
       value: `${completedGames}`,
       warning: completedEstimated
-        ? "Steam no devolvió datos de juegos completados para este perfil"
+        ? "Steam no devolvió juegos completados"
         : undefined,
       Icon: Award,
       valueClass: "text-[#ff637e]",
@@ -1297,13 +1107,12 @@ export function Profile() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <span className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[3px] border-[#0f172b] opacity-70 ${
-                !profile?.status || profile.status === 0
+              <span className={`absolute -bottom-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 rounded-full border-[3px] border-[#0f172b] opacity-70 ${!profile?.status || profile.status === 0
                   ? "bg-[#62748e]"
                   : profile.status === 3 || profile.status === 4
                     ? "bg-[#f59e0b]"
                     : "bg-[#00c950]"
-              }`} />
+                }`} />
             </div>
 
             <div className="flex-1 pt-2 sm:pt-3 min-w-0">
@@ -1338,7 +1147,6 @@ export function Profile() {
                 </span>
                 {(() => {
                   const s = profile?.status;
-                  // personastate: 0=offline, 1=online, 2=busy, 3=away, 4=snooze, 5=looking to trade, 6=looking to play
                   if (s === 0 || s === null || s === undefined) {
                     return (
                       <span className="bg-[rgba(30,30,30,0.5)] rounded-[4px] px-2 py-1 text-[10px] text-[#62748e]">
@@ -1351,8 +1159,8 @@ export function Profile() {
                     2: "Ocupado",
                     3: "Ausente",
                     4: "Durmiendo",
-                    5: "Buscando intercambio",
-                    6: "Buscando partida",
+                    5: "Trading",
+                    6: "Jugando",
                   };
                   return (
                     <span className="bg-[rgba(13,84,43,0.3)] rounded-[4px] px-2 py-1 text-[10px] text-[#05df72]">
@@ -1364,8 +1172,8 @@ export function Profile() {
                   {memberYear ? (
                     `Miembro desde ${memberYear}`
                   ) : (
-                    <span title="Steam no devolvió la fecha de registro de esta cuenta">
-                      Miembro desde ⚠ Desconocido
+                    <span title="Steam no devolvió fecha">
+                      Miembro desde ⚠
                     </span>
                   )}
                 </span>
@@ -1403,7 +1211,7 @@ export function Profile() {
         </div>
       </section>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
+      <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {stats.map((stat) => (
           <article
             key={stat.label}
@@ -1412,18 +1220,8 @@ export function Profile() {
             <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.45px] text-[#62748e]">
               <stat.Icon size={14} className={stat.iconClass} />
               {stat.label}
-              {stat.warning && (
-                <span
-                  title={stat.warning}
-                  className="ml-auto text-[#f59e0b] cursor-help"
-                >
-                  ⚠
-                </span>
-              )}
             </div>
-            <p
-              className={`mt-[6px] text-[20px] leading-7 font-bold ${stat.valueClass}`}
-            >
+            <p className={`mt-[6px] text-[20px] leading-7 font-bold ${stat.valueClass}`}>
               {stat.value}
             </p>
           </article>
@@ -1451,9 +1249,7 @@ export function Profile() {
       </section>
 
       {feedbackTitle && feedbackText && (!usingSnapshot || loadError) && (
-        <section
-          className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}
-        >
+        <section className={`rounded-[16px] border bg-gradient-to-r px-4 py-4 ${feedbackTone}`}>
           <div className="flex items-start gap-3">
             <div className="mt-0.5 h-9 w-9 shrink-0 rounded-[12px] bg-[#0f172b]/70 border border-white/10 flex items-center justify-center">
               <Sparkles size={16} className="text-[#f8fafc]" />
@@ -1465,63 +1261,50 @@ export function Profile() {
               <p className="mt-1 text-[#cbd5e1] text-[13px] leading-5">
                 {feedbackText}
               </p>
-              {snapshotDateLabel && usingSnapshot && (
-                <p className="mt-2 text-[#bfdbfe] text-[12px]">
-                  Snapshot guardado: {snapshotDateLabel}
-                </p>
-              )}
-              {loadError && (
-                <div className="mt-3">
-                  <Link
-                    to="/friends"
-                    className="inline-flex items-center gap-2 rounded-[10px] bg-[#1d293d] border border-[#314158] px-3 py-1.5 text-[12px] text-[#cad5e2] hover:bg-[#263550] transition-colors"
-                  >
-                    Volver
-                  </Link>
-                </div>
-              )}
             </div>
           </div>
         </section>
       )}
 
+      {/* BLOQUE MEJORADO: GRÁFICO DE BARRAS RESPONSIVE */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
-          <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-4">
+        <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)] flex flex-col">
+          <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-2">
             <Trophy size={18} className="text-[#ffb900]" /> Top 5 Más Jugados
           </h3>
 
-          <div className="h-[300px] w-full mt-4">
+          <div className="flex-1 w-full mt-2 min-h-[250px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 layout="vertical"
-                data={topGames.map((g) => ({
-                  name: g.name,
-                  hours: hoursFromMinutes(g.playtime),
-                }))}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                data={formattedTopGames}
+                margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
               >
-                <XAxis type="number" hide />
+                <XAxis type="number" hide domain={[0, 'dataMax']} />
                 <YAxis
                   dataKey="name"
                   type="category"
                   axisLine={false}
                   tickLine={false}
-                  width={100}
-                  tick={{ fill: "#94a3b8", fontSize: 11, fontWeight: "bold" }}
+                  width={140}
+                  tick={{ fill: "#cbd5e1", fontSize: 12, fontWeight: 600 }}
                 />
                 <Tooltip
-                  cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                  cursor={{ fill: "rgba(81,162,255,0.1)", radius: 8 }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
+                      const data = payload[0].payload;
                       return (
-                        <div className="bg-[#0f172b] border border-[#1d293d] rounded-[12px] p-3 shadow-2xl">
-                          <p className="text-white text-[12px] font-black">
-                            {payload[0].payload.name}
+                        <div className="bg-[#0f172b]/95 backdrop-blur border border-[#314158] rounded-[12px] p-3 shadow-2xl">
+                          <p className="text-white text-[13px] font-black mb-1">
+                            {data.fullName}
                           </p>
-                          <p className="text-[#51a2ff] text-[11px] font-bold">
-                            {payload[0].value} horas jugadas
-                          </p>
+                          <div className="flex items-center gap-1.5">
+                            <Clock size={12} className="text-[#51a2ff]" />
+                            <p className="text-[#51a2ff] text-[12px] font-bold">
+                              {data.hours.toLocaleString()} horas jugadas
+                            </p>
+                          </div>
                         </div>
                       );
                     }
@@ -1530,19 +1313,19 @@ export function Profile() {
                 />
                 <Bar
                   dataKey="hours"
-                  radius={[0, 8, 8, 0]}
-                  barSize={42}
-                  background={{ fill: "rgba(29, 41, 61, 0.2)", radius: 8 }}
+                  radius={[0, 6, 6, 0]}
+                  barSize={32}
+                  background={{ fill: "rgba(29, 41, 61, 0.3)", radius: 6 }}
                 >
-                  {topGames.map((_, index) => (
+                  {formattedTopGames.map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={[
-                        "#4285f4",
-                        "#6366f1",
-                        "#8b5cf6",
-                        "#a78bfa",
-                        "#c4b5fd",
+                        "#3b82f6", // Blue
+                        "#6366f1", // Indigo
+                        "#8b5cf6", // Violet
+                        "#a855f7", // Purple
+                        "#d946ef", // Fuchsia
                       ][index % 5]}
                     />
                   ))}
@@ -1552,18 +1335,18 @@ export function Profile() {
           </div>
         </article>
 
+        {/* GRÁFICO CIRCULAR DE GÉNEROS (Mantenido igual, funciona bien) */}
         <article className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
-              <Gamepad2 size={18} className="text-[#8b5cf6]" /> Géneros
-              Favoritos
+              <Gamepad2 size={18} className="text-[#8b5cf6]" /> Géneros Favoritos
             </h3>
             <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
               {genreTotalHours || 0}h total
             </span>
           </div>
 
-          <div className="h-[300px] flex items-center justify-center relative group/pie">
+          <div className="h-[280px] flex items-center justify-center relative group/pie">
             {activeGenre ? (
               <>
                 <ResponsiveContainer width="100%" height="100%">
@@ -1572,9 +1355,9 @@ export function Profile() {
                       data={genreItems}
                       cx="50%"
                       cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
-                      paddingAngle={5}
+                      innerRadius={85}
+                      outerRadius={115}
+                      paddingAngle={4}
                       dataKey="hours"
                       stroke="none"
                       onMouseEnter={(_, index) => setHoveredGenre(genreItems[index].name)}
@@ -1593,7 +1376,7 @@ export function Profile() {
                 </ResponsiveContainer>
 
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-                  <p className="text-white text-[24px] font-black leading-tight animate-in fade-in zoom-in duration-300">
+                  <p className="text-white text-[22px] font-black leading-tight">
                     {activeGenre.name}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
@@ -1604,9 +1387,6 @@ export function Profile() {
                       {activeGenre.hours}h
                     </p>
                   </div>
-                  <p className="text-[#64748b] text-[10px] mt-1 font-medium">
-                    {activeGenre.games} títulos detectados
-                  </p>
                 </div>
               </>
             ) : (
@@ -1615,71 +1395,30 @@ export function Profile() {
                 <p className="text-[#f59e0b] text-[12px] font-medium">
                   Sin datos de géneros disponibles
                 </p>
-                <p className="text-[#62748e] text-[11px] max-w-[200px]">
-                  Steam no devolvió información de géneros para este perfil
-                </p>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col gap-4 mt-2">
-            <div className="grid grid-cols-2 gap-2">
-              {genreItems.map((item) => (
-                <div
-                  key={item.name}
-                  onMouseEnter={() => setHoveredGenre(item.name)}
-                  onMouseLeave={() => setHoveredGenre(null)}
-                  className={`h-[30px] px-3 rounded-[10px] flex items-center gap-2 transition-all cursor-default ${
-                    hoveredGenre === item.name
-                      ? "bg-[#2b5cb4] shadow-lg scale-[1.02]"
-                      : "bg-[#1d293d] hover:bg-[#263550]"
+          <div className="flex flex-wrap justify-center gap-2 mt-2">
+            {genreItems.slice(0, 6).map((item) => (
+              <div
+                key={item.name}
+                onMouseEnter={() => setHoveredGenre(item.name)}
+                onMouseLeave={() => setHoveredGenre(null)}
+                className={`px-2.5 py-1 rounded-[8px] flex items-center gap-1.5 transition-all cursor-default ${hoveredGenre === item.name
+                    ? "bg-[#2b5cb4] shadow-lg scale-105"
+                    : "bg-[#1d293d] hover:bg-[#263550]"
                   }`}
-                >
-                  <span
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span className="text-[11px] text-white font-medium truncate flex-1">
-                    {item.name}
-                  </span>
-                  <span className="text-[10px] text-[#90a1b9] font-bold">
-                    {item.pct}%
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {activeGenre && activeGenre.gamesList && activeGenre.gamesList.length > 0 && (
-              <div className="mt-2 pt-4 border-t border-[#1d293d]/50 animate-in fade-in slide-in-from-top-2">
-                <p className="text-[10px] uppercase tracking-wider text-[#62748e] mb-2 font-bold">
-                  Juegos de {activeGenre.name}
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {(activeGenre as any).gamesList.slice(0, 6).map((g: any) => (
-                    <div
-                      key={g.appId}
-                      className="group/game relative h-8 w-8 rounded-[6px] overflow-hidden border border-[#1d293d] hover:border-[#51a2ff] transition-all"
-                      title={`${g.name} (${hoursFromMinutes(g.playtime)}h)`}
-                    >
-                      <img
-                        src={gameImage(g.appId, g.icon)}
-                        alt={g.name}
-                        className="w-full h-full object-cover grayscale-[0.3] group-hover/game:grayscale-0"
-                      />
-                    </div>
-                  ))}
-                  {(activeGenre as any).gamesList.length > 6 && (
-                    <div className="h-8 px-2 rounded-[6px] bg-[#1d293d] flex items-center justify-center text-[9px] text-[#62748e] font-black">
-                      +{(activeGenre as any).gamesList.length - 6}
-                    </div>
-                  )}
-                </div>
+              >
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[10px] text-white font-medium">{item.name}</span>
               </div>
-            )}
+            ))}
           </div>
         </article>
       </section>
 
+      {/* BLOQUE DE LOGROS */}
       <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
@@ -1705,85 +1444,31 @@ export function Profile() {
               key={`${achievement.title}-${i}`}
               className={`h-[53px] rounded-[14px] border px-[13px] flex items-center gap-3 ${achievement.cardClass}`}
             >
-              <div
-                className={`w-7 h-7 rounded-[10px] flex items-center justify-center ${achievement.iconClass}`}
-              >
+              <div className={`w-7 h-7 rounded-[10px] flex items-center justify-center ${achievement.iconClass}`}>
                 <achievement.icon size={14} />
               </div>
               <div className="flex-1 min-w-0">
-                <p
-                  className={`text-[12px] leading-4 font-bold truncate ${achievement.unlocked ? "text-white" : "text-[#45556c]"}`}
-                >
+                <p className={`text-[12px] leading-4 font-bold truncate ${achievement.unlocked ? "text-white" : "text-[#45556c]"}`}>
                   {achievement.title}
                 </p>
                 <p className="text-[10px] leading-[15px] text-[#62748e] truncate flex items-center gap-1">
                   {achievement.subtitle}
                   {achievement.percent != null && (
-                    <span className="text-[#ffb900]">
-                      ({achievement.percent}%)
-                    </span>
+                    <span className="text-[#ffb900]">({achievement.percent}%)</span>
                   )}
                 </p>
               </div>
-              {achievement.unlocked && (
-                <Check size={14} className="text-[#00d492]" />
-              )}
+              {achievement.unlocked && <Check size={14} className="text-[#00d492]" />}
             </article>
           ))}
         </div>
       </section>
 
-      <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
-        <h3 className="text-white text-[24px] font-bold flex items-center gap-2 mb-3">
-          <Zap size={18} className="text-[#00d3f3]" /> Actividad Reciente
-        </h3>
-
-        <div className="space-y-1.5">
-          {recentActivity.length === 0 && (
-            <div className="h-[120px] flex items-center justify-center text-[#62748e] text-[12px]">
-              Sin datos de actividad reciente disponibles
-            </div>
-          )}
-          {recentActivity.map((item, index) => {
-            const playTone = item.tone === "play";
-            return (
-              <div
-                key={`${item.name}-${index}`}
-                className="relative pl-10 pr-2 py-2 min-h-[69px]"
-              >
-                {index < recentActivity.length - 1 && (
-                  <span className="absolute left-[20px] top-[36px] bottom-[-6px] w-px bg-[#1d293d]" />
-                )}
-                <span
-                  className={`absolute left-2 top-2.5 w-7 h-7 rounded-[10px] flex items-center justify-center border ${
-                    playTone
-                      ? "bg-[rgba(43,127,255,0.1)] border-[rgba(43,127,255,0.25)]"
-                      : "bg-[rgba(254,154,0,0.1)] border-[rgba(254,154,0,0.25)]"
-                  }`}
-                >
-                  {playTone ? (
-                    <Gamepad2 size={14} className="text-[#51a2ff]" />
-                  ) : (
-                    <Trophy size={14} className="text-[#ffb900]" />
-                  )}
-                </span>
-                <p className="text-[12px] text-[#51a2ff] font-semibold truncate">
-                  {item.name}
-                </p>
-                <p className="text-[11px] text-[#90a1b9] truncate">
-                  {item.action}
-                </p>
-                <p className="text-[10px] text-[#62748e] mt-1">{item.when}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
+      {/* BLOQUE DE BIBLIOTECA COMPLETA */}
       <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
-            <Gamepad2 size={18} className="text-[#8b5cf6]" /> Biblioteca
+            <Gamepad2 size={18} className="text-[#8b5cf6]" /> Biblioteca ({sourceGames.length})
           </h3>
           <div className="bg-[#1d293d] rounded-[10px] p-[2px] flex items-center gap-1">
             {(
@@ -1796,11 +1481,10 @@ export function Profile() {
               <button
                 key={tab.id}
                 onClick={() => setLibraryFilter(tab.id)}
-                className={`h-[23px] px-[10px] rounded-[8px] text-[10px] font-medium transition-colors ${
-                  libraryFilter === tab.id
+                className={`h-[23px] px-[10px] rounded-[8px] text-[10px] font-medium transition-colors ${libraryFilter === tab.id
                     ? "bg-[#155dfc] text-white"
                     : "text-[#90a1b9] hover:text-white"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
@@ -1813,62 +1497,43 @@ export function Profile() {
             {libraryEmptyMessage}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
             {libraryRows.map((game) => {
               const gameHours = hoursFromMinutes(game.playtime);
-              const gamePercentage =
-                totalHours > 0 ? Math.round((gameHours / totalHours) * 100) : 0;
+              const gamePercentage = totalHours > 0 ? Math.round((gameHours / totalHours) * 100) : 0;
               const lastPlayedLabel = relativeLabel(game.lastPlayed, "Nunca");
 
               return (
                 <Link
                   key={game.appId}
                   to={`/game/${game.appId}`}
-                  className="group relative rounded-[14px] overflow-hidden border border-[#1d293d] hover:border-[#2b5cb4] transition-all duration-300 hover:shadow-[0px_0px_20px_rgba(43,127,255,0.3)]"
+                  className="group relative rounded-[14px] overflow-hidden border border-[#1d293d] hover:border-[#2b5cb4] transition-all duration-300"
                 >
-                  <div className="aspect-square relative overflow-hidden bg-[#162032]">
+                  <div className="aspect-[3/4] relative overflow-hidden bg-[#162032]">
                     <img
-                      src={gameImage(game.appId, game.icon)}
+                      src={`https://cdn.cloudflare.steamstatic.com/steam/apps/${game.appId}/library_600x900.jpg`}
                       alt={game.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        if (game.icon) target.src = game.icon;
+                        // Si falla la imagen vertical, usar el header apaisado centrado
+                        target.src = gameImage(game.appId, game.icon);
                       }}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#020618] via-[rgba(2,6,24,0.4)] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020618] via-[#020618]/50 to-transparent opacity-90 group-hover:opacity-70 transition-opacity" />
                   </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-                    <p className="text-white text-[12px] sm:text-[13px] font-bold leading-tight truncate mb-2">
+                  <div className="absolute bottom-0 left-0 right-0 p-3">
+                    <p className="text-white text-[12px] font-bold leading-tight truncate mb-1">
                       {game.name}
                     </p>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] text-[#90a1b9] flex items-center gap-1">
-                          <Clock size={12} className="text-[#51a2ff]" />
-                          {gameHours}h jugadas
-                        </span>
-                      </div>
-
-                      {gameHours > 0 && (
-                        <div className="w-full h-1.5 bg-[rgba(29,41,61,0.6)] rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-[#51a2ff] to-[#00b8db] rounded-full"
-                            style={{ width: `${gamePercentage}%` }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] text-[#62748e]">
-                          {gamePercentage}% del total
-                        </span>
-                        <span className="text-[9px] text-[#45556c]">
-                          {lastPlayedLabel}
-                        </span>
-                      </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-[#51a2ff] font-semibold">
+                        {gameHours}h
+                      </span>
+                      <span className="text-[9px] text-[#62748e]">
+                        {lastPlayedLabel}
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -1878,220 +1543,123 @@ export function Profile() {
         )}
       </section>
 
+      {/* BLOQUE CURIOSIDADES MEJORADO (INSIGHTS) */}
       <section className="bg-[rgba(15,23,43,0.8)] border border-[#1d293d] rounded-[16px] px-5 py-5 shadow-[0px_20px_25px_0px_rgba(0,0,0,0.1)]">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-white text-[24px] font-bold flex items-center gap-2">
-            <Sparkles size={18} className="text-[#51a2ff]" /> Identidad y Firma
+            <Sparkles size={18} className="text-[#51a2ff]" /> Curiosidades del Perfil
           </h3>
           <span className="bg-[#1d293d] rounded-full px-2 py-1 text-[10px] uppercase tracking-[0.5px] text-[#62748e]">
             INSIGHTS
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#080e1c] to-[#0f172b] p-6 shadow-xl">
-            <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Sparkles size={80} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          {/* Identidad Gamer */}
+          <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#080e1c] to-[#0f172b] p-5 shadow-xl flex flex-col justify-between">
+            <div className="absolute top-0 right-0 p-3 opacity-5">
+              <Users size={100} />
             </div>
-            <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#51a2ff]">
-                <span className="text-[18px]">{gamerIdentity.emoji}</span>
-                Identidad gamer
+            <div>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#51a2ff]">
+                <span className="text-[16px]">{gamerIdentity.emoji}</span> Identidad Principal
               </div>
-              <p className="mt-4 text-[28px] font-black text-white leading-tight">
+              <p className="mt-3 text-[24px] font-black text-white leading-tight">
                 {gamerIdentity.label}
               </p>
-              <p className="mt-2 text-[13px] text-[#94a3b8] leading-relaxed">
+              <p className="mt-1 text-[12px] text-[#94a3b8]">
                 {gamerIdentity.detail}
               </p>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.5px] font-bold text-[#45556c]">
-                {identityNote}
-              </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                {identityGames.map((game) => {
-                  const hours = hoursFromMinutes(game.playtime);
-                  return (
-                    <div
-                      key={`identity-${game.appId}`}
-                      className="flex items-center gap-2 rounded-[10px] border border-[#1d293d] bg-[#0f172b]/70 p-2"
-                    >
-                      <div className="h-10 w-14 overflow-hidden rounded-[8px] border border-[#1d293d] bg-[#0b1225]">
-                        <img
-                          src={resolveGameCover(game)}
-                          alt={game.name}
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            if (game.icon) target.src = game.icon;
-                          }}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-[11px] text-white truncate">
-                          {game.name}
-                        </p>
-                        <p className="text-[9px] text-[#64748b]">
-                          {hours}h ·{" "}
-                          {totalHours > 0
-                            ? Math.round((hours / totalHours) * 100)
-                            : 0}
-                          %
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-                {identityGames.length === 0 && (
-                  <div className="col-span-2 rounded-[10px] border border-[#1d293d] bg-[#0f172b]/70 p-2 text-[10px] text-[#62748e]">
-                    Sin datos suficientes para listar juegos.
-                  </div>
-                )}
-              </div>
-              {gamerIdentity.pct > 0 && (
-                <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#51a2ff] to-[#00b8db]"
-                    style={{ width: `${Math.min(100, gamerIdentity.pct)}%` }}
+            </div>
+
+            <div className="mt-4 pt-4 border-t border-[#1d293d]/50">
+              <p className="text-[9px] uppercase tracking-wider text-[#45556c] mb-2 font-bold">Juegos que lo confirman</p>
+              <div className="flex -space-x-2">
+                {identityGames.slice(0, 4).map((game, i) => (
+                  <img
+                    key={game.appId}
+                    src={game.icon || resolveGameCover(game)}
+                    className="w-8 h-8 rounded-full border-2 border-[#0f172b] object-cover"
+                    title={game.name}
+                    style={{ zIndex: 10 - i }}
                   />
-                </div>
-              )}
-            </div>
-          </article>
-
-          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#1a1b2f] to-[#121826] p-6 shadow-xl">
-            <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#ffb900]">
-                <Trophy size={16} /> Juego firma
-              </div>
-              <div className="mt-5 flex items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[24px] font-black text-white truncate">
-                    {signatureTitle}
-                  </p>
-                  <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
-                    {signatureDetail}
-                  </p>
-                  <p className="mt-1 text-[11px] text-[#64748b] font-medium italic">
-                    {signatureSub}
-                  </p>
-                  {signatureGame && (
-                    <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-[#ffb900] to-[#ff637e]"
-                        style={{ width: `${Math.min(100, signaturePct)}%` }}
-                      />
-                    </div>
-                  )}
-                </div>
-                {signatureGame && (
-                  <div className="h-[72px] w-[96px] overflow-hidden rounded-[10px] border border-[#1d293d] bg-[#0b1225]">
-                    <img
-                      src={signatureCover}
-                      alt={signatureTitle}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (signatureGame.icon) target.src = signatureGame.icon;
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </article>
-
-          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-6 shadow-xl">
-            <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#00d492]">
-                <Target size={16} /> Dominio de biblioteca
-              </div>
-              <p className="mt-4 text-[24px] font-black text-white">
-                {dominance.label}
-              </p>
-              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
-                {dominanceSummary}
-              </p>
-              <p className="mt-1 text-[11px] text-[#64748b] leading-relaxed">
-                {dominance.detail}
-              </p>
-              <div className="mt-2 grid grid-cols-3 gap-2">
-                {dominanceGames.map(({ game, hours, pct }) => (
-                  <div key={`dominance-${game.appId}`} className="space-y-1">
-                    <div className="h-[52px] w-full overflow-hidden rounded-[10px] border border-[#1d293d] bg-[#0b1225]">
-                      <img
-                        src={resolveGameCover(game)}
-                        alt={game.name}
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          if (game.icon) target.src = game.icon;
-                        }}
-                      />
-                    </div>
-                    <p className="text-[10px] text-white truncate">
-                      {game.name}
-                    </p>
-                    <p className="text-[9px] text-[#64748b]">
-                      {hours}h · {pct}%
-                    </p>
-                  </div>
                 ))}
-                {dominanceGames.length === 0 && (
-                  <div className="col-span-3 rounded-[10px] border border-[#1d293d] bg-[#0f172b]/70 p-2 text-[10px] text-[#62748e]">
-                    Sin datos suficientes para mostrar los juegos principales.
-                  </div>
-                )}
               </div>
-              {totalHours > 0 && (
-                <div className="mt-3 h-1.5 bg-[#1d293d] rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-[#00d492] to-[#51a2ff]"
-                    style={{ width: `${Math.min(100, concentrationPct)}%` }}
+            </div>
+          </article>
+
+          {/* Juego Firma */}
+          <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#1a1b2f] to-[#121826] p-5 shadow-xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#ffb900]">
+                <Flame size={14} /> Tu Juego Firma
+              </div>
+              <p className="mt-3 text-[22px] font-black text-white leading-tight truncate">
+                {signatureTitle}
+              </p>
+              <p className="mt-1 text-[12px] text-[#94a3b8]">
+                {signatureDetail}
+              </p>
+            </div>
+
+            <div className="mt-4">
+              {signatureGame ? (
+                <div className="h-[80px] w-full overflow-hidden rounded-[12px] border border-[#1d293d] relative">
+                  <img
+                    src={signatureCover}
+                    alt={signatureTitle}
+                    className="h-full w-full object-cover"
                   />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-2">
+                    <span className="text-[10px] font-bold text-[#ffb900]">A esto le dedicas tu vida</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[80px] w-full rounded-[12px] border border-dashed border-[#314158] flex items-center justify-center text-[10px] text-[#62748e]">
+                  Sigue jugando para descubrirlo
                 </div>
               )}
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#10263f] to-[#0f172b] p-6 shadow-xl">
-            <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#00d3f3]">
-                <Zap size={16} /> Racha reciente
-              </div>
-              <p className="mt-4 text-[24px] font-black text-white">
-                {recentSummary}
-              </p>
-              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
-                {recentDetail}
-              </p>
-              <p className="mt-1 text-[11px] text-[#64748b]">
-                {recentMinutes > 0
-                  ? "Actividad basada en las últimas 2 semanas"
-                  : "No se detecta actividad reciente"}
-              </p>
+          {/* NUEVO INSIGHT: Steam Journey (Línea de tiempo) */}
+          <article className="relative overflow-hidden rounded-[20px] border border-[#1d293d] bg-gradient-to-br from-[#0b2238] to-[#0f172b] p-5 shadow-xl flex flex-col">
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[1px] font-black text-[#00d492]">
+              <CalendarDays size={14} /> Steam Journey
+            </div>
+            <p className="mt-1 text-[11px] text-[#94a3b8] mb-4">
+              Tus años más intensos y su juego estrella
+            </p>
+
+            <div className="flex-1 flex flex-col justify-center gap-3">
+              {timelineEras.length > 0 ? timelineEras.map((era, idx) => (
+                <div key={era.year} className="flex items-center gap-3 relative">
+                  {/* Línea conectora */}
+                  {idx !== timelineEras.length - 1 && (
+                    <div className="absolute left-[13px] top-[24px] w-0.5 h-6 bg-[#1d293d] z-0" />
+                  )}
+                  {/* Punto del año */}
+                  <div className="w-7 h-7 rounded-full bg-[#0b1225] border-2 border-[#00d492] flex items-center justify-center z-10 shrink-0">
+                    <span className="text-[8px] font-black text-[#00d492]">{String(era.year).slice(2)}'</span>
+                  </div>
+                  {/* Detalle */}
+                  <div className="flex-1 min-w-0 bg-[#162032]/50 border border-[#1d293d] rounded-lg p-1.5 flex items-center justify-between">
+                    <span className="text-[11px] text-white font-semibold truncate max-w-[120px]">{era.topGame}</span>
+                    <span className="text-[9px] text-[#00d492] font-mono shrink-0">{era.hours}h</span>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-center text-[11px] text-[#62748e] py-4">
+                  No hay historial de años suficiente.
+                </div>
+              )}
             </div>
           </article>
 
-          <article className="relative overflow-hidden rounded-[24px] border border-[#1d293d] bg-gradient-to-br from-[#0f1c33] to-[#0f172b] p-6 shadow-xl">
-            <div className="relative">
-              <div className="flex items-center gap-2 text-[11px] uppercase tracking-[1px] font-black text-[#51a2ff]">
-                <Clock size={16} /> Último juego
-              </div>
-              <p className="mt-4 text-[24px] font-black text-white truncate">
-                {lastPlayedTitle}
-              </p>
-              <p className="mt-2 text-[13px] text-[#94a3b8] font-bold">
-                {lastPlayedDetail}
-              </p>
-              <p className="mt-1 text-[11px] text-[#64748b]">
-                {lastPlayedGame
-                  ? "Se actualiza con Steam cuando hay actividad"
-                  : "Sin datos recientes disponibles"}
-              </p>
-            </div>
-          </article>
         </div>
       </section>
+
     </div>
   );
 }
