@@ -28,6 +28,65 @@ interface Message {
 }
 
 /**
+ * Renderiza Markdown básico (bold, italic, listas, saltos de línea) sin dependencias externas.
+ * Soporta: **bold**, *italic*, ## títulos, - listas y \n saltos de línea.
+ */
+function renderMarkdown(text: string): React.ReactNode {
+  const lines = text.split('\n');
+
+  return lines.map((line, lineIdx) => {
+    const isLast = lineIdx === lines.length - 1;
+
+    // Título ## o ###
+    if (/^#{1,3} /.test(line)) {
+      const content = line.replace(/^#{1,3} /, '');
+      return (
+        <span key={lineIdx} className="block font-bold text-white mt-2 mb-0.5">
+          {inlineMarkdown(content)}
+          {!isLast && ''}
+        </span>
+      );
+    }
+
+    // Elemento de lista: - o *
+    if (/^[-*] /.test(line)) {
+      return (
+        <span key={lineIdx} className="block pl-3 before:content-['•'] before:mr-2 before:text-blue-400">
+          {inlineMarkdown(line.replace(/^[-*] /, ''))}
+          {!isLast && ''}
+        </span>
+      );
+    }
+
+    // Línea vacía → separador
+    if (line.trim() === '') {
+      return <span key={lineIdx} className="block h-1" />;
+    }
+
+    // Línea normal
+    return (
+      <span key={lineIdx} className="block">
+        {inlineMarkdown(line)}
+      </span>
+    );
+  });
+}
+
+/** Procesa negrita e itálica dentro de una línea. */
+function inlineMarkdown(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={i} className="italic">{part.slice(1, -1)}</em>;
+    }
+    return part;
+  });
+}
+
+/**
  * Función: AssistantModal
  * Descripción: Componente principal de la interfaz o clase estructural que representa a
  * AssistantModal. Este elemento encapsula la lógica de presentación, gestiona
@@ -673,7 +732,9 @@ export function AssistantModal() {
                         </div>
                       )}
                       
-                      <p className="whitespace-pre-wrap">{msg.text}</p>
+                      <div className="text-sm leading-relaxed">
+                        {msg.role === 'assistant' ? renderMarkdown(msg.text) : msg.text}
+                      </div>
                     </div>
                   </div>
                 ))}
