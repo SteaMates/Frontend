@@ -149,7 +149,7 @@ function AIRecommendations({ steamId }: { steamId: string }) {
         const raw = sessionStorage.getItem(AI_RECS_CACHE_KEY);
         if (raw) {
           const cached = JSON.parse(raw);
-          if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL) {
+          if (cached.steamId === steamId && Date.now() - cached.timestamp < AI_RECS_CACHE_TTL && cached.deals?.length > 0) {
             setDeals(cached.deals);
             return;
           }
@@ -165,14 +165,16 @@ function AIRecommendations({ steamId }: { steamId: string }) {
       });
       const found: RecommendedDeal[] = res.data?.deals ?? [];
       setDeals(found);
-      // Guardar en caché de sesión
-      try {
-        sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
-          steamId,
-          deals: found,
-          timestamp: Date.now(),
-        }));
-      } catch { /* quota exceeded — ignorar */ }
+      // Solo guardar en caché si hay resultados (evita cachear resultados vacíos)
+      if (found.length > 0) {
+        try {
+          sessionStorage.setItem(AI_RECS_CACHE_KEY, JSON.stringify({
+            steamId,
+            deals: found,
+            timestamp: Date.now(),
+          }));
+        } catch { /* quota exceeded — ignorar */ }
+      }
     } catch (e: any) {
       // En caso de error, restaurar los deals del caché si los hay
       try {
