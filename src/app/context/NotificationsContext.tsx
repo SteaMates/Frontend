@@ -17,6 +17,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   respondToGamingSession,
+  deleteNotification as apiDeleteNotification,
+  deleteAllNotifications as apiDeleteAllNotifications,
 } from "../../lib/api";
 import { useAuth } from "./AuthContext";
 
@@ -28,7 +30,10 @@ export interface AppNotification {
     | "session_cancelled"
     | "session_updated"
     | "price_alert_triggered"
-    | "list_mention";
+    | "list_mention"
+    | "content_deleted"
+    | "list_like"
+    | "list_comment";
   title: string;
   message: string;
   readAt: string | null;
@@ -60,6 +65,8 @@ interface NotificationsContextType {
     sessionId: string,
     response: "accepted" | "declined"
   ) => Promise<void>;
+  deleteNotification: (id: string) => Promise<void>;
+  clearAll: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -129,9 +136,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       setNotifications((prev) =>
         prev.map((n) => {
           if (n._id !== id) return n;
-          // Don't set readAt locally for unresponded invites — it would hide
-          // the toast on next render. The backend is updated but local state
-          // keeps readAt null until the user explicitly responds/dismisses.
           if (n.type === "session_invite" && !respondedIds.current.has(id)) {
             return n;
           }
@@ -162,24 +166,33 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
       response: "accepted" | "declined"
     ) => {
       await respondToGamingSession(sessionId, response);
-      // Mark as responded locally so the toast disappears immediately
       respondedIds.current.add(notificationId);
       shownInviteIds.current.add(notificationId);
-      // Mark as read in backend too
       await markRead(notificationId);
     },
     [markRead]
   );
 
+  const deleteNotification = useCallback(async (id: string) => {
+    try {
+      await apiDeleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const clearAll = useCallback(async () => {
+    try {
+      await apiDeleteAllNotifications();
+      setNotifications([]);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 
-  // Pending invites = session_invites that:
-  // - Have no readAt (not yet read/responded, survives page reloads)
-  // - Haven't been responded/dismissed in this session
-  // readAt is set by the backend when the user responds, so it's the
-  // reliable source of truth across reloads.
-  // pendingInvites: usado por los toasts flotantes — excluye los ya mostrados
-  // en esta sesión para evitar que reaparezcan al hacer polling.
   const pendingInvites = notifications.filter(
     (n) =>
       n.type === "session_invite" &&
@@ -198,6 +211,8 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
         markRead,
         markAllRead,
         respondInvite,
+        deleteNotification,
+        clearAll,
         refresh,
       }}
     >
@@ -206,13 +221,6 @@ export function NotificationsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Función: useNotifications
- * Descripción: Hook personalizado de React que abstrae y gestiona la lógica relacionada con
- * notifications. Este hook maneja los efectos secundarios, centraliza el estado
- * necesario y expone las propiedades y métodos esenciales para los componentes
- * que lo consuman.
- */
 export function useNotifications() {
   const ctx = useContext(NotificationsContext);
   if (!ctx)

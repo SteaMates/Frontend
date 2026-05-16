@@ -115,6 +115,20 @@ export const markAllNotificationsRead = () =>
   api.patch("/api/notifications/read-all");
 
 /**
+ * Función: deleteNotification
+ * Descripción: Proceso destructivo para eliminar una notificación específica.
+ */
+export const deleteNotification = (id: string) =>
+  api.delete(`/api/notifications/${id}`);
+
+/**
+ * Función: deleteAllNotifications
+ * Descripción: Proceso destructivo para eliminar todas las notificaciones del usuario.
+ */
+export const deleteAllNotifications = () =>
+  api.delete("/api/notifications/all");
+
+/**
  * Función: createReport
  * Descripción: Función que inicializa o registra un nuevo elemento para report. Recibe los
  * datos base, ejecuta las validaciones de integridad y persiste la nueva

@@ -248,10 +248,12 @@ function timeAgo(dateStr: string): string {
 function NotificationItem({
   n,
   onRead,
+  onDelete,
   onClosePanel
 }: {
   n: AppNotification;
   onRead: (id: string) => void;
+  onDelete: (id: string) => void;
   onClosePanel: () => void;
 }) {
   const navigate = useNavigate();
@@ -342,7 +344,7 @@ function NotificationItem({
 
   return (
     <div
-      className={`px-4 py-3 transition-colors hover:bg-slate-800/60 ${isUnread ? "bg-slate-800/30" : ""}`}
+      className={`group px-4 py-3 transition-colors hover:bg-slate-800/60 ${isUnread ? "bg-slate-800/30" : ""}`}
     >
       <div
         className="flex gap-3 items-start cursor-pointer"
@@ -379,6 +381,18 @@ function NotificationItem({
         {isUnread && !isPendingInvite && (
           <span className="shrink-0 mt-1.5 w-2 h-2 rounded-full bg-blue-400" />
         )}
+
+        {/* Delete button (X) */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(n._id);
+          }}
+          className="shrink-0 mt-0.5 p-1 rounded-md text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+          title="Eliminar notificación"
+        >
+          <X size={14} />
+        </button>
       </div>
 
       {isPendingInvite && (
@@ -422,6 +436,8 @@ export function NotificationBell({
     unreadCount,
     markRead,
     markAllRead,
+    deleteNotification,
+    clearAll,
     loading,
     refresh,
   } = useNotifications();
@@ -604,6 +620,7 @@ export function NotificationBell({
                       key={n._id}
                       n={n}
                       onRead={markRead}
+                      onDelete={deleteNotification}
                       onClosePanel={() => setOpen(false)}
                     />
                   ))}
@@ -613,6 +630,14 @@ export function NotificationBell({
 
             {notifications.length > 0 && (
               <div className="border-t border-slate-800 px-4 py-2.5 flex justify-end">
+                <button
+                  onClick={clearAll}
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-400 transition-colors"
+                >
+                  <X size={12} />
+                  Borrar todo
+                </button>
+                <div className="flex-1" />
                 <button
                   onClick={markAllRead}
                   className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-200 transition-colors"
