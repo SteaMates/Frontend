@@ -917,25 +917,33 @@ export function Profile() {
   const playedGames = sortedByHours.filter((g) => (g.playtime || 0) > 0);
   const top3Games = playedGames.slice(0, 3);
 
-  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY)
+  // CÁLCULO DE LA LÍNEA DE TIEMPO (STEAM JOURNEY) - MEJORADO
   const getTimelineEras = () => {
     if (playedGames.length === 0) return [];
 
-    // 1. Recopilar eras con fechas reales
+    // Crear un mapa de fechas recientes para mayor precisión
+    const recentDateMap: Record<number, number> = {};
+    recentGames.forEach(rg => {
+      if (rg.lastPlayed) recentDateMap[rg.appId] = rg.lastPlayed;
+    });
+
+    // 1. Recopilar eras con fechas (Cruzando con datos recientes si falta en la biblioteca)
     const gameEras = playedGames
       .map(g => {
-        const year = g.lastPlayed ? new Date(g.lastPlayed * 1000).getFullYear() : null;
+        const ts = recentDateMap[g.appId] || g.lastPlayed || 0;
+        const year = ts > 0 ? new Date(ts > 1e11 ? ts : ts * 1000).getFullYear() : null;
         return { year, hours: hoursFromMinutes(g.playtime), name: g.name };
       })
       .filter(g => g.year && g.year >= 2003 && g.year <= new Date().getFullYear());
 
     const yearMap: Record<number, { hours: number, topGame: string, maxGameHours: number }> = {};
     gameEras.forEach(g => {
-      if (!yearMap[g.year!]) yearMap[g.year!] = { hours: 0, topGame: g.name, maxGameHours: g.hours };
-      yearMap[g.year!].hours += g.hours;
-      if (g.hours > yearMap[g.year!].maxGameHours) {
-        yearMap[g.year!].topGame = g.name;
-        yearMap[g.year!].maxGameHours = g.hours;
+      const y = g.year!;
+      if (!yearMap[y]) yearMap[y] = { hours: 0, topGame: g.name, maxGameHours: g.hours };
+      yearMap[y].hours += g.hours;
+      if (g.hours > yearMap[y].maxGameHours) {
+        yearMap[y].topGame = g.name;
+        yearMap[y].maxGameHours = g.hours;
       }
     });
 
@@ -943,24 +951,24 @@ export function Profile() {
       .map(([year, data]) => ({ year: Number(year), ...data }))
       .sort((a, b) => b.year - a.year);
 
-    // 2. Si no hay eras con fecha, usar hitos por horas (Legacy Era)
+    // 2. Fallback si no hay fechas: Usar el juego más jugado como hito atemporal
     if (results.length === 0 && topGames.length > 0) {
-      const mainGame = topGames[0];
+      const main = topGames[0];
       results.push({
-        year: memberYear ? Number(memberYear) : 0,
+        year: memberYear ? Number(memberYear) : new Date().getFullYear(),
         hours: totalHours,
-        topGame: mainGame.name,
-        maxGameHours: hoursFromMinutes(mainGame.playtime),
+        topGame: main.name,
+        maxGameHours: hoursFromMinutes(main.playtime),
         isLegacy: true
       });
     }
 
-    // 3. Añadir el origen si no está presente y lo conocemos
+    // 3. Añadir origen
     if (memberYear && !results.some(r => r.year === Number(memberYear))) {
       results.push({
         year: Number(memberYear),
         hours: 0,
-        topGame: "Llegada a SteaMates",
+        topGame: "Llegada a Steam",
         maxGameHours: 0,
         isOrigin: true
       });
