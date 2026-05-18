@@ -994,11 +994,34 @@ export function Lists() {
                       Portada
                     </p>
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-                      <label className="relative h-[88px] rounded-[10px] overflow-hidden border border-[#2f405e] hover:border-[#4766a3] transition-colors flex flex-col items-center justify-center cursor-pointer bg-[#0f172a]">
-                        <Plus size={20} className="text-[#a7b6cd] mb-1" />
-                        <span className="text-[#a7b6cd] text-[12px] font-medium">
-                          Subir foto
-                        </span>
+                      <label className={`relative h-[88px] rounded-[10px] overflow-hidden border transition-colors flex flex-col items-center justify-center cursor-pointer bg-[#0f172a] ${
+                        createCover.startsWith("data:image/")
+                          ? "border-[#2b7fff]"
+                          : "border-[#2f405e] hover:border-[#4766a3]"
+                      }`}>
+                        {createCover.startsWith("data:image/") ? (
+                          <>
+                            <img
+                              src={createCover}
+                              alt="Portada subida"
+                              className="absolute inset-0 h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(1,8,22,0.85)] to-transparent" />
+                            <span className="absolute top-2 right-2 h-5 w-5 rounded-full bg-[#2b7fff] flex items-center justify-center text-white z-10 animate-in zoom-in duration-300">
+                              <Check size={12} />
+                            </span>
+                            <span className="relative text-white text-[11px] font-black bg-[#020b22]/80 px-2.5 py-1 rounded-[6px] shadow-lg border border-[#1e2c46] z-10 hover:bg-[#155dfc] transition-colors">
+                              Cambiar foto
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={20} className="text-[#a7b6cd] mb-1" />
+                            <span className="text-[#a7b6cd] text-[12px] font-medium">
+                              Subir foto
+                            </span>
+                          </>
+                        )}
                         <input
                           type="file"
                           accept="image/png, image/jpeg"
